@@ -3,31 +3,35 @@
     <!--  ------------------------------------------ electricity div ------------------------------------------------  -->
     <div class="electricity-container">
       <div class="electricity">
-        <button class="icon-btn-electricity">
+        <button class="icon-btn-electricity" (click)="setSection('household-electricity')"
+          [class.active]="activeSection === 'household-electricity'">
           <span class="electricity-comparison">
             <img src="assets/icons/Stromvergleich.png" class="icon-cable" alt="icon-cable">
           </span>
           <span class="btn-text">Strom | Hausstrom</span>
         </button>
-        <button class="icon-btn-electricity">
+        <button class="icon-btn-electricity" (click)="setSection('gas')" [class.active]="activeSection === 'gas'">
           <span class="electricity-comparison">
             <img src="assets/icons/Gasvergleich.png" class="icon" alt="icon-gas">
           </span>
           <span class="btn-text">Gas</span>
         </button>
-        <button class="icon-btn-electricity">
+        <button class="icon-btn-electricity" (click)="setSection('heating-electricity')"
+          [class.active]="activeSection === 'heating-electricity'">
           <span class="electricity-comparison">
             <img src="assets/icons/Warmepumpe.png" class="icon-pump" alt="icon-pump">
           </span>
           <span class="btn-text">Heizstrom | Wärmepumpe</span>
         </button>
-        <button class="icon-btn-electricity">
+        <button class="icon-btn-electricity" (click)="setSection('night-heaters')"
+          [class.active]="activeSection === 'night-heaters'">
           <span class="electricity-comparison">
             <img src="assets/icons/Nachtspeicherofen.png" class="icon" alt="icon-heizstrom">
           </span>
           <span class="btn-text">Heizstrom | Nachtspeicher</span>
         </button>
-        <button class="icon-btn-electricity">
+        <button class="icon-btn-electricity" (click)="setSection('car-electricity')"
+          [class.active]="activeSection === 'car-electricity'">
           <span class="electricity-comparison">
             <img src="assets/icons/Ladestrom.png" class="icon" alt="icon-autostrom">
           </span>
@@ -80,30 +84,19 @@
   </div>
 
   <div class="home-center">
-    <app-compare-prices></app-compare-prices>
+
+    <app-compare-prices *ngIf="activeSection === 'household-electricity'"></app-compare-prices>
+
+    <app-gas *ngIf="activeSection === 'gas'"></app-gas>
+
+    <app-heating-electricity *ngIf="activeSection === 'heating-electricity'"></app-heating-electricity>
+
+    <app-night-heaters *ngIf="activeSection === 'night-heaters'"></app-night-heaters>
+
+    <app-car-electricity *ngIf="activeSection === 'car-electricity'"></app-car-electricity>
+
   </div>
   <!-- -------------------------------------------- home right ------------------------------------------------ -->
-  <div class="home-right">
-    <div class="compare-provider">
-      <h1 class="item-provider">Stromanbieter</h1>
-      <h1 class="item-provider">vergleichen</h1>
-    </div>
-    <div class="discount-price">
-      <div class="item-discount-top">
-        <span class="item-price">Bis zu </span>
-      </div>
-      <div class="item-discount">
-        <span class="amount">850€</span>
-      </div>
-      <div class="item-discount-bottom">
-        <span class="item-price">sparen
-          <mat-icon class="info-icon">
-            info_i
-          </mat-icon>
-        </span>
-      </div>
-    </div>
-  </div>
 </div>
 
 <!-- discount -->
@@ -137,30 +130,30 @@
   <!-- ------------------------------------------ other services -------------------------------------------------- -->
   <div class="container-other-services">
     <div class="main-container-service">
-      <div class="other-service-header">Weitere Services</div>
+      <div class="container-header">Weitere Services</div>
       <div class="container-all-services">
         <div class="container-services-left">
           <button class="main-btn">
             <span class="container-services">
-              <img src="assets/icons/Umzugsservice.png" class="icon-transport" alt="check">
+              <img src="assets/icons/Umzugsservice.png" class="icon-transport" alt="transport">
             </span>
             <span class="btn-text">Umzugservice</span>
           </button>
           <button class="main-btn">
             <span class="container-services">
-              <img src="assets/icons/Kündigung.png" class="icon-transport" alt="check">
+              <img src="assets/icons/Kündigung.png" class="icon-transport" alt="transport">
             </span>
             <span class="btn-text">Kündigungsschreiben</span>
           </button>
           <button class="main-btn">
             <span class="container-services">
-              <img src="assets/icons/Freunde.png" class="icon-transport" alt="check">
+              <img src="assets/icons/Freunde.png" class="icon-transport" alt="transport">
             </span>
             <span class="btn-text">Freunde werben</span>
           </button>
           <button class="main-btn">
             <span class="container-services">
-              <img src="assets/icons/MA_Vorteil.png" class="icon-transport" alt="check">
+              <img src="assets/icons/MA_Vorteil.png" class="icon-transport" alt="transport">
             </span>
             <span class="btn-text">Mitarbeitervorteile</span>
           </button>
@@ -168,19 +161,19 @@
         <div class="container-services-right">
           <button class="main-btn">
             <span class="container-services">
-              <img src="assets/icons/Partnerprogramm.png" class="icon-transport" alt="check">
+              <img src="assets/icons/Partnerprogramm.png" class="icon-transport" alt="transport">
             </span>
             <span class="btn-text">Partnerprogramm</span>
           </button>
           <button class="main-btn">
             <span class="container-services">
-              <img src="assets/icons/Businesspartner.png" class="icon-transport" alt="check">
+              <img src="assets/icons/Businesspartner.png" class="icon-transport" alt="transport">
             </span>
             <span class="btn-text">Vertriebspartner werden</span>
           </button>
           <button class="main-btn">
             <span class="container-services">
-              <img src="assets/icons/Tippgeber.png" class="icon-transport" alt="check">
+              <img src="assets/icons/Tippgeber.png" class="icon-transport" alt="transport">
             </span>
             <span class="btn-text">Tippgeber werden</span>
           </button>
@@ -189,10 +182,10 @@
     </div>
   </div>
 
-  <!-- ---------------------------------------------    contact us --------------------------------------------------------------  -->
+  <!-- ---------------------------------------------    contact us -----------------------------------------------------  -->
   <div class="container-contact-us">
     <div class="main-container-service">
-      <div class="header-contact-us">Benötigen Sie Unterstützung?</div>
+      <div class="container-header contact-us">Benötigen Sie Unterstützung?</div>
       <div class="container-contact">
         <div class="contact-us">
           <button class="main-btn">
@@ -226,7 +219,6 @@
             <span class="btn-text">Kontaktformular</span>
           </button>
         </div>
-
       </div>
     </div>
   </div>

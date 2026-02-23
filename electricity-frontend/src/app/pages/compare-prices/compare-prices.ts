@@ -15,5 +15,16 @@ import { CommonModule } from '@angular/common';
   styleUrl: './compare-prices.css',
 })
 export class ComparePrices {
+  consumption = 1600; // default value
 
+  setConsumption(value: number) {
+    this.consumption = value;
+  }
+
+  selectedPersons = 2;
+
+  selectPersons(persons: number, value: number) {
+    this.selectedPersons = persons;
+    this.consumption = value;
+  }
 }

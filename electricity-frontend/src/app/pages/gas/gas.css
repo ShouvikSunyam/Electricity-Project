@@ -1,0 +1,12 @@
+.feature-header1 {
+  padding: 0.1rem 0.2rem 0.3rem 0.4rem;
+}
+.feature-header {
+  padding: 0.3rem 0.5rem 0.5rem 0.5rem;
+}
+
+.container-callback {
+  height: 26%;
+  gap: 0.5rem;
+
+}

@@ -11,14 +11,22 @@ import { ComparePrices } from "../compare-prices/compare-prices";
 import { Discount } from '../discount/discount';
 import { AboutUs } from '../about-us/about-us';
 import { OtherServices } from '../other-services/other-services';
+import { Gas } from '../gas/gas';
+import { NightHeaters } from '../night-heaters/night-heaters';
+import { CarElectricity } from '../car-electricity/car-electricity';
+import { HeatingElectricity } from '../heating-electricity/heating-electricity';
 
 
 @Component({
   selector: 'app-home',
-  imports: [MatButtonModule, MatIconModule, MatToolbarModule, MatFormFieldModule, MatInputModule, CommonModule, Electricity, OurServices, ComparePrices, Discount, AboutUs, OtherServices],
+  imports: [ MatIconModule, MatInputModule, CommonModule, ComparePrices, Discount, Gas, NightHeaters, CarElectricity, HeatingElectricity],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
 export class Home {
+  activeSection: 'household-electricity' | 'gas' | 'heating-electricity' | 'night-heaters' | 'car-electricity' = 'household-electricity';
 
+  setSection(section: any) {
+    this.activeSection = section;
+  }
 }

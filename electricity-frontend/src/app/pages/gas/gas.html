@@ -1,7 +1,7 @@
 <div class="compare-all">
   <div class="compare-price">
     <div class="container-address">
-      <div class="feature-header">Hausstrom-Vergleich</div>
+      <div class="feature-header">Gas-Vergleich</div>
       <div class="feature-grid">
         <div class="row row-1">
           <input type="text" placeholder="Ihre Postleitzahl" class="box small">
@@ -9,45 +9,30 @@
             <input type="text" placeholder="Ottobeuren" class="box large">
           </div>
         </div>
-
         <div class="row row-2">
           <input type="text" placeholder="Ihre Straße" class="box large">
           <input type="text" placeholder="Hausnummer" class="box small">
         </div>
       </div>
-      <div class="feature-header1">Bitte Personaenanzahl anklicken <strong> oder </strong> kWh / Jahr direkt eingaben
-      </div>
+      <div class="feature-header1">Bitte Wohnungsgröße in m<sup>2</sup> anklicken <strong>oder</strong> kWh / Jahr
+        direkt
+        eingaben</div>
       <div class="container-person">
         <div class="compare-person">
           <div class="person-option">
             <button class="person" (click)="selectPersons(1, 1600)" [class.active]="selectedPersons === 1">
-              <span class="person-icon">
-                <img src="assets/icons/Familie_1.png" class="icon-family-1" alt="family">
-              </span>
-              <span class="person-count">1</span>
+              <span class="person-count">50m<sup>2</sup></span>
             </button>
             <button class="person" (click)="selectPersons(2, 2510)" [class.active]="selectedPersons === 2">
-              <span class="person-icon">
-                <img src="assets/icons/Familie_2.png" class="icon-family-2" alt="family">
-              </span>
-              <span class="person-count">2</span>
+              <span class="person-count">100m<sup>2</sup></span>
             </button>
-            <button class="person" (click)="selectPersons(3, 3500)" [class.active]="selectedPersons === 3">
-              <span class="person-icon">
-                <img src="assets/icons/Familie_3.png" class="icon-family-3" alt="family">
-              </span>
-              <span class="person-count">3</span>
+            <button class="person" (click)="selectPersons(3, 18.000)" [class.active]="selectedPersons === 3">
+              <span class="person-count">150m<sup>2</sup></span>
             </button>
             <button class="person" (click)="selectPersons(4, 4400)" [class.active]="selectedPersons === 4">
-              <span class="person-icon">
-                <img src="assets/icons/Familie_4.png" class="icon-family-4" alt="family">
-              </span>
-              <span class="person-count">4</span>
+              <span class="person-count">180m<sup>2</sup></span>
             </button>
             <button class="person" (click)="selectPersons(6, 6100)" [class.active]="selectedPersons === 6">
-              <span class="person-icon">
-                <img src="assets/icons/Familie_6.png" class="icon-family-6" alt="family">
-              </span>
               <span class="person-count">mehr...</span>
             </button>
           </div>
@@ -70,15 +55,15 @@
         </span>
       </div>
       <div class="item-callback">
-        <button class="callback"> Rückruf anfordern</button>
+        <button class="callback"> Rückruf anfordern
+        </button>
       </div>
     </div>
   </div>
 
-
   <div class="container-provider">
     <div class="compare-provider">
-      <h1 class="item-provider">Stromanbieter</h1>
+      <h1 class="item-provider">Gasanbieter</h1>
       <h1 class="item-provider">vergleichen</h1>
     </div>
     <div class="discount-price">
@@ -86,7 +71,7 @@
         <span class="item-price">Bis zu </span>
       </div>
       <div class="item-discount">
-        <span class="amount">850€</span>
+        <span class="amount">1250€</span>
       </div>
       <div class="item-discount-bottom">
         <span class="item-price">sparen
@@ -97,4 +82,5 @@
       </div>
     </div>
   </div>
+
 </div>
