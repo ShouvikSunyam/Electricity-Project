@@ -1,0 +1,15 @@
+.container-compare {
+  display: flex;
+  width: 100%;
+}
+
+.container-left {
+  width: 20%;
+  flex-direction: column;
+  background-color: red;
+}
+
+.container-rigth {
+  width: 80%;
+  background-color: greenyellow;
+}

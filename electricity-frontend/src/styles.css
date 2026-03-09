@@ -88,30 +88,9 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 16px;
   box-sizing: border-box;
   border: 1px solid #a1a0a0;
-  color: #a1a0a0;
+  color: #313030;
   background-color: #f8f9fa;
 }
-
-.input-arrow {
-  position: relative;
-}
-
-.input-arrow .box {
-  padding-right: 34px;
-}
-
-.input-arrow::after {
-  content: "";
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  border-left: 9px solid transparent;
-  border-right: 9px solid transparent;
-  border-top: 9px solid #333;
-  pointer-events: none;
-}
-
 
 
 .container-person{
@@ -484,4 +463,104 @@ button[mat-icon-button] {
 :host ::ng-deep .dialog-content p {
   margin: 0 ;
   font-size: 18px;
+}
+
+
+/* ---------------------------------------------------------- other services --------------------------- */
+
+
+.main-container-service{
+  background-color: #ffffff;
+  font-size: 16px;
+  display: block;
+}
+
+.other-service-header {
+  display: inline-block;
+}
+
+.container-header contact-us {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.container-contact {
+  display: flex;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.contact-us {
+  flex: 1;
+  display:flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.container-all-services, .container-contact{
+  display:flex;
+  justify-content: space-between;
+  border-bottom-right-radius: 8px;
+  border-bottom-left-radius: 8px;
+  border: 1px solid #192a5e;
+}
+
+.container-all-services {
+  border-top-right-radius: 8px;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+}
+
+.container-contact{
+  display: inline-block;
+  padding: 0.5rem 1rem;
+}
+
+.container-services-left, .container-services-right{
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  font-weight: 500;
+  align-items: flex-start;
+}
+
+.main-btn {
+  display: flex;
+  gap: 0.3rem;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: inherit;
+  font-weight: 500;
+  border: none !important;
+  box-shadow: none;
+  outline: none;
+  color: #ffffff;
+  background-color: #fc770aee;
+  padding: 0.25rem 0.5rem 0.25rem 0.5rem;
+  border-radius: 8px;
+}
+
+.btn-text {
+  display: flex;
+  align-items: center;
+  padding-bottom: 0.1rem;
+}
+
+.icon-btn:hover {
+  background-color: #e68830ef;
+}
+
+ .icon-telephone, .icon-whatsapp, .icon-wechat, .icon-transport {
+  height: 20px;
+  width: 20px;
+}
+
+.icon-email {
+  padding: 2.5px 0px;
+  height: 15px;
+  width: 20px;
 }

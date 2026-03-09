@@ -1,6 +1,6 @@
 .main-nav {
   background-color: #003366;
-  padding: 0.3rem 0rem 0.3rem 1.75rem;
+  padding: 0rem 0rem 0rem 1.75rem;
   display: flex;
   align-items: center;
 }
@@ -31,6 +31,7 @@
   background-color: #003366;
   padding: 0rem 1.75rem 0rem 1.75rem;
   align-items: center;
+  gap: 1.5rem;
 }
 
 .nav-wrapper {
@@ -40,19 +41,23 @@
   min-width: 0;
 }
 
-.main-nav ul {
-  display: flex;
-  list-style: none;
-  margin: 0;
-  gap: 1.5rem;
-
-}
 
 .main-nav ul li {
   display: flex;
   align-items: center;
   min-width: 0;
+  border-radius: 8px;
+  padding: 0.3rem 0.3rem;
 }
+
+.main-nav li:hover{
+  background-color: #0085e0;
+}
+
+.nav-links li.active {
+  background-color: #0085e0;
+}
+
 
 .main-nav ul li a {
   display: flex;
@@ -77,9 +82,6 @@
   font-size: 18px;
 }
 
-.nav-text:hover{
-  color: #0085e0;
-}
 
 .small-text {
   font-size: 0.75rem;

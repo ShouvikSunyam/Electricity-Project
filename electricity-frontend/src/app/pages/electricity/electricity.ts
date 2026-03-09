@@ -1,21 +1,29 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
-import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { CommonModule } from '@angular/common';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule  } from '@angular/forms';
+import { debounceTime, switchMap, of } from 'rxjs';
+import { AddressService } from './../../services/address.service';
 
 @Component({
   selector: 'app-electricity',
-  imports: [MatButtonModule, MatIconModule, MatInputModule, CommonModule, MatDialogModule],
+  imports: [MatButtonModule, MatIconModule, MatInputModule, CommonModule, MatDialogModule, ReactiveFormsModule],
   templateUrl: './electricity.html',
   styleUrl: './electricity.css',
 })
-export class Electricity {
+export class Electricity implements OnInit {
 
-  constructor(public dialog: MatDialog) {}
+  addressForm!: FormGroup;
+  cityOptions: { city: string; city_id: number }[] = [];
+  streetOptions: { street: string; street_id: number }[] = [];
+
+  constructor(public dialog: MatDialog,
+    private fb: FormBuilder,
+    private addressService: AddressService
+  ) {}
 
     discountinfo = `<p> <strong>So haben wir gerechnet </strong> </p>
       <p> Wohnort: <i> Dortmund, 44141 </i>
@@ -42,12 +50,123 @@ export class Electricity {
 
   extraPerPerson = 850;
 
+  ngOnInit(): void {
+  this.addressForm = this.fb.group({
+      postalCode: ['', [
+        Validators.required,
+        Validators.pattern(/^\d{5}$/)
+      ]],
+
+      city: [{ value: '', disabled: true }, Validators.required],
+
+      street: [{ value: '', disabled: true }, Validators.required],
+
+      houseNumber: [{ value: '', disabled: true }, [
+        Validators.required,
+        Validators.maxLength(6),
+        Validators.pattern(/^[a-zA-Z0-9\s\/]*$/)
+      ]]
+    });
+
+    this.handlePostalCodeChanges();
+    this.handleCityChanges();
+    this.handleStreetChanges();
+  }
+
+  private handlePostalCodeChanges() {
+  this.addressForm.get('postalCode')?.valueChanges
+    .pipe(
+      debounceTime(400),
+      switchMap(zip => {
+        this.resetCity();
+        this.resetStreet();
+        this.resetHouseNumber();
+
+        if (this.addressForm.get('postalCode')?.valid) {
+          return this.addressService.getCitiesByZip(zip);
+        }
+        return of([]);
+      })
+    )
+    .subscribe(cities => {
+      // `cities` is the result from the API
+      this.cityOptions = cities; // now array of { city, city_id }
+      if (cities.length > 0) {
+        this.addressForm.get('city')?.enable();
+      }
+    });
+  }
+
+private handleCityChanges() {
+  this.addressForm.get('city')?.valueChanges.subscribe(selectedCityName => {
+  this.resetStreet();
+  this.resetHouseNumber();
+
+  if (selectedCityName) {
+    const selectedCityObj = this.cityOptions.find(c => c.city === selectedCityName);
+    if (selectedCityObj) {
+      this.addressService.getStreetsByCity(selectedCityName, selectedCityObj.city_id)
+        .subscribe(streets => {
+          this.streetOptions = streets; // array of { street, street_id }
+          if (streets.length > 0) {
+            this.addressForm.get('street')?.enable();
+          }
+        });
+    }
+  }
+});
+}
+
+  private handleStreetChanges() {
+  this.addressForm.get('street')?.valueChanges
+    .pipe(
+      debounceTime(400)
+    )
+    .subscribe(streetQuery => {
+
+      if (!streetQuery) return;
+
+      const cityName = this.addressForm.get('city')?.value;
+      const cityObj = this.cityOptions.find(c => c.city === cityName);
+
+      if (!cityObj) return;
+
+      this.addressService
+        .getStreetsByCity(streetQuery, cityObj.city_id)
+        .subscribe(streets => {
+          this.streetOptions = streets;
+
+          if (streets.length > 0) {
+            this.addressForm.get('houseNumber')?.enable();
+          }
+        });
+
+    });
+}
+
+  private resetCity() {
+    this.cityOptions = [];
+    this.addressForm.get('city')?.reset();
+    this.addressForm.get('city')?.disable();
+  }
+
+  private resetStreet() {
+    this.streetOptions = [];
+    this.addressForm.get('street')?.reset();
+    this.addressForm.get('street')?.disable();
+  }
+
+  private resetHouseNumber() {
+    this.addressForm.get('houseNumber')?.reset();
+    this.addressForm.get('houseNumber')?.disable();
+  }
+
+
   selectPersons(persons: number) {
     if (persons === 999) {   // mehr button trigger
       this.showCustomInput = true;
       return;
     }
-
     this.showCustomInput = false;
     this.selectedPersons = persons;
     this.consumption = this.calculateConsumption(persons);
@@ -61,12 +180,10 @@ export class Electricity {
 
   onCustomPersonsChange(value: string) {
     const persons = Number(value);
-
     if (!persons || persons < 1) {
       this.consumption = 0;
       return;
     }
-
     this.customPersons = persons;
     this.selectedPersons = persons;
     this.consumption = this.calculateConsumption(persons);
@@ -82,18 +199,17 @@ export class Electricity {
   }
 
   closeCustomInput() {
-  this.showCustomInput = false;
+    this.showCustomInput = false;
+    this.selectedPersons = 2;
+    this.consumption = this.calculateConsumption(this.selectedPersons);
+    this.customPersons = null;
+  }
 
-  this.selectedPersons = 2;
-  this.consumption = this.calculateConsumption(this.selectedPersons);
-  this.customPersons = null;
-}
+  currentDialogText = '';
 
-currentDialogText = '';
-
-openInfo(template: any, text: string) {
-  this.currentDialogText = text;
-  this.dialog.open(template, { width: '200px', maxWidth: '80vw' });
-}
+  openInfo(template: any, text: string) {
+    this.currentDialogText = text;
+    this.dialog.open(template, { width: '200px', maxWidth: '80vw' });
+  }
 
 }

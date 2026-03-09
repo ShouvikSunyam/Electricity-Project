@@ -1,17 +1,30 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule  } from '@angular/forms';
+import { debounceTime, switchMap, of } from 'rxjs';
+import { AddressService } from './../../services/address.service';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 @Component({
   selector: 'app-gas',
-  imports: [MatIconModule, CommonModule, MatDialogModule],
+  imports: [MatIconModule, CommonModule, MatDialogModule, MatInputModule, MatButtonModule, ReactiveFormsModule, MatAutocompleteModule],
   templateUrl: './gas.html',
   styleUrl: './gas.css',
 })
-export class Gas {
+export class Gas implements OnInit {
 
-  constructor(public dialog: MatDialog) {}
+  addressForm!: FormGroup;
+  cityOptions: string[] = [];
+  streetOptions: string[] = [];
+
+  constructor(public dialog: MatDialog,
+    private fb: FormBuilder,
+    private addressService: AddressService
+  ) {}
 
   discountinfo = `<p> <strong> So haben wir gerechnet </strong> </p>
       <p> Wohnort: <i> Dortmund, 44141 </i>
@@ -24,6 +37,106 @@ export class Gas {
   selectedPersons = 3;
   consumption = 20500;
   activeInfo: 'discountinfo' | null = null;
+
+
+  ngOnInit(): void {
+  this.addressForm = this.fb.group({
+      postalCode: ['', [
+        Validators.required,
+        Validators.pattern(/^\d{5}$/)
+      ]],
+
+      city: [{ value: '', disabled: true }, Validators.required],
+
+      street: [{ value: '', disabled: true }, Validators.required],
+
+      houseNumber: [{ value: '', disabled: true }, [
+        Validators.required,
+        Validators.maxLength(6),
+        Validators.pattern(/^[a-zA-Z0-9\s\/]*$/)
+      ]]
+    });
+
+    this.handlePostalCodeChanges();
+    this.handleCityChanges();
+    this.handleStreetChanges();
+  }
+
+  private handlePostalCodeChanges() {
+    this.addressForm.get('postalCode')?.valueChanges
+      .pipe(
+        debounceTime(400),
+        switchMap(zip => {
+
+          this.resetCity();
+          this.resetStreet();
+          this.resetHouseNumber();
+
+          if (this.addressForm.get('postalCode')?.valid) {
+            return this.addressService.getCitiesByZipcode(zip);
+          }
+
+          return of([]);
+        })
+      )
+      .subscribe(cities => {
+        this.cityOptions = cities;
+        if (cities.length > 0) {
+          this.addressForm.get('city')?.enable();
+        }
+      });
+  }
+
+  private handleCityChanges() {
+    this.addressForm.get('city')?.valueChanges.subscribe(city => {
+
+      this.resetStreet();
+      this.resetHouseNumber();
+
+      if (city) {
+        const zip = this.addressForm.get('postalCode')?.value;
+
+        this.addressService.getStreetsByZip(zip)
+          .subscribe(streets => {
+            this.streetOptions = streets;
+            if (streets.length > 0) {
+              this.addressForm.get('street')?.enable();
+            }
+          });
+      }
+    });
+  }
+
+  private handleStreetChanges() {
+    this.addressForm.get('street')?.valueChanges.subscribe(street => {
+
+      this.resetHouseNumber();
+
+      if (street) {
+        this.addressForm.get('houseNumber')?.enable();
+      }
+    });
+  }
+
+  private resetCity() {
+    this.cityOptions = [];
+    this.addressForm.get('city')?.reset();
+    this.addressForm.get('city')?.disable();
+  }
+
+  private resetStreet() {
+    this.streetOptions = [];
+    this.addressForm.get('street')?.reset();
+    this.addressForm.get('street')?.disable();
+  }
+
+  private resetHouseNumber() {
+    this.addressForm.get('houseNumber')?.reset();
+    this.addressForm.get('houseNumber')?.disable();
+  }
+
+
+
 
    setConsumption(value: number) {
     this.consumption = value;

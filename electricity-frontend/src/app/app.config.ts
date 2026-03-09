@@ -6,6 +6,11 @@ import { provideClientHydration, withEventReplay } from '@angular/platform-brows
 
 import { registerLocaleData } from '@angular/common';
 import localeDe from '@angular/common/locales/de';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+
+ import { authInterceptor } from './interceptors/auth.interceptor';
+import { ENVIRONMENT } from './environment.token';
+import { environment } from './environments/environment';
 
 registerLocaleData(localeDe);
 
@@ -15,6 +20,13 @@ export const appConfig: ApplicationConfig = {
     { provide: LOCALE_ID, useValue: 'de-DE'},
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
-    provideRouter(routes), provideClientHydration(withEventReplay())
+    provideRouter(routes), provideClientHydration(withEventReplay()),
+
+    provideHttpClient(
+      withInterceptors([
+        authInterceptor
+      ])
+    ),
+    { provide: ENVIRONMENT, useValue: environment }
   ]
 };

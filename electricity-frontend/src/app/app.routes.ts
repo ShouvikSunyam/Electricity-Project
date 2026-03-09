@@ -5,6 +5,9 @@ import { Gas } from './pages/gas/gas';
 import { HeatingElectricity } from './pages/heating-electricity/heating-electricity';
 import { NightHeaters } from './pages/night-heaters/night-heaters';
 import { CarElectricity } from './pages/car-electricity/car-electricity';
+import { ElectricityComparision } from './navigation-pages/electricity-comparision/electricity-comparision';
+import { GasComparision } from './navigation-pages/gas-comparision/gas-comparision';
+import { CommercialElectricity } from './navigation-pages/commercial-electricity/commercial-electricity';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -17,5 +20,8 @@ export const routes: Routes = [
       { path: 'night-heaters', component: NightHeaters },
       { path: 'car-electricity', component: CarElectricity },
     ]
-  }
+  },
+  { path: 'electricity-comparision', component: ElectricityComparision },
+  { path: 'gas-comparision', component: GasComparision },
+  { path: 'commercial-electricity', component: CommercialElectricity },
 ];

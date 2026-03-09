@@ -1,0 +1,268 @@
+ .page-layout {
+    display: flex;
+    gap: 1.3rem;
+    padding: 1.3rem;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.3rem;
+    width: 18%;
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: #fff;
+    border-radius: 10px;
+    border: 1.5px solid #0085e0;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,100,200,.07);
+  }
+
+  .card-header {
+    background: #0085e0;
+    color: #fff;
+    font-weight: 500;
+    font-size: 16px;
+    padding: 7px 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .nav-icon-strom{
+    width: 13px;
+    height: 20px;
+  }
+
+
+  .card-body {
+    padding: 12px 10px;
+    margin-bottom: 4px;
+  }
+
+  /* Price card */
+  .price-amount {
+    text-align: right;
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 0.5rem;
+  }
+
+  .price-sub, .price-save {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-top: 2px;
+  }
+
+  .pro-monat {
+    padding-right: 6px;
+  }
+
+  .price-save .hl {
+    color: #00a651;
+    font-weight: 700;
+    padding-right: 6px;
+  }
+
+
+  .info-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 1.5px solid #1a1a1a;
+    font-size: 8px;
+    color: #1a1a1a;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  /* Tarif details */
+  .octopus-name { font-size: 10px; color: #e91e8c; font-weight: 700; }
+  .d-label { font-size: 13px; font-weight: 500; color: #1a1a1a;  }
+  .d-value { font-size: 13px; font-weight: 700; color: #1a1a1a; }
+  .d-row { margin-bottom: 9px; }
+  .d-row-inline { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 9px; }
+
+  /* Tarifübersicht */
+  .ov-label { font-size: 13px; font-weight: 500;  }
+  .ov-value { font-size: 13px; font-weight: 700; }
+  .ov-row { margin-bottom: 8px; }
+  .line-blue {display: flex; justify-content: space-between; align-items: flex-start; }
+  .link-blue { color: #3a9bd5; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center;  }
+  .link-blue .info-icon { border-color: #3a9bd5; color: #3a9bd5; }
+
+
+  /* Ansprechpartner */
+  .partner-photo-wrap {
+    display: flex; justify-content: center; align-items: flex-end;
+    width: 100%;
+    padding-top: 12px; overflow: hidden;
+  }
+  .partner-photo-wrap img {
+  width: 80%;
+  height: 100%;
+}
+
+  .partner-info { padding: 9px 10px 10px; text-align: center; }
+  .partner-name { font-weight: 700; font-size: 16px; margin-bottom: 0.5rem;}
+  .container-main-btn {flex: 1; display:flex; flex-direction: column; gap: 0.55rem; align-items: center; justify-content: center;}
+  .partner-btn { display:flex; justify-content: center; align-items: center;}
+
+  /* ═══════════════════════════════════════
+     MAIN CONTENT
+  ════════════════════════════════════════ */
+  .main-content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 82%;
+  }
+
+  /* Progress bar */
+  .progress-card {
+    background: #fff;
+    border-radius: 10px;
+    border: 1.5px solid #0085e0;
+    overflow: hidden;
+    /* box-shadow: 0 2px 8px rgba(0,100,200,.07);  */
+  }
+  .progress-header {
+    background: #0085e0;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+    padding: 8px;
+  }
+  .progress-steps {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px;
+    justify-content: space-between;
+    position: relative;
+  }
+  .progress-steps::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 60px; right: 60px;
+    height: 1.5px;
+    background: #ccc;
+    transform: translateY(-50%);
+    z-index: 0;
+  }
+  .step {
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    position: relative; z-index: 1;
+  }
+  .step-circle {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+   font-weight: 700; font-size: 12px;
+    background: #fff; border: 2px solid #ccc; color: #aaa;
+  }
+  .step.active .step-circle {
+    background: #1a1a2e; border-color: #1a1a2e; color: #fff;
+  }
+  .step-label { font-size: 11px; color: #888; text-align: center; }
+  .step.active .step-label { color: #1a1a2e; font-weight: 700; }
+
+  /* Section panels */
+  .section-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    background: #fff;
+    overflow: hidden;
+  }
+  .section-header {
+    background: #00a651;
+    color: #fff;
+    font-weight: 700;
+    font-size: 13.5px;
+    padding: 9px 16px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .section-body { padding: 18px ; border: 1px solid #4a4949; border-radius: 8px; }
+
+  /* Form fields */
+  .form-row { display: flex; gap: 10px; margin-bottom: 10px; }
+  .form-group { display: flex; flex-direction: column; flex: 1; position: relative; }
+  .form-group.shrink { flex: 0 0 auto; }
+
+  .field-wrap {
+    border: 1px solid #4a4949;
+    border-radius: 7px;
+    padding: 0px 36px 4px 12px;
+    background: #fff;
+    position: relative;
+  }
+  .field-wrap.readonly { background: #e8edf2; }
+  .field-wrap .field-label {
+    font-size: 12px; font-weight: 500; display: block;
+  }
+  .field-wrap input {
+    border: none; outline: none; background: transparent;
+    font-size: 13px; font-weight: 700;
+    width: 100%; padding: 0;
+  }
+  .field-wrap input::placeholder { font-weight: 400; }
+
+  .field-icon {
+    position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+    font-size: 13px ;
+  }
+  .field-info {
+    position: absolute; right: -20px; top: 50%; transform: translateY(-50%);
+  }
+
+  /* Title buttons */
+  .container-salutation, .container-readonly {padding-right: 20px;}
+  .title-btn {
+    border: 1px solid #4a4949; border-radius: 8px;
+    padding: 10px 14px; background: #fff; font-size: 13px;
+    color: #1a1a2e; cursor: pointer;
+    flex: 1; text-align: center;
+  }
+  .title-btn:hover { border-color: #3a9bd5; }
+
+  .help-text {
+    font-size: 11px; font-weight: 500; margin-bottom: 10px; margin-top: -4px;
+  }
+
+  /* Radio-style toggle */
+  .toggle-row { display: flex; gap: 10px; margin-bottom: 12px; width: 100%; }
+  .toggle-box { display: flex;  margin-bottom: 12px; align-items: stretch;}
+  .toggle-opt {
+    flex: 1; border: 1.5px solid #c8d8e8; border-radius: 7px;
+    padding: 10px 14px; display: flex; align-items: center; gap: 8px;
+    cursor: pointer; font-size: 13px; background: #fff;
+  }
+  .toggle-opt.selected { border-color: #3a9bd5; background: #f0f8ff; font-weight: 500; }
+  .toggle-opt .chk {
+    width: 15px; height: 15px; border-radius: 3px;
+    border: 1.5px solid #aaa; display: flex; align-items: center; justify-content: center;
+    font-size: 10px; flex-shrink: 0;
+  }
+  .toggle-opt.selected .chk { background: #3a9bd5; border-color: #3a9bd5; color: #fff; }
+
+  .btn-primary {
+    background: #3a9bd5; color: #fff; border: none; border-radius: 7px;
+    padding: 10px 22px; font-size: 13.5px; font-weight: 500;
+    cursor: pointer;
+    display: block; margin-left: auto;
+  }
+  .btn-primary:hover { background: #2a7db5; }
+
+  .calendar-icon { font-size: 15px; }

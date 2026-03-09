@@ -12,18 +12,33 @@
   <div class="compare-price">
     <div class="container-address">
       <div class="feature-header">Gas-Vergleich</div>
-      <div class="feature-grid">
+      <form [formGroup]="addressForm" class="feature-grid">
         <div class="row row-1">
-          <input type="text" placeholder="Ihre Postleitzahl" class="box small">
+          <input type="text" placeholder="Ihre Postleitzahl" class="box small" formControlName="postalCode"
+            maxlength="5" />
           <div class="input-arrow">
-            <input type="text" placeholder="Ottobeuren" class="box large">
+            <input type="text" placeholder="Ihre Ort" class="box large" formControlName="city"
+              [matAutocomplete]="cityAuto" />
+
+            <mat-autocomplete #cityAuto="matAutocomplete" panelClass="custom-bg">
+              <mat-option *ngFor="let city of cityOptions" [value]="city">
+                {{ city }}
+              </mat-option>
+            </mat-autocomplete>
           </div>
         </div>
         <div class="row row-2">
-          <input type="text" placeholder="Ihre Straße" class="box large">
-          <input type="text" placeholder="Hausnummer" class="box small">
+          <input type="text" placeholder="Ihre Straße" class="box large" formControlName="street"
+            [matAutocomplete]="streetAuto" />
+
+          <mat-autocomplete #streetAuto="matAutocomplete" panelClass="custom-bg">
+            <mat-option *ngFor="let street of streetOptions" [value]="street">
+              {{ street }}
+            </mat-option>
+          </mat-autocomplete>
+          <input type="text" placeholder="Hausnummer" class="box small" formControlName="houseNumber" maxlength="6" />
         </div>
-      </div>
+      </form>
       <div class="feature-header1">Bitte Wohnungsgröße in m<sup>2</sup> anklicken <strong>oder</strong> kWh / Jahr
         direkt
         eingaben</div>
