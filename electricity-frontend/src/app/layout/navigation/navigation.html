@@ -1,15 +1,17 @@
 <nav class="main-nav">
-  <div class="home-icon">
-    <img src="assets/icons/Startseite.png" class="nav-icon-home" alt="home">
-  </div>
   <div class="container nav-wrapper">
+    <div class="home-icon" routerLinkActive="active">
+      <a routerLink="/home" (click)="closeMenu()">
+        <img src="assets/icons/Startseite.png" class="nav-icon-home" alt="home">
+      </a>
+    </div>
 
     <button class="hamburger" (click)="toggleMenu()">
       <mat-icon>{{ isMenuOpen ? 'close' : 'menu' }}</mat-icon>
     </button>
 
     <ul class="nav-links" [class.active]="isMenuOpen">
-      <li routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+      <li routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }">
         <a routerLink="/electricity-comparision" (click)="closeMenu()">
           <img src="assets/icons/Stromvergleich.png" class="nav-icon-strom" alt="stromvergleich">
           <span class="nav-text">

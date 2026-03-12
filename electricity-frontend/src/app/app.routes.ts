@@ -8,6 +8,8 @@ import { CarElectricity } from './pages/car-electricity/car-electricity';
 import { ElectricityComparision } from './navigation-pages/electricity-comparision/electricity-comparision';
 import { GasComparision } from './navigation-pages/gas-comparision/gas-comparision';
 import { CommercialElectricity } from './navigation-pages/commercial-electricity/commercial-electricity';
+import { DeliveryAddress } from './navigation-pages/delivery-address/delivery-address';
+import { SelectProvider } from './navigation-pages/select-provider/select-provider';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -21,7 +23,14 @@ export const routes: Routes = [
       { path: 'car-electricity', component: CarElectricity },
     ]
   },
-  { path: 'electricity-comparision', component: ElectricityComparision },
+  { path: 'electricity-comparision', component: ElectricityComparision,
+    children: [
+      {path: '', component: SelectProvider},
+      {path: 'delivery-address', component: DeliveryAddress}
+    ]
+   },
   { path: 'gas-comparision', component: GasComparision },
   { path: 'commercial-electricity', component: CommercialElectricity },
+
+
 ];

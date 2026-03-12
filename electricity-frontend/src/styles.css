@@ -1,5 +1,6 @@
 /* You can add global styles to this file, and also import other style files */
 @import url('https://fonts.googleapis.com/css2?family=Encode+Sans:wght@300;400;500;600;700&display=swap');
+@import "flatpickr/dist/flatpickr.min.css";
 
 html, body {
   height: 100%;
@@ -570,7 +571,7 @@ button[mat-icon-button] {
  .page-layout { display: flex; gap: 1.3rem; padding: 1.3rem; }
 
   /* ── Sidebar ── */
-  .sidebar { display: flex; flex-direction: column; gap: 1.3rem; width: 20%; }
+  .sidebar { display: flex; flex-direction: column; gap: 1.3rem; width: 19%; }
 
   .card-header {
     background: #0085e0;

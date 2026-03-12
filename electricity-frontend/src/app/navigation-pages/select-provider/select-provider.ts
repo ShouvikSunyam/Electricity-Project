@@ -5,18 +5,26 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
+import { Routes } from '@angular/router';
 
 @Component({
-  selector: 'app-electricity-comparision',
+  selector: 'app-select-provider',
   imports: [MatButtonModule, MatIconModule, MatToolbarModule, MatFormFieldModule, MatInputModule, CommonModule, RouterModule],
-  templateUrl: './electricity-comparision.html',
-  styleUrl: './electricity-comparision.css',
+  templateUrl: './select-provider.html',
+  styleUrl: './select-provider.css',
 })
-export class ElectricityComparision {
+export class SelectProvider {
+  constructor(private router: Router, private route: ActivatedRoute) {}
 
-  constructor(private router: Router) {}
+  isOpen = false;
 
+  toggleDiv() {
+    this.isOpen = !this.isOpen;
+  }
 
+  openPage() {
 
+    this.router.navigate(['delivery-address'], { relativeTo: this.route });
+  }
 }

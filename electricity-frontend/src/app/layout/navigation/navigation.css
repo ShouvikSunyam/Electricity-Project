@@ -9,10 +9,27 @@
   display: flex;
   width: 33px;
   height: 33px;
-  background-color: #0085e0;
   border-radius: 50%;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+}
+
+.home-icon a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  line-height: 0; /* removes inline spacing */
+}
+
+.nav-icon-home {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: contain;
+  display: block; /* removes bottom gap from inline images */
 }
 
 .nav-wrapper {
@@ -21,6 +38,7 @@
   justify-content: space-between;
   flex: 1;
   min-width: 0;
+  background-color: #003366;
 }
 
 .main-nav ul {
@@ -50,11 +68,11 @@
   padding: 0.3rem 0.3rem;
 }
 
-.main-nav li:hover{
+.main-nav li:hover,  .home-icon:hover, .nav-icon-home:hover{
   background-color: #0085e0;
 }
 
-.nav-links li.active {
+.nav-links li.active, .home-icon.active {
   background-color: #0085e0;
 }
 
@@ -158,12 +176,6 @@
    padding-right: 0.25rem;
 }
 
-.nav-icon-home {
-  width: 28px;
-  height: 28px;
-  background-color: #0085e0;
-  border-radius: 50%;
-}
 
 .hamburger {
   display: none;
