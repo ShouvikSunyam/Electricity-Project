@@ -11,9 +11,9 @@
       </div>
       <div class="card-body">
         <div class="price-amount">53,60 €</div>
-        <div class="price-sub"><span class="pro-monat">⌀ pro Monat</span><span class="info-base info-icon">i</span>
+        <div class="price-sub"><span class="pro-monat">⌀ pro Monat</span><span class="info-base info-circ">i</span>
         </div>
-        <div class="price-save">Sie sparen: <span class="hl">31,20 €</span><span class="info-base info-icon">i</span>
+        <div class="price-save">Sie sparen: <span class="hl">31,20 €</span><span class="info-base info-circ">i</span>
         </div>
       </div>
     </div>
@@ -50,7 +50,7 @@
             <div class="d-label">Ökostromtarif</div>
             <div class="d-value">Ja · Öko KlimaPlus</div>
           </div>
-          <span class="info-base info-icon" style="margin-top:8px;">i</span>
+          <span class="info-base info-circ" style="margin-top:8px;">i</span>
         </div>
         <div class="d-row">
           <div class="d-label">Mindestvertragslaufzeit</div>
@@ -83,7 +83,7 @@
         </div>
         <div class="line-blue">
           <div class="link-blue">Tarifdetails anzeigen </div>
-          <div class="icon-blue"><span class="info-base info-icon" style="border-color:#3a9bd5;color:#3a9bd5;">i</span>
+          <div class="icon-blue"><span class="info-base info-border-blue">i</span>
           </div>
         </div>
       </div>
@@ -170,23 +170,33 @@
       <div class="progress-header">Nur noch wenige Klicks zu Ihrem neuen Tarif</div>
       <div class="progress-steps">
         <div class="step ">
-          <div class="step-circle">1</div>
+          <div class="step-circle">
+            <div class="inner-circle">1</div>
+          </div>
           <div class="step-label">Lieferadresse</div>
         </div>
         <div class="step active">
-          <div class="step-circle">2</div>
+          <div class="step-circle">
+            <div class="inner-circle">2</div>
+          </div>
           <div class="step-label">Anschlussdaten</div>
         </div>
         <div class="step">
-          <div class="step-circle">3</div>
+          <div class="step-circle">
+            <div class="inner-circle">3</div>
+          </div>
           <div class="step-label">Zahlungsart</div>
         </div>
         <div class="step">
-          <div class="step-circle">4</div>
+          <div class="step-circle">
+            <div class="inner-circle">4</div>
+          </div>
           <div class="step-label">Account</div>
         </div>
         <div class="step">
-          <div class="step-circle">5</div>
+          <div class="step-circle">
+            <div class="inner-circle">5</div>
+          </div>
           <div class="step-label">Abschluss</div>
         </div>
       </div>
@@ -197,8 +207,7 @@
       <div class="section-header">
         Lieferadresse
         <div class="container-icon" style=" align-items: center;">
-          <span class="info-base info-icon"
-            style="border-color:#ffffff; color:#00a651; background-color: #ffffff; margin-left:4px;">i</span>
+          <span class="info-base info-green">i</span>
         </div>
         <a href="#" class="anpassen"
           style="margin-left:auto;color:#ffffff;font-size:13px;text-decoration:none;display:flex;align-items:center;gap:4px;">
@@ -218,7 +227,7 @@
               <input name="email" autocomplete="email" type="email" placeholder="manuel.markovic@gmx.net" value="">
             </div>
           </div>
-          <span class="info-base info-icon">i</span>
+          <span class="info-base info-circ">i</span>
         </div>
 
 
@@ -228,15 +237,17 @@
             <div class="form-group" style="flex:0 0 160px;">
               <div class="field-wrap readonly">
                 <span class="field-label">Ihre PLZ</span>
-                <input type="text" value="" placeholder="12345">
-                <span class="field-icon">🔒</span>
+                <input type="text" class="text-field" value="12345" readonly>
+                <span class="field-icon">
+                  <img src="assets/icons/Schloss.png" class="icon-schloss" alt="check">
+                </span>
               </div>
             </div>
             <div class="form-group">
               <div class="field-wrap readonly">
                 <span class="field-label">Ort</span>
-                <input type="text" placeholder="Musterhausen" value="">
-                <span class="field-icon">🔒</span>
+                <input type="text" class="text-field" value="Musterhausen" readonly>
+                <span class="field-icon"><img src="assets/icons/Schloss.png" class="icon-schloss" alt="check"></span>
               </div>
             </div>
           </div>
@@ -246,271 +257,268 @@
             <div class="form-group">
               <div class="field-wrap readonly">
                 <span class="field-label">Ihre Straße</span>
-                <input type="text" placeholder="Musterstraße" value="">
-                <span class="field-icon">🔒</span>
+                <input type="text" class="text-field" value="Musterstraße" readonly>
+                <span class="field-icon"><img src="assets/icons/Schloss.png" class="icon-schloss" alt="check"></span>
               </div>
             </div>
             <div class="form-group" style="flex:0 0 160px;">
               <div class="field-wrap readonly">
                 <span class="field-label">Hausnummer</span>
-                <input type="text" value="" placeholder="10">
-                <span class="field-icon">🔒</span>
+                <input type="text" class="text-field" value="10" readonly>
+                <span class="field-icon"><img src="assets/icons/Schloss.png" class="icon-schloss" alt="check"></span>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Abweichende Rechnungsadresse -->
-    <div class="section-panel">
-      <div class="section-header">
-        Abweichende Rechnungsadresse
-        <div>
-          <span class="info-base info-icon"
-            style="border-color:#ffffff; color:#00a651; background-color: #ffffff; margin-left:4px;">i</span>
-        </div>
-        <a href="#" class="anpassen"
-          style="margin-left:auto;color:#ffffff;font-size:13px;text-decoration:none;display:flex;align-items:center;gap:4px;">
-          ändern
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1565c0" stroke-width="2">
-            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
-        </a>
-      </div>
-
-      <div class="section-body">
-        <div class="toggle-row" style="margin: 0;">
-          <div class="toggle-box" style="margin: 0;">
-            <div class="toggle-opt">
-              <label class="cb-row"><input type="checkbox" /></label>
-              Ja
-            </div>
-            <div class="toggle-opt selected">
-              <label class="cb-row"><input type="checkbox" checked /> </label>
-              Nein
-            </div>
-          </div>
-          <div>
-            <span class="info-base info-icon">i</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Anschlussdaten -->
-    <div class="section-panel">
-      <div class="section-header">
-        Anschlussdaten
-        <div>
-          <span class="info-base info-icon"
-            style="border-color:#ffffff; color:#00a651; background-color: #ffffff; margin-left:4px;">i</span>
-        </div>
-      </div>
-
-      <div class="section-body">
-        <div class="toggle-row header"><span>Ziehen Sie an der angegebenen Adresse neu ein?</span></div>
-        <div class="toggle-row">
-          <div class="toggle-box" style="margin: 0;">
-            <div class="toggle-opt" [class.selected]="selection === 'yes'">
-              <label class="cb-row"><input type="checkbox" [checked]="selection === 'yes'"
-                  (change)="selectOption('yes')" /></label>
-              Ja
-            </div>
-            <div class="toggle-opt selected" [class.selected]="selection === 'no'">
-              <label class="cb-row"><input type="checkbox" [checked]="selection === 'no'" (change)="selectOption('no')"
-                  checked /> </label>
-              Nein
-            </div>
-          </div>
-          <div>
-            <span class="info-base info-icon">i</span>
-          </div>
-        </div>
-
-        <div *ngIf="selection === 'yes'" class="toggle-row">
-          <div class="toggle-area">
+        <!-- Abweichende Rechnungsadresse -->
+        <div class="section-panel">
+          <div class="section-header">
+            Abweichende Rechnungsadresse
             <div>
-              <span class="info-base info-icon">i</span>
+              <span class="info-base info-green">i</span>
             </div>
-            Bei Umzug müssen Sie Ihren aktuellen Stromvertrag selbst kündigen. Neuanmeldungen sind aktuell erst ab dem
-            16.02.2026 möglich. <br>
-            Bei einem früheren Einzugsdatum werden Sie voirübergehend vom örtlichen Grundversorger beliefert.
+            <a href="#" class="anpassen"
+              style="margin-left:auto;color:#ffffff;font-size:13px;text-decoration:none;display:flex;align-items:center;gap:4px;">
+              ändern
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1565c0" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+            </a>
           </div>
-        </div>
 
-
-        <div class="toggle-row" *ngIf="selection === 'yes'">
-          <div class="form-group">
-            <div class="field-wrap" style="margin-bottom: 12px; ">
-              <span class="field-label">Gewünschter Liefertermin</span>
-              <div style="display: flex; flex-direction: row;">
-                <input matInput [matDatepicker]="picker" placeholder="TT.MM.JJJJ" (click)="picker.open()">
-
-                <mat-datepicker-toggle matSuffix [for]="picker">
-                  <mat-icon>event</mat-icon>
-                </mat-datepicker-toggle>
-
-                <mat-datepicker #picker></mat-datepicker>
+          <div class="section-body">
+            <div class="toggle-row" style="margin: 0;">
+              <div class="toggle-box" style="margin: 0;">
+                <div class="toggle-opt">
+                  <label class="cb-row"><input type="checkbox" /></label>
+                  Ja
+                </div>
+                <div class="toggle-opt selected">
+                  <label class="cb-row"><input type="checkbox" checked /> </label>
+                  Nein
+                </div>
+              </div>
+              <div>
+                <span class="info-base info-circ">i</span>
               </div>
             </div>
           </div>
-          <div>
-            <span class="info-base info-icon">i</span>
-          </div>
         </div>
 
-        <div class="toggle-row header"><span>Angaben zur Belieferung</span></div>
-        <div class="toggle-row">
-          <div class="toggle-box-check" style="display: flex; width: 97.7%;">
-            <div class="toggle-opt-check">
-              <label class="cb-row"><input type="checkbox" /></label>
-              Ich reiche die benötigten Daten zur Belieferung nach
-            </div>
-          </div>
-        </div>
-
-        <div class="toggle-row">
-          <div class="form-group">
-            <div class="field-wrap" style="margin-bottom: 12px;">
-              <span class="field-label">Zählernummer</span>
-              <input name="payment-number" type="payment-number" value="">
-            </div>
-          </div>
-          <div>
-            <span class="info-base info-icon">i</span>
-          </div>
-        </div>
-
-        <!-- Express box -->
-        <div class="row-with-info">
-          <div class="express-box">
+        <!-- Anschlussdaten -->
+        <div class="section-panel">
+          <div class="section-header">
+            Anschlussdaten
             <div>
-              <span class="info-base info-icon">i</span>
+              <span class="info-base info-green">i</span>
             </div>
-            <div class="container-express">
-              <div class="express-header">
+          </div>
 
-                Optional: Kostenlose Express-Bearbeitung
+          <div class="section-body">
+            <div class="toggle-row header"><span>Ziehen Sie an der angegebenen Adresse neu ein?</span></div>
+            <div class="toggle-row">
+              <div class="toggle-box" style="margin: 0;">
+                <div class="toggle-opt" [class.selected]="selection === 'yes'">
+                  <label class="cb-row"><input type="checkbox" [checked]="selection === 'yes'"
+                      (change)="selectOption('yes')" /></label>
+                  Ja
+                </div>
+                <div class="toggle-opt selected" [class.selected]="selection === 'no'">
+                  <label class="cb-row"><input type="checkbox" [checked]="selection === 'no'"
+                      (change)="selectOption('no')" checked /> </label>
+                  Nein
+                </div>
               </div>
-              <p class="express-desc">
-                Bei Angabe der Marktlokations-ID können Anbieter Ihren Wechsel beschleunigt bearbeiten.<br>
-                Die Marktlokations-ID finden Sie auf Ihrer letzten Jahresrechnung.
-              </p>
+              <div>
+                <span class="info-base info-icon">i</span>
+              </div>
+            </div>
+
+            <div *ngIf="selection === 'yes'" class="toggle-row">
+              <div class="toggle-area">
+                <div>
+                  <span class="info-base info-circ">i</span>
+                </div>
+                Bei Umzug müssen Sie Ihren aktuellen Stromvertrag selbst kündigen. Neuanmeldungen sind aktuell erst ab
+                dem
+                16.02.2026 möglich. <br>
+                Bei einem früheren Einzugsdatum werden Sie voirübergehend vom örtlichen Grundversorger beliefert.
+              </div>
+            </div>
+
+
+            <div class="toggle-row" *ngIf="selection === 'yes'">
               <div class="form-group">
-                <div class="field-wrap">
-                  <span class="field-label">Marktlokations-ID (optional)</span>
-                  <input name="payment-number" type="payment-number" value="">
+                <div class="field-wrap" style="margin-bottom: 12px; ">
+                  <span class="field-label">Gewünschter Liefertermin</span>
+                  <div style="display: flex; flex-direction: row;">
+                    <input matInput [matDatepicker]="picker" placeholder="TT.MM.JJJJ" (click)="picker.open()">
+
+                    <mat-datepicker-toggle matSuffix [for]="picker">
+                      <mat-icon>event</mat-icon>
+                    </mat-datepicker-toggle>
+
+                    <mat-datepicker #picker></mat-datepicker>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <span class="info-base info-circ">i</span>
+              </div>
+            </div>
+
+            <div class="toggle-row header"><span>Angaben zur Belieferung</span></div>
+            <div class="toggle-row">
+              <div class="toggle-box-check" style="display: flex; width: 97.7%;">
+                <div class="toggle-opt-check">
+                  <label class="cb-row"><input type="checkbox" /></label>
+                  Ich reiche die benötigten Daten zur Belieferung nach
                 </div>
               </div>
             </div>
-          </div>
-          <div>
-            <span class="info-base info-icon">i</span>
-          </div>
-        </div>
 
-        <!-- Stromanbieter dropdown -->
-        <div class="row-with-info" style="margin-top:10px;" *ngIf="selection === 'no'">
-          <div class="field-wraper select-wraper">
-            <select>
-              <option value="" disabled selected>Ihr derzeitiger Stromanbieter</option>
-              <option>Stadtwerke München</option>
-              <option>E.ON</option>
-              <option>RWE</option>
-              <option>Vattenfall</option>
-              <option>EnBW</option>
-              <option>Innogy</option>
-              <option>Yello Strom</option>
-              <option>Sonstiger Anbieter</option>
-            </select>
-            <svg class="select-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#888"
-              stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-          </div>
-          <div>
-            <span class="info-base info-icon">i</span>
-          </div>
-        </div>
-
-        <!-- ── 3. Kündigung ── -->
-        <div class="toggle-row header"><span *ngIf="selection === 'no'">Kündigung des bisherigen
-            Vertrags</span></div>
-
-        <div class="row-with-info" *ngIf="selection === 'no'">
-          <div class="kuendigung-box">
-            <!-- Auto option (top full-width) -->
-            <div class="kuendigung-top">
-              <div class="checkbox-row" id="auto-kuend-row" style="border:none;padding:0;">
-                <label class="cb-row" style="margin-right: 4px ;"><input type="checkbox" checked /></label>
-                <span>Automatische Kündigung durch neuen Anbieter</span>
+            <div class="toggle-row">
+              <div class="form-group">
+                <div class="field-wrap" style="margin-bottom: 12px;">
+                  <span class="field-label">Zählernummer</span>
+                  <input name="payment-number" type="payment-number" value="">
+                </div>
               </div>
-              <span class="badge-green">
-                am häufigsten gewählt
-              </span>
-            </div>
-            <!-- Two sub-options -->
-            <div class="kuendigung-bottom">
-
-              <div class="toggle-opt">
-                <label class="cb-row"><input type="checkbox" /></label>
-                Vertrag wurde bereits gekündigt
-              </div>
-              <div class="toggle-opt selected">
-                <label class="cb-row"><input type="checkbox" /> </label>
-                Ich werde selbst kündigen
+              <div>
+                <span class="info-base info-circ">i</span>
               </div>
             </div>
-          </div>
-          <div>
-            <span class="info-base info-icon">i</span>
-          </div>
-        </div>
 
+            <!-- Express box -->
+            <div class="row-with-info">
+              <div class="express-box">
+                <div>
+                  <span><img src="assets/icons/Express.png" class="icon-express" alt="check"></span>
+                </div>
+                <div class="container-express">
+                  <div class="express-header">
 
-        <a class="link-hint" *ngIf="selection === 'no'">Wann sollten Sie besser selbst kündigen?</a>
-
-        <!-- ── 4. Liefertermin ── -->
-        <div class="toggle-row header" *ngIf="selection === 'no'"><span>Gewünschter Liefertermin</span></div>
-        <div class="toggle-row" *ngIf="selection === 'no'">
-          <div class="toggle-box" style="width: 98.5%;">
-            <div class="toggle-opt">
-              <label class="cb-row"><input type="checkbox" /></label>
-              Schnellstmöglich
+                    Optional: Kostenlose Express-Bearbeitung
+                  </div>
+                  <p class="express-desc">
+                    Bei Angabe der Marktlokations-ID können Anbieter Ihren Wechsel beschleunigt bearbeiten.<br>
+                    Die Marktlokations-ID finden Sie auf Ihrer letzten Jahresrechnung.
+                  </p>
+                  <div class="form-group">
+                    <div class="field-wrap">
+                      <span class="field-label">Marktlokations-ID (optional)</span>
+                      <input name="payment-number" type="payment-number" value="">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <span class="info-base info-circ">i</span>
+              </div>
             </div>
-            <div class="toggle-opt selected">
-              <label class="cb-row"><input type="checkbox" checked /> </label>
-              Wunschtermin
+
+            <!-- Stromanbieter dropdown -->
+            <div class="row-with-info" style="margin-top:10px;" *ngIf="selection === 'no'">
+              <div class="field-wraper select-wraper">
+                <select>
+                  <option value="" disabled selected>Ihr derzeitiger Stromanbieter</option>
+                  <option>Stadtwerke München</option>
+                  <option>E.ON</option>
+                  <option>RWE</option>
+                  <option>Vattenfall</option>
+                  <option>EnBW</option>
+                  <option>Innogy</option>
+                  <option>Yello Strom</option>
+                  <option>Sonstiger Anbieter</option>
+                </select>
+                <svg class="select-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#888"
+                  stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </div>
+              <div>
+                <span class="info-base info-circ">i</span>
+              </div>
             </div>
-          </div>
-          <div>
-            <span class="info-base info-icon">i</span>
-          </div>
-        </div>
 
+            <!-- ── 3. Kündigung ── -->
+            <div class="toggle-row header"><span *ngIf="selection === 'no'">Kündigung des bisherigen
+                Vertrags</span></div>
 
+            <div class="row-with-info" *ngIf="selection === 'no'">
+              <div class="kuendigung-box">
+                <!-- Auto option (top full-width) -->
+                <div class="kuendigung-top">
+                  <div class="checkbox-row" id="auto-kuend-row" style="border:none;padding:0;">
+                    <label class="cb-row" style="margin-right: 4px ;"><input type="checkbox" checked /></label>
+                    <span>Automatische Kündigung durch neuen Anbieter</span>
+                  </div>
+                  <span class="badge-green">
+                    am häufigsten gewählt
+                  </span>
+                </div>
+                <!-- Two sub-options -->
+                <div class="kuendigung-bottom">
 
-        <!-- Wunschtermin date (hidden by default) -->
-        <div id="wunschtermin-date" style="display:none; margin-top:8px;" *ngIf="selection === 'no'">
-          <div class="row-with-info">
-            <div class="field-wrap">
-              <span class="f-label">Wunschtermin (Datum)</span>
-              <input type="date">
+                  <div class="toggle-opt">
+                    <label class="cb-row"><input type="checkbox" /></label>
+                    Vertrag wurde bereits gekündigt
+                  </div>
+                  <div class="toggle-opt selected">
+                    <label class="cb-row"><input type="checkbox" /> </label>
+                    Ich werde selbst kündigen
+                  </div>
+                </div>
+              </div>
+              <div>
+                <span class="info-base info-circ">i</span>
+              </div>
             </div>
-            <span class="info-base info-icon">i</span>
+
+
+            <a class="link-hint" *ngIf="selection === 'no'">Wann sollten Sie besser selbst kündigen?</a>
+
+            <!-- ── 4. Liefertermin ── -->
+            <div class="toggle-row header" *ngIf="selection === 'no'"><span>Gewünschter Liefertermin</span></div>
+            <div class="toggle-row" *ngIf="selection === 'no'">
+              <div class="toggle-box" style="width: 98.5%;">
+                <div class="toggle-opt">
+                  <label class="cb-row"><input type="checkbox" /></label>
+                  Schnellstmöglich
+                </div>
+                <div class="toggle-opt selected">
+                  <label class="cb-row"><input type="checkbox" checked /> </label>
+                  Wunschtermin
+                </div>
+              </div>
+              <div>
+                <span class="info-base info-circ">i</span>
+              </div>
+            </div>
+
+
+
+            <!-- Wunschtermin date (hidden by default) -->
+            <div id="wunschtermin-date" style="display:none; margin-top:8px;" *ngIf="selection === 'no'">
+              <div class="row-with-info">
+                <div class="field-wrap">
+                  <span class="f-label">Wunschtermin (Datum)</span>
+                  <input type="date">
+                </div>
+                <span class="info-base info-circ">i</span>
+              </div>
+            </div>
+
+            <!-- ── Submit ── -->
+            <div class="form-actions">
+              <button class="btn-primary" (click)="openPage()">Anschlussdaten übernehmen</button>
+            </div>
+
+
+
+
           </div>
         </div>
-
-        <!-- ── Submit ── -->
-        <div class="form-actions">
-          <button class="btn-primary" (click)="openPage()">Anschlussdaten übernehmen</button>
-        </div>
-
-
-
-
-      </div>
+      </div><!-- /main-content -->
     </div>
-  </div><!-- /main-content -->
-</div>

@@ -1,0 +1,16 @@
+
+.section-login { border: 1px solid #4a4949; border-radius: 8px; }
+.login-row { display: flex; flex-direction: column; gap: 18px; padding: 18px;}
+.form-row{display: flex; flex-direction: column;}
+.form-group {display: flex; flex-direction: column;}
+.login-header {font-weight: 600; margin-bottom: 10px;}
+.container-checkbox{display: flex; flex-direction: row; gap: 15px; flex-grow: 1; width: 100%;  }
+.field-wrap-checkbox { border-radius: 8px; border: 1px solid black; padding: 8px 10px; font-size: 14px; display: flex; flex: 1; justify-content: center; gap: 5px;}
+
+.login-berich {display: flex; justify-content: center; background-color: #0085e0; color: #fff; padding: 10px 0; font-weight: 600;}
+
+.email-field {display: flex; flex-direction: row;  }
+.input-field { flex: 1;}
+.input-field input { box-sizing: border-box; flex: 1; border-radius: 8px; outline: none; font-size: 14px; padding: 8px 10px; width: 100%; border: 1px solid black;}
+
+

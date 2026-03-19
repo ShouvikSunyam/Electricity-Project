@@ -116,7 +116,7 @@
       background: #0085e0;
       color: #fff;
       text-align: center;
-      padding: 8px;
+      padding: 9px;
       font-weight: 600;
       font-size: 16px;
     }
@@ -181,7 +181,7 @@
       font-weight: 600;
       border: none;
       border-radius: 8px;
-      padding: 10px 36px;
+      padding: 9px 36px;
       cursor: pointer;
       transition: background .15s;
     }
@@ -212,7 +212,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      padding:  9px 16px;
+      padding:  5px 16px;
       font-weight: 600;
       font-size: 16px;
     }
@@ -238,23 +238,17 @@
       padding: 10px 16px;
       display: flex;
       align-items: flex-start;
+      justify-content: center;
       font-size: 14px;
-      gap: 0;
+      gap: 4px;
     }
     .vergleich-bar__left {
       flex: 1;
       font-size: 14px;
       color: #333;
     }
-    .vergleich-bar__left .anpassen {
-      color: #1565c0;
-      font-size: 13px;
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      float: right;
-    }
+     .anpassen {margin-left:auto;color:#1565c0;font-size:13px;text-decoration:none;display:flex;align-items:center;gap:6px;float: right;}
+
     .vergleich-bar__provider {
       display: grid;
       grid-template-columns: 200px 1fr auto;
@@ -324,9 +318,8 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 9px 16px;
+      padding: 7px 16px;
       font-size: 16px;
-      margin-top: 10px;
     }
     .container-button{
       display: flex;
@@ -341,8 +334,8 @@
       color: #333;
       border: none;
       border-radius: 8px;
-      padding: 5px 12px;
-      font-size: 16px;
+      padding: 3.5px 12px;
+      font-size: 14px;
       font-weight: 500;
       cursor: pointer;
       display: flex;
@@ -356,13 +349,11 @@
       border: 1px solid #00a651;
       border-radius: 8px;
       overflow: hidden;
-      margin-top: 10px;
     }
     .tariff-card__badge {
       display: inline-flex;
       align-items: center;
       gap: 5px;
-
       border-radius: 8px;
       padding: 3px 10px;
       font-size: 16px;
@@ -418,51 +409,29 @@
       align-items: center;
       gap: 6px;
       font-size: 14px;
-      color: #333;
       margin-bottom: 2px;
     }
 
+  .icon-check, .icon-sort { width: 15px; height: 15px; display: flex; justify-content: center;}
+  .icon-sort{ width: 15px; height: 15px; border-radius: 4px; border: 1.5px solid black;}
 
-  .icon-check {
-    width: 15px;
-    height: 15px;
-    background-color: #000;
-  }
-    .toggle-detail {
-      font-size: 14px;
-      color: #333;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .detail-tabs {
-      display: flex;
-      gap: 0;
-      margin-bottom: 0;
-    }
-    .detail-tab {
-      font-size: 14px;
-      padding: 4px 0;
-      margin-right: 8px;
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-    }
-    .detail-tab + .detail-tab::before { content: '|';  margin-right: 8px; font-weight: 400; }
+.toggle-detail {font-size: 14px; color: #333; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;}
+.detail-tabs {display: flex; gap: 0; margin-bottom: 16px;}
+.detail-tab { font-size: 14px; padding: 4px 0; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; }
+.detail-tab.active { font-weight: 600;}
+.detail-tab::after { content: '|';  margin: 0 8px; font-weight: 400; }
+.detail-tab:last-child::after {content: "";}
 
-    .detail-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-      margin-top: 8px;
-    }
-    .detail-table tr { border-bottom: 1px solid #555; }
-    .detail-table tr:last-child  { border-bottom: none;  padding-top: 5px; }
-    .detail-table tr:last-child td {padding-top: 15px; font-weight: 600;}
-    .detail-table td { padding: 2px 0; }
-    .detail-table td:first-child {  width: 260px; }
-    .preis-im-jahr { font-size: 13px; margin-top: 10px; padding-bottom: 14px; }
-    .preis-im-jahr strong { font-weight: 700; }
+.detail-table, .price-detail, .table-monthly { width: 100%; border-collapse: collapse; font-size: 14px;  }
+.detail-table tr,  .price-detail tr { border-bottom: 1px solid #555; }
+.detail-table tr:last-child { border-bottom: none;  padding-top: 5px; }
+.detail-table tr:last-child td {padding-top: 15px; font-weight: 600;}
+.detail-table td { padding: 2px 0; }
+.price-detail td {padding: 2px 10px;}
+.detail-table td:first-child {  width: 260px; }
+.preis-im-jahr { font-size: 13px; margin-top: 10px; padding-bottom: 14px; }
+.preis-im-jahr strong { font-weight: 700; }
+.table-monthly td:first-child {width: 365px; padding: 2px 10px;}
 
     .tc-price {
       display: flex;
@@ -488,9 +457,10 @@
     .tc-price__savings .amount { color: #43a047; font-weight: 500; font-size: 16px; }
     .tc-price__vergleich {
       font-size: 14px;
-      line-height: 1.6;
       text-align: right;
-      padding-right: 18px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
     }
     .tc-price__vergleich .label {
       font-weight: 700;
@@ -521,30 +491,65 @@
     }
     .btn-weiter-card:hover { background: #046fb6; }
 
-  .info-base {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: 700;
-    cursor: default;
-    flex-shrink: 0;
+
+.container-button {
+  position: relative;
 }
 
-.info-circ {
-  border: 1.5px solid #1d1c1c;
-  color: #1d1c1c;
+.dropdown-menu {
+  position: absolute;
+  top: 90%;
+  left: 0;
   background: white;
-}
-  .info-icon {
-  background: white;
-  color: #0085e0;
-  margin-bottom: 5px;
+  border-radius: 6px;
+  margin-top: 5px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  width: 90%;
+  color: #000;
 }
 
+.dropdown-menu div {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.dropdown-menu div:hover {
+  background: #f5f5f5;
+}
+
+.info-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.info-popover {
+  position: absolute;
+  right: 0;
+}
+
+.dialog-box {
+  background: white;
+  border: 1px solid #00a651;
+  border-radius: 8px;
+  width: 310px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  padding: 10px;
+  display: flex;
+}
+
+.header-info {
+  font-weight: 600;
+}
+
+.container-information { display: flex; flex-direction:column ; gap: 10px;}
+.container-price {display: flex; flex-direction:column ; gap: 10px;}
+
+.table-monthly.blue {display: flex; flex-direction:row; justify-content: space-between; border-radius: 8px;
+  background-color: #0085e0; color: #fff; font-weight: 600; margin-top: 16px;margin-bottom: 8px;}
+
+a {text-decoration: none;color: #0085e0;}
+
+.provider{ display: flex; flex-direction:column; gap: 16px;}
 
 
 

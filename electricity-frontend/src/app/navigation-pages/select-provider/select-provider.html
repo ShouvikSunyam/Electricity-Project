@@ -20,7 +20,7 @@
     <div class="filter-box">
       <div class="filter-box__header">
         Preisanzeige
-        <span class="info-base info-icon">i</span>
+        <span class="info-base info-blue">i</span>
       </div>
       <div class="filter-box__body">
         <label class="cb-row"><input type="checkbox" checked /> Monatlich</label>
@@ -32,7 +32,7 @@
     <div class="filter-box">
       <div class="filter-box__header">
         Kundentyp
-        <span class=" info-base info-icon">i</span>
+        <span class=" info-base info-blue">i</span>
       </div>
       <div class="filter-box__body">
         <label class="cb-row"><input type="checkbox" checked /> Privatkunde</label>
@@ -44,7 +44,7 @@
     <div class="filter-box">
       <div class="filter-box__header">
         <span>Ökotarife</span>
-        <span class="info-base info-icon">i</span>
+        <span class="info-base info-blue">i</span>
       </div>
       <div class="filter-box__body">
         <label class="cb-row"><input type="checkbox" checked /> Alle Tarife</label>
@@ -56,7 +56,7 @@
     <div class="filter-box">
       <div class="filter-box__header">
         Maximale Vertragslaufzeit
-        <span class="info-base info-icon">i</span>
+        <span class="info-base info-blue">i</span>
       </div>
       <div class="filter-box__body">
         <div>
@@ -73,7 +73,7 @@
     <div class="filter-box">
       <div class="filter-box__header">
         Energiepreisgarantie Dauer
-        <span class="info-base info-icon">i</span>
+        <span class="info-base info-blue">i</span>
       </div>
       <div class="filter-box__body">
         <div>
@@ -236,14 +236,13 @@
       <!-- Vergleichstarif bar -->
       <div class="container-vergleich-bar">
         <div class="vergleich-bar">
-          Ihr Vergleichstarif: Grundversorger voreingestellt &nbsp;<span class="info-base info-circ"
-            style="margin-bottom: 5px;">i</span>
-          <a href="#" class="anpassen"
-            style="margin-left:auto;color:#1565c0;font-size:13px;text-decoration:none;display:flex;align-items:center;gap:4px;">
+          <span>Ihr Vergleichstarif: Grundversorger voreingestellt</span> &nbsp;<span class="info-base info-circ"
+            style="margin-top: 3px;">i</span>
+          <a href="#" class="anpassen">
             anpassen
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1565c0" stroke-width="2">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+            <span class="item-image">
+              <img src="assets/icons/Bearbeiten_schwarz.png" class="icon-check" alt="check">
+            </span>
           </a>
         </div>
 
@@ -268,17 +267,21 @@
       <div class="tariff-count-bar">
         <span>233 Tarife ab <strong>40,96 €</strong> pro Monat</span>
         <div class="container-button">
-          <button class="btn-sortieren">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="8" y1="6" x2="21" y2="6" />
-              <line x1="8" y1="12" x2="21" y2="12" />
-              <line x1="8" y1="18" x2="21" y2="18" />
-              <line x1="3" y1="6" x2="3.01" y2="6" />
-              <line x1="3" y1="12" x2="3.01" y2="12" />
-              <line x1="3" y1="18" x2="3.01" y2="18" /></svg>
-            Sortieren
+          <button class="btn-sortieren" (click)="toggleDropdown()">
+            {{ selectedOption }}
+            <span class="item-image">
+              <img src="assets/icons/Sortieren_schwarz.png" class="icon-sort" alt="check">
+            </span>
           </button>
-          <span class="info-base info-circ" style="border-color:#00a651;color:#00a651;">i</span>
+          <!-- Dropdown -->
+          <div class="dropdown-menu" *ngIf="isDropdownOpen">
+            <div (click)="selectOption('Sortieren nach: Beste Treffer')">Sortieren nach: Beste Treffer</div>
+            <div (click)="selectOption('Niedrigster Preis')">Niedrigster Preis</div>
+            <div (click)="selectOption('Niedrigster Arbeitspreis')">Niedrigster Arbeitspreis</div>
+            <div (click)="selectOption('Niedrigster Grundpreis')">Niedrigster Grundpreis</div>
+          </div>
+
+          <span class="info-base info-green">i</span>
         </div>
       </div>
 
@@ -286,7 +289,7 @@
       <div class="tariff-card">
         <div class="tariff-card__badge">
           Beliebtester Tarif
-          <span class="info-base info-circ" style="border-color:#1565c0;color:#1565c0;">i</span>
+          <span class="info-base info-blue">i</span>
         </div>
         <div class="tariff-card__body">
 
@@ -309,93 +312,261 @@
             </div>
             <ul class="tc-check-list">
               <li><span class="item-image">
-                  <img src="assets/icons/Haken.png" class="icon-check" alt="check">
+                  <img src="assets/icons/Kreis_Haken_schwarz.png" class="icon-check" alt="check">
                 </span>
                 Mindestvertragslaufzeit: 12 Monate</li>
               <li><span class="item-image">
-                  <img src="assets/icons/Haken.png" class="icon-check" alt="check">
+                  <img src="assets/icons/Kreis_Haken_schwarz.png" class="icon-check" alt="check">
                 </span>
                 Preisfixierung: 12 Monate</li>
               <li><span class="item-image">
-                  <img src="assets/icons/Haken.png" class="icon-check" alt="check">
+                  <img src="assets/icons/Kreis_Haken_schwarz.png" class="icon-check" alt="check">
                 </span>
                 Geschätzter Abschlag: 78 €/Monat</li>
             </ul>
+
+
             <div class="toggle-detail">Tarif- und Preisdetails <span class="arrow top-v"></span></div>
             <div class="detail-tabs">
-              <span class="detail-tab active"><strong style="font-weight: 600;">Tarifübersicht</strong></span>
-              <span class="detail-tab">Tarifinformationen</span>
-              <span class="detail-tab">Preisdetails</span>
-              <span class="detail-tab">Anbieter</span>
-              <span class="detail-tab">Stromherkunft</span>
+              <span class="detail-tab" [class.active]="activeTab === 'overview'" (click)="setTab('overview')">
+                Tarifübersicht
+              </span>
+              <span class="detail-tab" [class.active]="activeTab === 'information'" (click)="setTab('information')">
+                Tarifinformationen
+              </span>
+              <span class="detail-tab" [class.active]="activeTab === 'price'" (click)="setTab('price')">
+                Preisdetails
+              </span>
+              <span class="detail-tab" [class.active]="activeTab === 'provider'" (click)="setTab('provider')">
+                Anbieter
+              </span>
+              <span class="detail-tab" [class.active]="activeTab === 'source'" (click)="setTab('source')">
+                Stromherkunft
+              </span>
             </div>
-            <table class="detail-table">
-              <tr>
-                <td>Postleitzahl</td>
-                <td>12345</td>
-              </tr>
-              <tr>
-                <td>Jahresverbrauch</td>
-                <td>2.500 kWh</td>
-              </tr>
-              <tr>
-                <td>Abschlagszahlung</td>
-                <td>Monatlich</td>
-              </tr>
-              <tr>
-                <td>Grundpreis</td>
-                <td>12,86 €/Monat (154,30 €/Jahr)</td>
-              </tr>
-              <tr>
-                <td>Arbeitspreis</td>
-                <td>23,91 Cent/kWh</td>
-              </tr>
-              <tr>
-                <td>Neukundenbonus</td>
-                <td>109 €</td>
-              </tr>
-              <tr>
-                <td>Preisgarantie</td>
-                <td>12 Monate Nettopreisgarantie</td>
-              </tr>
-              <tr>
-                <td>Mindestvertragslaufzeit</td>
-                <td>12 Monate - danach jederzeit kündbar</td>
-              </tr>
-              <tr>
-                <td>Kündigungsfrist</td>
-                <td>1 Monat</td>
-              </tr>
-              <tr>
-                <td>Preis im 1. Jahr</td>
-                <td>53,60 €/Monat</td>
-              </tr>
-            </table>
-            <span style="font-size:15px;">(inkl. aller Kosten, Boni (109 € Neukundenbonus) und Rabatte für
-              das 1. Jahr</span>
+            <div class="tab-content">
+              <div *ngIf="activeTab === 'overview'">
+                <table class="detail-table">
+                  <tr>
+                    <td>Postleitzahl</td>
+                    <td>12345</td>
+                  </tr>
+                  <tr>
+                    <td>Jahresverbrauch</td>
+                    <td>2.500 kWh</td>
+                  </tr>
+                  <tr>
+                    <td>Abschlagszahlung</td>
+                    <td>Monatlich</td>
+                  </tr>
+                  <tr>
+                    <td>Grundpreis</td>
+                    <td>12,86 €/Monat (154,30 €/Jahr)</td>
+                  </tr>
+                  <tr>
+                    <td>Arbeitspreis</td>
+                    <td>23,91 Cent/kWh</td>
+                  </tr>
+                  <tr>
+                    <td>Neukundenbonus</td>
+                    <td>109 €</td>
+                  </tr>
+                  <tr>
+                    <td>Preisgarantie</td>
+                    <td>12 Monate Nettopreisgarantie</td>
+                  </tr>
+                  <tr>
+                    <td>Mindestvertragslaufzeit</td>
+                    <td>12 Monate - danach jederzeit kündbar</td>
+                  </tr>
+                  <tr>
+                    <td>Kündigungsfrist</td>
+                    <td>1 Monat</td>
+                  </tr>
+                  <tr>
+                    <td>Preis im 1. Jahr</td>
+                    <td>53,60 €/Monat</td>
+                  </tr>
+                </table>
+                <span style="font-size:14px;">(inkl. aller Kosten, Boni (109 € Neukundenbonus) und Rabatte für
+                  das 1. Jahr</span>
+              </div>
+
+
+              <div *ngIf="activeTab === 'information'">
+                <div class="container-information">
+                  <div>
+                    <div class="header-info"><span>Neukundenbonus 109 €</span></div>
+                    <div class="body-info"><span>Der Bonus wird spätestens nach 12 Monaten Belieferungszeit mit der dann
+                        folgenden
+                        Belieferung gutgeschrieben oder ausbezahlt. Der Bonus entfällt, wenn das
+                        Vertragsverhältnis vor Ablauf von 12 Belieferungsmonaten durch Sie oder von Ihnen
+                        zu vertretenden Gründen beendet wurde oder Sie in den letzten 6 Monaten vor der
+                        Beauftragung an der gleichen Verbrauchsstelle bereits von der Octopus Energy
+                        Germany GmbH beliefert wurden.
+                        <br>Hinweis: Der Bonus entfällt nicht, wenn das Vertragsverhältnis nach 12 Belieferungsmonaten
+                        endet.</span></div>
+                  </div>
+                  <div>
+                    <div class="header-info"><span>Nettopreisgarantie</span></div>
+                    <div class="body-info"><span>Der Anbeiter garantiert alle Preisbestandteile des Tarifs mit Ausnahme
+                        der Mehrwertsteuer
+                        und der Strom- bzw. Gassteuer sowie etwaigen nach Vertragsabschluss
+                        neu eingeführten Steuern, Abgaben und Umlagen.</span></div>
+                  </div>
+                  <div>
+                    <div class="header-info"><span>Ökotarif</span></div>
+                    <div class="body-info"><span>Bei diesem Tarif wird der Strom zu 100% aus erneuerbaren Energiequellen
+                        erzeugt.
+                      </span></div>
+                  </div>
+                  <div>
+                    <div class="header-info"><span>Belieferung aller Zählerarten</span></div>
+                    <div class="body-info"><span>Sollte an Ihrer Lieferstelle eine moderne Messeinrichtung oder ein
+                        intelligentes
+                        Messsystem (iMS) vom grundzuständigen Messstellenbetreiber verbaut werden
+                        oder bereits eingebaut sein, erfolgt in diesem Tarif keine Erhöhung der Messentgelte
+                        in der Grundgebühr aufgrund Ihres Messsystems. Sie erhalten die Preise wie
+                        im Auftrag abgeschlossen.</span></div>
+                  </div>
+                  <div>
+                    <div class="header-info"><span>Online-Tarif</span></div>
+                    <div class="body-info"><span>Die Kommunikation des Anbieters erfolgt bei diesem Tarif grundsätzlich
+                        online.
+                        Neben der Hinterlegung einer gültigen E-Mail-Adresse ist es bei manchen Anbietern
+                        erforderlich, sich im Online-Portal des Anbieters anzumelden. Informationen zu Lieferbeginn,
+                        Abschlagsplan, Abrechnung und möglichen Preiserhöhungen/-senkungen
+                        werden Ihnen per E-Mail an die angegebene E-Mail-Adresse zugesandt und ggf. im
+                        Kundenportal hinterlegt.</span></div>
+                  </div>
+                </div>
+              </div>
+
+
+              <div class="container-price" *ngIf="activeTab === 'price'">
+                <div>
+                  <div class="header-info"><span>Informationen zum Preis für 87724 Ottobeuren</span></div>
+                  <div class="body-info"><span>Verbrauchsannahme: 2.500 kWh/Jahr</span></div>
+                </div>
+                <div>
+                  <table class="price-detail">
+                    <tr>
+                      <td>Arbeitspreis pro kWh brutto (netto)</td>
+                      <td>x</td>
+                      <td> 23,91 (20,09) Ct./kWh</td>
+                    </tr>
+                    <tr>
+                      <td>Arbeitspreis gesamt</td>
+                      <td>=</td>
+                      <td>597,78 €/Jahr</td>
+                    </tr>
+                    <tr>
+                      <td>Grundpreis brutto (netto)</td>
+                      <td>+</td>
+                      <td>154,37 (129,72) €/Jahr</td>
+                    </tr>
+                    <tr>
+                      <td>Bruttopreis ohne Bonus im 1. Jahr</td>
+                      <td>=</td>
+                      <td>752,14€/Jahr</td>
+                    </tr>
+                    <tr>
+                      <td>Durchschnitt pro Monat</td>
+                      <td></td>
+                      <td>62,68 €/Monat</td>
+                    </tr>
+                    <tr>
+                      <td>Neukundenbonus</td>
+                      <td></td>
+                      <td>109.00 €</td>
+                    </tr>
+                    <tr>
+                      <td>Bruttopreis inkl. Bonus im 1. Jahr</td>
+                      <td>=</td>
+                      <td>643,14 €/Jahr</td>
+                    </tr>
+                  </table>
+                  <table class="table-monthly blue">
+                    <tr>
+                      <td>Durchschnitt pro Monat</td>
+                      <td>53,60 €/Monat</td>
+                    </tr>
+                  </table>
+                  <table class="table-monthly ">
+                    <tr>
+                      <td>Geschätzter Abschlag*</td>
+                      <td>ca. 63 €/Monat</td>
+                    </tr>
+                  </table>
+                </div>
+                <div class="body-info"><span>* Sie zahlen bei diesem Tarif 12 monatliche Abschläge.</span></div>
+                <div class="body-info"><span>Als Berechnungsgrundlage des geschätzten Abschlags dient der
+                    <strong>Bruttopreis
+                      ohne
+                      Bonus im 1. Jahr.</strong> </span></div>
+                <div class="body-info"><span>Sämtliche Berechnungen beziehen sich auf das erste Vertragsjahr.
+                    <strong>Neukundenboni</strong>
+                    werden nach Ablauf von 12 Belieferungsmonaten mit der dann folgenden Rechnung
+                    gutgeschrieben oder ausgezahlt. <strong>Sofortboni</strong> werden spätestens drei Monate nach
+                    Lieferbeginn ausgezahlt. In den geschätzten Abschlägen werden diese Boni nicht
+                    berücksichtigt.</span></div>
+                <div class="body-info"><span>Tarifversion 1494960, gültig seit 11.02.2026. <strong>Bruttopreise</strong>
+                    beinhalten alle
+                    Steuern
+                    und Abgaben. <strong>Nettopreise</strong> sind zzgl. der Mehrwertsteuer.</span></div>
+                <div class="body-info"><span>Fehlt ein Tarif oder haben Sie einen Fehler gefunden? <br>
+                    Dann nehmen Sie bitte Kontakt mit uns auf: <a href="">mm@energiehanbel.bayern</a> </span></div>
+              </div>
+
+
+              <div class="provider" *ngIf="activeTab === 'provider'">
+                <div class="header-info"><span>Octopus Energy Germany GmbH</span></div>
+                <div class="body-info"><span>Octopus Energy steht für langfristig günstige, faire und transparente
+                    Tarife mit
+                    100% Ökostrom. Besonderen Wert legt das Unternehmen dabei auf top Kundenservice,
+                    eine bezahlbare Energiewelt und eine bessere Zukunft für unseren Planeten.
+                    Weltweit begleiten Octopus Energy bereits 8 Millionen Kund*innen auf diesem
+                    Weg. In Großbritannien wurde der Anbieter schon oft für seinen Beitrag zur Energiewende
+                    ausgezeichnet. 2020 betrat Octopus als erstes Tech-Unternehmen unter
+                    den Energieversorgern den deutschen Markt. Insgesamt ist das Unternehmen weltweit
+                    in 18 Ländern aktiv.</span></div>
+              </div>
+              <div *ngIf="activeTab === 'source'">Stromherkunft Content</div>
+
+
+
+            </div>
           </div>
 
           <!-- Price -->
           <div class="tc-price">
             <div class="tc-price__amount">46,98 €</div>
             <div class="tc-price__sub">Ø pro Monat &nbsp;<span class="info-base info-circ">i</span></div>
-            <div class="tc-price__savings">Sie sparen: <span class="amount">480,53 €</span> &nbsp;<span
-                class=" info-base info-circ">i</span></div>
-
-            <div class="label" style="font-weight: 600; margin-top: 8px;">Preisvergleichrechnung <span
-                class="arrow top-v"></span></div>
-            <div class="tc-price__vergleich">
-              <div class="label">Kosten pro Jahr: &nbsp; &nbsp; &nbsp; 1.923,56 €</div>
-              <div class="label-low" style="margin-right: 6rem;">(mit diesem Tarif)</div>
-              <br />
-              <div class="label">Kosten pro Jahr: &nbsp; &nbsp; 2.423,98 € </div>
-              <div class="label-low" style="margin-right: 6rem;">(mit ausgewähltem Vergleichstarif)</div>
-              <br />
-              <div class="label">Gespart: &nbsp; &nbsp; &nbsp;<span class="gespart">480,53 €</span></div>
-              <div style="margin-top: 16px; ">(In der Preisvergleichrechnung<br />wurde nur das erste
-                Jahr
-                berücksichtigt)
-              </div>
+            <div class="tc-price__savings">Sie sparen: <span class="amount">480,53 €</span> &nbsp;
+              <span class="info-wrapper" #popoverContainer>
+                <span class=" info-base info-circ" (click)="toggleInfo($event)">i</span>
+                <div class="info-popover" *ngIf="isInfoOpen">
+                  <div class="dialog-box">
+                    <div class="dialog-content">
+                      <div class="label" style="font-weight: 600; ">Preisvergleichrechnung
+                      </div>
+                      <div class="tc-price__vergleich">
+                        <div class="label">Kosten pro Jahr: &nbsp; &nbsp; &nbsp; 1.923,56 €</div>
+                        <div class="label-low" style="margin-right: 6rem;">(mit diesem Tarif)</div>
+                        <br />
+                        <div class="label">Kosten pro Jahr: &nbsp; &nbsp; 2.423,98 € </div>
+                        <div class="label-low" style="margin-right: 6rem; display: flex; width: 100%;">(mit ausgewähltem
+                          Vergleichstarif)</div>
+                        <br />
+                        <div class="label">Gespart: &nbsp; &nbsp; &nbsp;<span class="gespart">480,53 €</span></div>
+                        <div style="margin-top: 16px; ">(In der Preisvergleichrechnung<br />wurde nur das erste Jahr
+                          berücksichtigt)
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </span>
             </div>
             <button class="btn-weiter-card" style="margin-top: auto;" (click)="openPage()">Weiter</button>
           </div>

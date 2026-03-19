@@ -12,6 +12,7 @@
 
 .date{font-weight: 600; color:#00a651 ;}
 .text {font-weight: 600;}
+.check-list {display: flex; gap: 6px;}
 
 
 .container-days, .container-time {display: flex; flex-direction: row; gap: 15px; flex-grow: 1; width: 100%;  }

@@ -11,9 +11,9 @@
       </div>
       <div class="card-body">
         <div class="price-amount">53,60 €</div>
-        <div class="price-sub"><span class="pro-monat">⌀ pro Monat</span><span class="info-base info-icon">i</span>
+        <div class="price-sub"><span class="pro-monat">⌀ pro Monat</span><span class="info-base info-circ">i</span>
         </div>
-        <div class="price-save">Sie sparen: <span class="hl">31,20 €</span><span class="info-base info-icon">i</span>
+        <div class="price-save">Sie sparen: <span class="hl">31,20 €</span><span class="info-base info-circ">i</span>
         </div>
       </div>
     </div>
@@ -50,7 +50,7 @@
             <div class="d-label">Ökostromtarif</div>
             <div class="d-value">Ja · Öko KlimaPlus</div>
           </div>
-          <span class="info-base info-icon" style="margin-top:8px;">i</span>
+          <span class="info-base info-circ" style="margin-top:8px;">i</span>
         </div>
         <div class="d-row">
           <div class="d-label">Mindestvertragslaufzeit</div>
@@ -83,7 +83,7 @@
         </div>
         <div class="line-blue">
           <div class="link-blue">Tarifdetails anzeigen </div>
-          <div class="icon-blue"><span class="info-base info-icon" style="border-color:#3a9bd5;color:#3a9bd5;">i</span>
+          <div class="icon-blue"><span class="info-base info-border-blue">i</span>
           </div>
         </div>
       </div>
@@ -202,11 +202,9 @@
           </span>
         </div>
         <a href="#" class="anpassen"
-          style="margin-left:auto;color:#ffffff;font-size:13px;text-decoration:none;display:flex;align-items:center;gap:4px;">
+          style="margin-left:auto;color:#ffffff;font-size:13px;text-decoration:none;display:flex;align-items:center;gap:6px;">
           ändern
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2">
-            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+          <span><img src="assets/icons/Bearbeiten_schwarz.png" class="icon-check" alt="check"></span>
         </a>
       </div>
       <div class="section-body">
@@ -219,7 +217,7 @@
               <input name="email" autocomplete="email" type="email" placeholder="manuel.markovic@gmx.net" value="">
             </div>
           </div>
-          <span class="info-base info-icon">i</span>
+          <span class="info-base info-circ">i</span>
         </div>
 
 
@@ -229,15 +227,17 @@
             <div class="form-group" style="flex:0 0 160px;">
               <div class="field-wrap readonly">
                 <span class="field-label">Ihre PLZ</span>
-                <input type="text" value="" placeholder="12345">
-                <span class="field-icon">🔒</span>
+                <input type="text" class="text-field" value="12345" readonly>
+                <span class="field-icon">
+                  <img src="assets/icons/Schloss.png" class="icon-schloss" alt="check">
+                </span>
               </div>
             </div>
-            <div class="form-group">
+            <div class="form-group ">
               <div class="field-wrap readonly">
                 <span class="field-label">Ort</span>
-                <input type="text" placeholder="Musterhausen" value="">
-                <span class="field-icon">🔒</span>
+                <input type="text" class="text-field" value="Musterhausen" readonly>
+                <span class="field-icon"><img src="assets/icons/Schloss.png" class="icon-schloss" alt="check"></span>
               </div>
             </div>
           </div>
@@ -247,19 +247,21 @@
             <div class="form-group">
               <div class="field-wrap readonly">
                 <span class="field-label">Ihre Straße</span>
-                <input type="text" placeholder="Musterstraße" value="">
-                <span class="field-icon">🔒</span>
+                <input type="text" class="text-field" value="Musterstraße" readonly>
+                <span class="field-icon"><img src="assets/icons/Schloss.png" class="icon-schloss" alt="check"></span>
               </div>
             </div>
             <div class="form-group" style="flex:0 0 160px;">
               <div class="field-wrap readonly">
                 <span class="field-label">Hausnummer</span>
-                <input type="text" value="" placeholder="10">
-                <span class="field-icon">🔒</span>
+                <input type="text" class="text-field" value="10" readonly>
+                <span class="field-icon"><img src="assets/icons/Schloss.png" class="icon-schloss" alt="check"></span>
               </div>
             </div>
           </div>
         </div>
+
+
       </div>
     </div>
 
@@ -273,7 +275,7 @@
           </span>
         </div>
         <a href="#" class="anpassen"
-          style="margin-left:auto;color:#ffffff;font-size:13px;text-decoration:none;display:flex;align-items:center;gap:4px;">
+          style="margin-left:auto;color:#ffffff;font-size:13px;text-decoration:none;display:flex;align-items:center;gap:6px;">
           ändern
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2">
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
@@ -306,8 +308,7 @@
         <div class="section-header">
           Zahlungsart
           <div>
-            <span class="info-base info-icon"
-              style="border-color:#ffffff; color:#00a651; background-color: #ffffff; margin-left:4px;">i</span>
+            <span class="info-base info-green">i</span>
           </div>
           <a href="#" class="anpassen"
             style="margin-left:auto;color:#ffffff;font-size:13px;text-decoration:none;display:flex;align-items:center;gap:4px;">
@@ -332,18 +333,18 @@
               </div>
             </div>
             <div>
-              <span class="info-base info-icon">i</span>
+              <span class="info-base info-circ">i</span>
             </div>
           </div>
 
           <div class="toggle-row">
             <div class="toggle-area">
               <div class="notice">
-                <span class="info-base info-icon">i</span>
+                <span><img src="assets/icons/Kreis_Haken_gruen.png" class="icon-green-tick" alt="check"></span>
                 <span>Die Übertragung Ihrer Bankverbindung erfolgt verschlüsselt über einen Sicherheitsserver</span>
               </div>
               <div class="notice">
-                <span class="info-base info-icon">i</span>
+                <span><img src="assets/icons/Kreis_Haken_gruen.png" class="icon-green-tick" alt="check"></span>
                 <span>Abbuchung erfolgt nur, wenn der Stromvertrag auch zustande kommt</span>
               </div>
             </div>
@@ -351,13 +352,13 @@
 
           <div class="toggle-row">
             <div class="form-group">
-              <div class="field-wrap" style="margin-bottom: 12px;">
+              <div class="field-wrap " style="margin-bottom: 12px;">
                 <span class="field-label">IBAN</span>
-                <input name="payment-number" type="payment-number" value="">
+                <input name="IBAN" type="IBAN" value="">
               </div>
             </div>
             <div>
-              <span class="info-base info-icon">i</span>
+              <span class="info-base info-circ">i</span>
             </div>
           </div>
 
@@ -365,20 +366,22 @@
             <div class="form-group">
               <div class="field-wrap" style="margin-bottom: 12px;">
                 <span class="field-label">Vorname</span>
-                <input name="payment-number" type="payment-number" value="">
+                <input name="Vorname" type="Vorname" value="">
               </div>
             </div>
             <div class="form-group">
               <div class="field-wrap" style="margin-bottom: 12px; ">
                 <span class="field-label">Nachname</span>
-                <input name="payment-number" type="payment-number" value="">
+                <input name="Nachname" type="Nachname" value="">
               </div>
             </div>
           </div>
 
           <div class="row-with-info">
             <div class="express-box">
-              <div class="toggle-row header"><span>Einwilligung zum SEPA-Lastschriftverfahren</span>
+              <div class="toggle-row header" style="display: flex; justify-content: space-between;"><span>Einwilligung
+                  zum SEPA-Lastschriftverfahren</span>
+                <span class="info-base info-circ">i</span>
               </div>
               <div class="container-express">
                 <p class="express-desc">
@@ -399,8 +402,10 @@
           <div class="form-actions">
             <button class="btn-primary" (click)="openPage()">Zahlungsart übernehmen</button>
             <a class="link-hint"
-              style="display: flex; justify-content: end; color: #00a651; padding: 10px 5px 0 5px;">Übertragung über
+              style="display: flex; justify-content: end; gap: 6px; color: #00a651; padding: 10px 5px 0 5px;">Übertragung
+              über
               Sicherheitsserver
+              <span><img src="assets/icons/Schloss_gruen.png" class="icon-schloss-green" alt="check"></span>
             </a>
           </div>
         </div>

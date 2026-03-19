@@ -122,7 +122,6 @@
 }
 
 
-
 .kuendigung-box::before {content: ""; position: absolute; width: 1px; background: #4a4949;  top: 0; bottom: 0; left: 50%; transform: translateX(-50%);}
 
 .kuendigung-bottom {
@@ -176,3 +175,4 @@
 }
 
 
+.icon-express { height: 15px; width: 15px;}

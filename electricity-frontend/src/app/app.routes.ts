@@ -14,6 +14,7 @@ import { PaymentMethod } from './navigation-pages/payment-method/payment-method'
 import { ConnectionData } from './navigation-pages/connection-data/connection-data';
 import { CheckoutPage } from './navigation-pages/checkout-page/checkout-page';
 import { Account } from './navigation-pages/account/account';
+import { LoginPage } from './navigation-pages/login-page/login-page';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -30,6 +31,7 @@ export const routes: Routes = [
   { path: 'electricity-comparision', component: ElectricityComparision,
     children: [
       {path: '', component: SelectProvider},
+      {path: 'login', component: LoginPage},
       {path: 'delivery-address', component: DeliveryAddress},
       {path: 'connection-data', component: ConnectionData},
       {path: 'payment-method', component: PaymentMethod},

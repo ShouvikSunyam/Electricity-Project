@@ -11,9 +11,9 @@
       </div>
       <div class="card-body">
         <div class="price-amount">53,60 €</div>
-        <div class="price-sub"><span class="pro-monat">⌀ pro Monat</span><span class="info-base info-icon">i</span>
+        <div class="price-sub"><span class="pro-monat">⌀ pro Monat</span><span class="info-base info-circ">i</span>
         </div>
-        <div class="price-save">Sie sparen: <span class="hl">31,20 €</span><span class="info-base info-icon">i</span>
+        <div class="price-save">Sie sparen: <span class="hl">31,20 €</span><span class="info-base info-circ">i</span>
         </div>
       </div>
     </div>
@@ -50,7 +50,7 @@
             <div class="d-label">Ökostromtarif</div>
             <div class="d-value">Ja · Öko KlimaPlus</div>
           </div>
-          <span class="info-base info-icon" style="margin-top:8px;">i</span>
+          <span class="info-base info-circ" style="margin-top:8px;">i</span>
         </div>
         <div class="d-row">
           <div class="d-label">Mindestvertragslaufzeit</div>
@@ -83,7 +83,7 @@
         </div>
         <div class="line-blue">
           <div class="link-blue">Tarifdetails anzeigen </div>
-          <div class="icon-blue"><span class="info-base info-icon" style="border-color:#3a9bd5;color:#3a9bd5;">i</span>
+          <div class="info-icon "><span class="info-base info-border-blue">i</span>
           </div>
         </div>
       </div>
@@ -169,36 +169,46 @@
     <div class="progress-card">
       <div class="progress-header">Nur noch wenige Klicks zu Ihrem neuen Tarif</div>
       <div class="progress-steps">
-        <div class="step active">
-          <div class="step-circle">1</div>
+        <div class="step active ">
+          <div class="step-circle active">
+            <div class="inner-circle">1</div>
+          </div>
           <div class="step-label">Lieferadresse</div>
         </div>
         <div class="step">
-          <div class="step-circle">2</div>
+          <div class="step-circle">
+            <div class="inner-circle">2</div>
+          </div>
           <div class="step-label">Anschlussdaten</div>
         </div>
         <div class="step">
-          <div class="step-circle">3</div>
+          <div class="step-circle">
+            <div class="inner-circle">3</div>
+          </div>
           <div class="step-label">Zahlungsart</div>
         </div>
         <div class="step">
-          <div class="step-circle">4</div>
+          <div class="step-circle">
+            <div class="inner-circle">4</div>
+          </div>
           <div class="step-label">Account</div>
         </div>
         <div class="step">
-          <div class="step-circle">5</div>
+          <div class="step-circle">
+            <div class="inner-circle">5</div>
+          </div>
           <div class="step-label">Abschluss</div>
         </div>
       </div>
     </div>
+
 
     <!-- Lieferadresse section -->
     <div class="section-panel">
       <div class="section-header">
         Lieferadresse
         <div class="container-icon" style=" align-items: center;">
-          <span class="info-base info-icon"
-            style="border-color:#ffffff; color:#00a651; background-color: #ffffff; margin-left:4px;">i</span>
+          <span class="info-base info-green">i</span>
         </div>
       </div>
       <div class="section-body">
@@ -244,15 +254,17 @@
             <div class="form-group" style="flex:0 0 160px;">
               <div class="field-wrap readonly">
                 <span class="field-label">Ihre PLZ</span>
-                <input type="text" value="" placeholder="12345">
-                <span class="field-icon">🔒</span>
+                <input type="text" class="text-field" value="12345" readonly>
+                <span class="field-icon">
+                  <img src="assets/icons/Schloss.png" class="icon-schloss" alt="check">
+                </span>
               </div>
             </div>
-            <div class="form-group">
+            <div class="form-group ">
               <div class="field-wrap readonly">
                 <span class="field-label">Ort</span>
-                <input type="text" placeholder="Musterhausen" value="">
-                <span class="field-icon">🔒</span>
+                <input type="text" class="text-field" value="Musterhausen" readonly>
+                <span class="field-icon"><img src="assets/icons/Schloss.png" class="icon-schloss" alt="check"></span>
               </div>
             </div>
           </div>
@@ -262,15 +274,15 @@
             <div class="form-group">
               <div class="field-wrap readonly">
                 <span class="field-label">Ihre Straße</span>
-                <input type="text" placeholder="Musterstraße" value="">
-                <span class="field-icon">🔒</span>
+                <input type="text" class="text-field" value="Musterstraße" readonly>
+                <span class="field-icon"><img src="assets/icons/Schloss.png" class="icon-schloss" alt="check"></span>
               </div>
             </div>
             <div class="form-group" style="flex:0 0 160px;">
               <div class="field-wrap readonly">
                 <span class="field-label">Hausnummer</span>
-                <input type="text" value="" placeholder="10">
-                <span class="field-icon">🔒</span>
+                <input type="text" class="text-field" value="10" readonly>
+                <span class="field-icon"><img src="assets/icons/Schloss.png" class="icon-schloss" alt="check"></span>
               </div>
             </div>
           </div>
@@ -293,7 +305,7 @@
               <input type="tel" placeholder="">
             </div>
           </div>
-          <span class="info-base info-icon" style="flex-shrink:0;">i</span>
+          <span class="info-base info-circ" style="flex-shrink:0;">i</span>
         </div>
 
         <!-- Geburtsdatum -->
@@ -306,7 +318,7 @@
               <input #dateInput id="datepicker" type="text" class="form-control" placeholder="Select date" />
             </div>
           </div>
-          <span class="info-base info-icon" style="flex-shrink:0;">i</span>
+          <span class="info-base info-circ" style="flex-shrink:0;">i</span>
         </div>
 
       </div>
@@ -317,8 +329,7 @@
       <div class="section-header">
         Abweichende Rechnungsadresse
         <div>
-          <span class="info-base info-icon"
-            style="border-color:#ffffff; color:#00a651; background-color: #ffffff; margin-left:4px;">i</span></div>
+          <span class="info-base info-green">i</span></div>
       </div>
       <div class="section-body">
         <div class="toggle-row">
@@ -333,7 +344,7 @@
             </div>
           </div>
           <div style="display: flex; margin-bottom: 20px;">
-            <span class="info-base info-icon" style="flex-shrink:0;align-self:center;">i</span>
+            <span class="info-base info-icon">i</span>
           </div>
         </div>
         <button class="btn-primary" (click)="openPage()">Lieferadresse übernehmen</button>
