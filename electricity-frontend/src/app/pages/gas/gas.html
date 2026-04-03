@@ -3,8 +3,7 @@
     <div class="dialog-header">
       <mat-icon (click)="dialog.closeAll()">close</mat-icon>
     </div>
-    <div class="dialog-content" [innerHTML]="currentDialogText">
-    </div>
+    <div class="dialog-content" [innerHTML]="currentDialogText"></div>
   </div>
 </ng-template>
 
@@ -14,57 +13,114 @@
       <div class="feature-header">Gas-Vergleich</div>
       <form [formGroup]="addressForm" class="feature-grid">
         <div class="row row-1">
-          <input type="text" placeholder="Ihre Postleitzahl" class="box small" formControlName="postalCode"
-            maxlength="5" />
+          <input
+            type="text"
+            placeholder="Ihre Postleitzahl"
+            class="box small"
+            formControlName="postalCode"
+            maxlength="5"
+          />
           <div class="input-arrow">
-            <input type="text" placeholder="Ihre Ort" class="box large" formControlName="city"
-              [matAutocomplete]="cityAuto" />
+            <!-- <input
+              type="text"
+              placeholder="Ihre Ort"
+              class="box large"
+              formControlName="city"
+              [matAutocomplete]="cityAuto"
+            /> -->
 
-            <mat-autocomplete #cityAuto="matAutocomplete" panelClass="custom-bg">
+            <!-- <mat-autocomplete #cityAuto="matAutocomplete" panelClass="custom-bg">
               <mat-option *ngFor="let city of cityOptions" [value]="city">
-                {{ city }}
+                {{ city.city }}
               </mat-option>
-            </mat-autocomplete>
+            </mat-autocomplete> -->
+
+            <select formControlName="city" class="box large">
+              <option [ngValue]="null" disabled selected>Ihre Ort</option>
+
+              <option *ngFor="let c of cityOptions" [ngValue]="c.city_id">
+                {{ c.city }}
+              </option>
+            </select>
           </div>
         </div>
         <div class="row row-2">
-          <input type="text" placeholder="Ihre Straße" class="box large" formControlName="street"
-            [matAutocomplete]="streetAuto" />
+          <!-- <input
+            type="text"
+            placeholder="Ihre Straße"
+            class="box large"
+            formControlName="street"
+            [matAutocomplete]="streetAuto"
+          />
 
           <mat-autocomplete #streetAuto="matAutocomplete" panelClass="custom-bg">
-            <mat-option *ngFor="let street of streetOptions" [value]="street">
-              {{ street }}
+            <mat-option *ngFor="let street of streetOptions" [value]="street.street">
+              {{ street.street }}
             </mat-option>
-          </mat-autocomplete>
-          <input type="text" placeholder="Hausnummer" class="box small" formControlName="houseNumber" maxlength="6" />
+          </mat-autocomplete> -->
+          <select [attr.data-key]="streetDropdownKey" formControlName="street" class="box large">
+            <option [ngValue]="null" disabled>
+              {{ isStreetLoading ? 'Lade Straßen...' : 'Ihre Straße' }}
+            </option>
+
+            <option *ngIf="isStreetLoading" disabled>Laden...</option>
+
+            <option *ngFor="let s of streetOptions; trackBy: trackByStreet" [ngValue]="s.street">
+              {{ s.street }}
+            </option>
+          </select>
+          <input
+            type="text"
+            placeholder="Hausnummer"
+            class="box small"
+            formControlName="houseNumber"
+            maxlength="6"
+          />
         </div>
       </form>
-      <div class="feature-header1">Bitte Wohnungsgröße in m<sup>2</sup> anklicken <strong>oder</strong> kWh / Jahr
-        direkt
-        eingaben</div>
+      <div class="feature-header1">
+        Bitte Wohnungsgröße in m<sup>2</sup> anklicken <strong>oder</strong> kWh / Jahr direkt
+        eingaben
+      </div>
       <div class="container-person">
         <div class="compare-person">
           <div class="person-option">
-            <button class="person" (click)="selectPersons(1, 5050)" [class.active]="selectedPersons === 1">
+            <button
+              class="person"
+              (click)="selectPersons(1, 5050)"
+              [class.active]="selectedPersons === 1"
+            >
               <span class="person-count">50m<sup>2</sup></span>
             </button>
-            <button class="person" (click)="selectPersons(2, 12000)" [class.active]="selectedPersons === 2">
+            <button
+              class="person"
+              (click)="selectPersons(2, 12000)"
+              [class.active]="selectedPersons === 2"
+            >
               <span class="person-count">100m<sup>2</sup></span>
             </button>
-            <button class="person" (click)="selectPersons(3, 20500)" [class.active]="selectedPersons === 3">
+            <button
+              class="person"
+              (click)="selectPersons(3, 20500)"
+              [class.active]="selectedPersons === 3"
+            >
               <span class="person-count">150m<sup>2</sup></span>
             </button>
-            <button class="person" (click)="selectPersons(4, 28000)" [class.active]="selectedPersons === 4">
+            <button
+              class="person"
+              (click)="selectPersons(4, 28000)"
+              [class.active]="selectedPersons === 4"
+            >
               <span class="person-count">180m<sup>2</sup></span>
             </button>
           </div>
         </div>
         <div class="total-consumption">
-          <input type="text" class="consumption-number" [value]="consumption | number">
+          <input type="text" class="consumption-number" [value]="consumption | number" />
           <span class="watt-per-year">kWh / Jahr</span>
         </div>
         <div class="container-compare">
-          <button class="compare"> Jetzt Vergleichen</button>
+          <button class="compare">Jetzt Vergleichen</button>
         </div>
       </div>
     </div>
@@ -85,7 +141,8 @@
         <span class="amount">1250€</span>
       </div>
       <div class="item-discount-bottom">
-        <span class="item-price">sparen
+        <span class="item-price"
+          >sparen
           <mat-icon class="info-icon" (click)="openInfo(infoDialog, discountinfo)">
             info_i
           </mat-icon>
@@ -93,5 +150,4 @@
       </div>
     </div>
   </div>
-
 </div>

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, NgZone } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
@@ -10,8 +10,6 @@ import { AddressService } from './../../services/address.service';
 import { Registration } from '../../layout/registration/registration';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { NgZone } from '@angular/core';
-import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-electricity',
@@ -66,6 +64,8 @@ export class Electricity implements OnInit {
   };
 
   extraPerPerson = 850;
+  streetDropdownKey = 0;
+  isStreetLoading = false;
 
   ngOnInit(): void {
     this.addressForm = this.fb.group({
@@ -124,15 +124,23 @@ export class Electricity implements OnInit {
       ?.valueChanges.pipe(debounceTime(300))
       .subscribe((placeId) => {
         if (!placeId) return;
-
+        this.streetOptions = [];
         this.resetStreet();
         this.resetHouseNumber();
+        this.isStreetLoading = true;
+
+        this.addressForm.get('street')?.enable();
 
         this.addressService.getStreetsByCity(placeId).subscribe((streets) => {
           this.ngZone.run(() => {
             this.streetOptions = streets;
+            this.streetDropdownKey++;
+            const streetControl = this.addressForm.get('street');
+            streetControl?.setValue(null);
+
+            this.isStreetLoading = false;
             this.cdr.detectChanges();
-            
+
             if (streets.length > 0) {
               this.addressForm.get('street')?.enable();
             }

@@ -46,8 +46,12 @@
           <datalist id="streetList">
             <option *ngFor="let s of streetOptions" [value]="s.street"></option>
           </datalist> -->
-          <select formControlName="street" class="box large">
-            <option [ngValue]="null" disabled selected>Ihre Straße</option>
+          <select [attr.data-key]="streetDropdownKey" formControlName="street" class="box large">
+            <option [ngValue]="null" disabled>
+              {{ isStreetLoading ? 'Lade Straßen...' : 'Ihre Straße' }}
+            </option>
+
+            <option *ngIf="isStreetLoading" disabled>Laden...</option>
 
             <option *ngFor="let s of streetOptions; trackBy: trackByStreet" [ngValue]="s.street">
               {{ s.street }}
