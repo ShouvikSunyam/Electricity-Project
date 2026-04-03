@@ -1,0 +1,12 @@
+/* Ensure the editor has a decent minimum height */
+:host ::v-deep .ck-editor__editable_inline {
+    min-height: 150px;
+    background-color: white; /* Matches light mode */
+}
+
+/* Optional: Dark mode compatibility for the editor text */
+@media (prefers-color-scheme: dark) {
+    :host ::v-deep .ck-editor__editable_inline {
+        color: #1f2937; /* Dark gray text for readability inside white editor */
+    }
+}

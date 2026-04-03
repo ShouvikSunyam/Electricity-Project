@@ -11,51 +11,17 @@
     </button>
 
     <ul class="nav-links" [class.active]="isMenuOpen">
-      <li routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }">
-        <a routerLink="/electricity-comparision" (click)="closeMenu()">
-          <img src="assets/icons/Stromvergleich.png" class="nav-icon-strom" alt="stromvergleich">
+      <li *ngFor="let item of navItems" routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: item.originalFileName !== 'Stromvergleich.png' }">
+
+        <a [routerLink]="getRouterLink(item.originalFileName)" (click)="closeMenu()">
+          <img [src]="getImageUrl(item.contentUrl)" [class]="getIconClass(item.originalFileName)"
+            [alt]="item.originalFileName">
+
           <span class="nav-text">
-            Stromvergleich
+            {{ item.heading }}
+            <span *ngIf="item.subHeading" class="small-text">{{ item.subHeading }}</span>
           </span>
-        </a>
-      </li>
-      <li routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-        <a routerLink="/gas-comparision" (click)="closeMenu()">
-          <img src="assets/icons/Gasvergleich.png" class="nav-icon-gas" alt="gasvergleich">
-          <span class="nav-text">Gasvergleich</span>
-        </a>
-      </li>
-      <li routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-        <a routerLink="/commercial-electricity" (click)="closeMenu()">
-          <img src="assets/icons/Gewerbestrom.png" class="nav-icon-gewerbestrom" alt="gewerbestrom">
-          <span class="nav-text">Gewerbestrom</span>
-        </a>
-      </li>
-      <li routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-        <a routerLink="#" (click)="closeMenu()">
-          <img src="assets/icons/Gewerbegas.png" class="nav-icons-outlined" alt="gewerbegas">
-          <span class="nav-text">Gewerbegas</span>
-        </a>
-      </li>
-      <li routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-        <a routerLink="#" (click)="closeMenu()">
-          <img src="assets/icons/Grosskunde_2.png" class="nav-icons-grosskunde" alt="grosskunde_2">
-          <span class="nav-text">
-            Großkunden
-            <span class="small-text">ab 100.000 kWh/Jahr</span>
-          </span>
-        </a>
-      </li>
-      <li routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-        <a routerLink="#" (click)="closeMenu()">
-          <img src="assets/icons/360_Vergleich.png" class="nav-icon-360" alt="vergleichen">
-          <span class="nav-text">360&deg; Wechselservice</span>
-        </a>
-      </li>
-      <li routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-        <a routerLink="#" (click)="closeMenu()">
-          <img src="assets/icons/Tarifwecker_weiss.png" class="nav-icons-outlined" alt="tarifwecker">
-          <span class="nav-text">Tarifwecker</span>
         </a>
       </li>
     </ul>

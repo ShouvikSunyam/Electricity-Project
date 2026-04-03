@@ -1,8 +1,9 @@
 import { Component, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { ApiService } from "../../../shared/services/api.service";
-import { RouterModule } from '@angular/router';
-
+import { RouterModule } from "@angular/router";
+import { AuthService } from "../../../shared/services/auth.service";
+import { environment } from "../../../../environments/environment";
 
 @Component({
   selector: "app-navigation-menu-list",
@@ -11,21 +12,33 @@ import { RouterModule } from '@angular/router';
   templateUrl: "./navigation-menu-list.component.html",
 })
 export class NavigationMenuListComponent implements OnInit {
+  readonly imgBase = environment.imageBaseUrl;
+
   menus: any[] = [];
   isLoading = false;
   errorMessage = "";
 
-  constructor(private api: ApiService) {}
+  constructor(
+    private api: ApiService,
+    private authService: AuthService,
+  ) {}
 
   ngOnInit() {
     this.fetchMenus();
   }
 
   fetchMenus() {
+    const adminId = this.authService.getUserId(); 
+
     this.isLoading = true;
     this.errorMessage = "";
 
-    this.api.get("admin/navigation/list").subscribe({
+    const payload = {
+      adminId: adminId,
+      type: 1,
+    };
+
+    this.api.post("admin/get-all-menu", payload).subscribe({
       next: (res) => {
         this.isLoading = false;
 
