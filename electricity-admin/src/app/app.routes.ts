@@ -10,6 +10,7 @@ import { SidebarMenuListComponent } from "./pages/menus/sidebar-menu-list/sideba
 import { FreeServicesListComponent } from "./pages/free-services/free-services-list/free-services-list.component";
 import { FreeServicesCreateComponent } from "./pages/free-services/free-services-create/free-services-create.component";
 
+
 export const routes: Routes = [
   {
     path: "",
@@ -46,13 +47,13 @@ export const routes: Routes = [
       {
         path: "services/free",
         component: FreeServicesListComponent,
-        title: "Free Services",
+        title: "Services",
       },
       {
         path: "services/free/create",
         component: FreeServicesCreateComponent,
-        title: "Create Free Service",
-      }
+        title: "Create Service",
+      },
     ],
   },
   {

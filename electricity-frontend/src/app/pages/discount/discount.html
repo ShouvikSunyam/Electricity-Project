@@ -1,46 +1,31 @@
-<ng-template #infoDialog let-dialogRef="dialogRef">
+<ng-template #infoDialog>
   <div class="dialog-box">
     <div class="dialog-header">
       <mat-icon (click)="dialog.closeAll()">close</mat-icon>
     </div>
-    <div class="dialog-content" [innerHTML]="currentDialogText">
-    </div>
+
+    <div class="dialog-content" [innerHTML]="currentDialogText"></div>
   </div>
 </ng-template>
 
-
 <div class="container-discount">
-  <div class="container-partner">
-    <div class="icon-circle ">
-      <span class="item-image">
-        <img src="assets/icons/Haken.png" class="icon-check" alt="check">
-      </span>
-    </div>
-    <div class="expert">Dauerhaft fester Ansprechpartner
-      <div class="info-container" (click)="openInfo(infoDialog, ansprechpartner)">
-        <span class="info-base info-green">i</span>
+  <ng-container *ngIf="isLoading; else dataView">
+    <div class="loading-placeholder">Lade Vorteile...</div>
+  </ng-container>
+
+  <ng-template #dataView>
+    <div *ngFor="let service of highlightedServices" class="container-partner">
+      <div class="icon">
+        <span class="item-image">
+          <img src="assets/icons/Haken.png" class="icon-check" alt="check">
+        </span>
+      </div>
+      <div class="expert">
+        {{ service.heading }}
+        <div *ngIf="service.subheading" class="info-container" (click)="openInfo(infoDialog, service.subheading)">
+          <span class="info-base info-green">i</span>
+        </div>
       </div>
     </div>
-  </div>
-  <div class="container-partner">
-    <div class="icon">
-      <span class="item-image">
-        <img src="assets/icons/Haken.png" class="icon-check" alt="check">
-      </span>
-    </div>
-    <div class="expert">Über 90 Anbieter im Vergleich
-    </div>
-  </div>
-  <div class="container-partner">
-    <div class="icon">
-      <span class="item-image">
-        <img src="assets/icons/Haken.png" class="icon-check" alt="check">
-      </span>
-    </div>
-    <div class="expert">Automatische Wechselerinnerung
-      <div class="info-container" (click)="openInfo(infoDialog, wechselerinnerung)">
-        <span class="info-base info-green">i</span>
-      </div>
-    </div>
-  </div>
+  </ng-template>
 </div>

@@ -23,7 +23,10 @@
                     }
 
                     @if (imagePreview) {
-                    <img [src]="imagePreview" class="mx-auto h-28 w-28 object-cover rounded-lg" />
+                    <div
+                        class="relative mx-auto h-28 w-28 bg-[url('https://www.transparenttextures.com/patterns/checkerboard.png')] bg-gray-200 rounded-lg overflow-hidden border border-gray-200">
+                        <img [src]="imagePreview" class="h-full w-full object-cover" />
+                    </div>
                     <p class="text-xs mt-2 text-gray-500">Zum Ändern klicken</p>
                     }
                 </div>

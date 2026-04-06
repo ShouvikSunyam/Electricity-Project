@@ -2,24 +2,30 @@ import { Component } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { ApiService } from "../../../shared/services/api.service";
-import { RouterModule } from '@angular/router';
+import { RouterModule } from "@angular/router";
+import { CKEditorModule } from "@ckeditor/ckeditor5-angular";
+import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import { AuthService } from "../../../shared/services/auth.service";
 
 @Component({
   selector: "app-sidebar-menu-create",
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, CKEditorModule],
   templateUrl: "./sidebar-menu-create.component.html",
   styleUrl: "./sidebar-menu-create.component.css",
 })
 export class SidebarMenuCreateComponent {
+  public Editor: any = ClassicEditor;
   title = "";
   imageFile: File | null = null;
   imagePreview: string | null = null;
+  savings = "";
+  popupContent = "";
 
   isLoading = false;
   errorMessage = "";
 
-  constructor(private api: ApiService) {}
+  constructor(private api: ApiService,  private authService: AuthService) {}
 
   /* ================= FILE ================= */
 
@@ -52,8 +58,11 @@ export class SidebarMenuCreateComponent {
   /* ================= SUBMIT ================= */
 
   onSubmit() {
-    if (!this.title || !this.imageFile) {
-      this.errorMessage = "Title and Image are required";
+
+    const adminId = this.authService.getUserId();
+
+    if (!this.title || !this.imageFile || !this.savings) {
+      this.errorMessage = "Titel, Bild und Ersparnis sind erforderlich";
       return;
     }
 
@@ -61,14 +70,18 @@ export class SidebarMenuCreateComponent {
     this.errorMessage = "";
 
     const payload = {
+      adminId: adminId,
       title: this.title,
+      saving: this.savings,
+      savingDetail: this.popupContent,
+      type: 2,
     };
 
     const formData = new FormData();
-    formData.append("image", this.imageFile);
-    formData.append("data", JSON.stringify(payload)); // 👈 JSON inside multipart
+    formData.append("file", this.imageFile);
+    formData.append("data", JSON.stringify(payload));
 
-    this.api.post("admin/navigation/create", formData).subscribe({
+    this.api.post("admin/add-menu", formData).subscribe({
       next: (res) => {
         this.isLoading = false;
 
@@ -76,6 +89,8 @@ export class SidebarMenuCreateComponent {
         this.title = "";
         this.imageFile = null;
         this.imagePreview = null;
+        this.savings = "";
+        this.popupContent = "";
 
         alert("✅ Menu created successfully");
       },

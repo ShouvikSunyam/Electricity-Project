@@ -1,7 +1,7 @@
 <div class="home-container">
   <div class="home-left">
     <!--  ------------------------------------------ electricity div ------------------------------------------------  -->
-    <div class="electricity-container">
+    <!-- <div class="electricity-container">
       <div class="electricity">
         <button class="icon-btn-electricity" [routerLink]="['/home/electricity']" routerLinkActive="active">
           <span class="electricity-comparison">
@@ -34,10 +34,29 @@
           <span class="btn-text">Ladestrom | Autostrom</span>
         </button>
       </div>
+    </div> -->
+
+    <div class="electricity-container">
+      <div class="electricity">
+        @if (isLoading) {
+        <p>Lade Services...</p>
+        } @else {
+        <button *ngFor="let item of sidebarItems" class="icon-btn-electricity"
+          [routerLink]="[getRouterLink(item.originalFileName)]" routerLinkActive="active">
+
+          <span class="electricity-comparison">
+            <img [src]="getImageUrl(item.contentUrl)" [class]="getIconClass(item.originalFileName)"
+              [alt]="item.originalFileName">
+          </span>
+
+          <span class="btn-text">{{ getLabel(item.originalFileName) }}</span>
+        </button>
+        }
+      </div>
     </div>
 
     <!--  ---------------------------------------   Our service ----------------------------------------------------------  -->
-    <div class="service-container">
+    <!-- <div class="service-container">
       <div class="service-container">
         <div class="our-services-header">
           <span class="our-services"></span>
@@ -74,6 +93,26 @@
             </span>
             <span class="btn-text">Tarifwechsel-Erinnerung</span>
           </button>
+        </div>
+      </div>
+    </div> -->
+
+    <div class="service-container">
+      <div class="service-container">
+        <div class="our-services-header">
+          <span class="our-services"></span>
+          <span class="btn-header-text">Unser Kostenloser Service</span>
+        </div>
+
+        <div class="container-items">
+          <button *ngFor="let service of freeServices" class="icon-btn-service">
+            <span class="our-services">
+              <img src="assets/icons/Haken_Blau.png" class="icon-check" alt="check">
+            </span>
+            <span class="btn-text">{{ service.heading }}</span>
+          </button>
+
+          <p *ngIf="!isLoading && freeServices.length === 0">Keine Services verfügbar.</p>
         </div>
       </div>
     </div>

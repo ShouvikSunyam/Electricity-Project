@@ -2,7 +2,8 @@ import { Component } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { ApiService } from "../../../shared/services/api.service";
-import { RouterModule } from '@angular/router';
+import { RouterModule } from "@angular/router";
+import { AuthService } from "../../../shared/services/auth.service";
 
 @Component({
   selector: "app-navigation-menu-create",
@@ -11,7 +12,6 @@ import { RouterModule } from '@angular/router';
   templateUrl: "./navigation-menu-create.component.html",
   styleUrl: "./navigation-menu-create.component.css",
 })
-
 export class NavigationMenuCreateComponent {
   title = "";
   subtitle = "";
@@ -21,7 +21,7 @@ export class NavigationMenuCreateComponent {
   isLoading = false;
   errorMessage = "";
 
-  constructor(private api: ApiService) {}
+  constructor(private api: ApiService, private authService: AuthService) {}
 
   /* ================= FILE ================= */
 
@@ -54,6 +54,8 @@ export class NavigationMenuCreateComponent {
   /* ================= SUBMIT ================= */
 
   onSubmit() {
+    const adminId = this.authService.getUserId();
+
     if (!this.title || !this.imageFile) {
       this.errorMessage = "Title and Image are required";
       return;
@@ -63,16 +65,20 @@ export class NavigationMenuCreateComponent {
     this.errorMessage = "";
 
     const payload = {
-      title: this.title,
-      subtitle: this.subtitle || null,
+      adminId: adminId,
+      heading: this.title,
+      subHeading: this.subtitle || "",
+      type: 1,
     };
 
     const formData = new FormData();
-    formData.append("image", this.imageFile);
-    formData.append("data", JSON.stringify(payload)); // 👈 JSON inside multipart
+    formData.append("file", this.imageFile);
+    formData.append("data", JSON.stringify(payload));
 
-    this.api.post("admin/navigation/create", formData).subscribe({
+    this.api.post("admin/add-menu", formData).subscribe({
       next: (res) => {
+        console.log(res);
+
         this.isLoading = false;
 
         /* reset form */
@@ -84,6 +90,7 @@ export class NavigationMenuCreateComponent {
         alert("✅ Menu created successfully");
       },
       error: (err) => {
+        console.log(err);
         this.isLoading = false;
 
         if (err?.error?.res === false) {
