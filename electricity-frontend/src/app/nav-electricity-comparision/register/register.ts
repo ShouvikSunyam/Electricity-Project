@@ -92,7 +92,7 @@ export class Register {
 
     this.isLoading = true;
     this.http
-      .post<{ res: boolean; message: string }>(`${API_BASE}/customer/login`, { email, password })
+      .post<{ res: boolean; message: string }>(`${API_BASE}/auth/login`, { email, password })
       .subscribe({
         next: (res) => {
           this.isLoading = false;
@@ -247,7 +247,7 @@ export class Register {
         data?: { id: number; firstName: string; lastName: string; email: string };
         page?: string;
         message?: string;
-      }>(`${API_BASE}/customer/signup`, payload)
+      }>(`${API_BASE}/auth/signup`, payload)
       .subscribe({
         next: (res) => {
           this.isLoading = false;
@@ -336,7 +336,7 @@ export class Register {
       .post<{
         res: boolean;
         message: string;
-      }>(`${API_BASE}/customer/resend-otp`, { id: this.registeredCustomerId })
+      }>(`${API_BASE}/auth/resend-otp`, { id: this.registeredCustomerId })
       .subscribe({
         next: (res) => {
           this.resendSuccess = true;
@@ -357,7 +357,7 @@ export class Register {
   /* ══════════════════════════════════════════════════════════════════
      STEP 2 — VERIFY OTP
   ══════════════════════════════════════════════════════════════════ */
-
+  otpInvalid = false;
   verifyOtp() {
     this.collectOtp();
     if (this.otpValue.length < 6) {
@@ -376,19 +376,20 @@ export class Register {
       .post<{
         res: boolean;
         message: string;
-      }>(`${API_BASE}/customer/verify-otp`, { id: this.registeredCustomerId, otp: this.otpValue })
+      }>(`${API_BASE}/auth/verify-otp`, { id: this.registeredCustomerId, otp: this.otpValue })
       .subscribe({
         // inside subscribe next block for verify-otp
         next: (res) => {
           this.isLoading = false;
           if (res.res) {
             this.currentStep = 3; // Update the step to 3
-
+            this.otpInvalid = false;
             // FORCE THE UI TO SEE THE CHANGE
             this.cdr.detectChanges();
             console.log('Step changed to 3. UI should update now.');
           } else {
             this.otpError = 'Der eingegebene Code ist ungültig.';
+            this.otpInvalid = true;
             this.cdr.detectChanges();
           }
         },
@@ -414,17 +415,20 @@ export class Register {
     this.apiError = '';
 
     this.http
-      .post<any>(`${API_BASE}/customer/mark-terms`, { id: this.registeredCustomerId })
+      .post<any>(`${API_BASE}/auth/mark-terms`, { id: this.registeredCustomerId })
       .subscribe({
         next: (res) => {
           this.isLoading = false;
           if (res.res) {
-            // Add logic here to move to Step 4 or the next page
+            this.currentStep = 4;
             console.log('Registration fully completed');
-            // Example: this.currentStep = 4;
-            // this.cdr.detectChanges();
+
+            this.cdr.detectChanges();
           }
         },
       });
+  }
+  redirectToAccount(){
+    console.log("btn click");
   }
 }
