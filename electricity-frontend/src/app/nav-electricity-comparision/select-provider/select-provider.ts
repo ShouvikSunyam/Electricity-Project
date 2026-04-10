@@ -1,4 +1,11 @@
-import { ChangeDetectorRef, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  HostListener,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -9,6 +16,7 @@ import { HttpClient } from '@angular/common/http';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { ContactPerson } from '../../layout/contact-person/contact-person';
 import { NeedSupport } from '../../layout/need-support/need-support';
+import { AddressService } from '../../services/address.service';
 
 export interface Rate {
   rateId: number;
@@ -105,7 +113,6 @@ export class SelectProvider implements OnInit {
   activeTabMap: { [rateId: number]: string } = {};
   @ViewChild('popoverContainer', { static: false }) popoverContainer!: ElementRef;
 
-
   constructor(
     private cdr: ChangeDetectorRef,
     private http: HttpClient,
@@ -113,11 +120,42 @@ export class SelectProvider implements OnInit {
     private route: ActivatedRoute,
     public dialog: MatDialog,
     private eRef: ElementRef,
-  ) { }
+    private addressService: AddressService,
+  ) {}
+  hasAddress = false;
+  // ngOnInit(): void {}
+  ngOnInit(): void {
+    const data = this.addressService.getData();
 
-  ngOnInit(): void { }
+    console.log('Received:', data);
+
+    if (data && data.zip && data.city && data.street) {
+      this.zip = data.zip;
+      this.city = data.city;
+      this.street = data.street;
+      this.houseNumber = data.houseNumber;
+      this.consum = data.consumption;
+
+      this.hasAddress = true;
+
+      this.toggleDiv();
+    } else {
+      this.hasAddress = false;
+    }
+  }
+
+  goBack() {
+    this.router.navigate(['/home/electricity']);
+  }
+
 
   private fetchRates(): void {
+    if (!this.hasAddress) {
+      console.warn('Missing address, skipping API call');
+      alert('Please select an address before compare');
+      return;
+    }
+
     this.isLoading = true;
     this.hasLoadedRates = false;
     this.allRates = [];
@@ -128,7 +166,7 @@ export class SelectProvider implements OnInit {
       city: this.city,
       street: this.street,
       houseNumber: this.houseNumber,
-      Country: '81',
+      // Country: '81',
       consum: this.consum,
       type: this.type,
       branch: this.branch,

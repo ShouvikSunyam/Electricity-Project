@@ -35,10 +35,18 @@ export interface StreetsResponse {
   streets: string[];
 }
 
-
 @Injectable({ providedIn: 'root' })
 export class AddressService {
   private baseUrl: string;
+  private data: any;
+
+  setData(data: any) {
+    this.data = data;
+  }
+
+  getData() {
+    return this.data;
+  }
 
   constructor(
     @Inject(ENVIRONMENT) private env: Environment,
@@ -55,7 +63,7 @@ export class AddressService {
         if (response && response.res && Array.isArray(response.data)) {
           return response.data.map((item: City) => ({
             city: item.city,
-            city_id: item.city_id
+            city_id: item.city_id,
           }));
         }
         return [];
@@ -63,7 +71,7 @@ export class AddressService {
       catchError((error: any) => {
         console.error('Error fetching cities:', error);
         return of([]);
-      })
+      }),
     );
   }
 
@@ -75,7 +83,7 @@ export class AddressService {
         if (res && res.res && Array.isArray(res.data)) {
           return res.data.map((item: Street) => ({
             street: item.street,
-            street_id: item.street_id.toString()
+            street_id: item.street_id.toString(),
           }));
         }
         return [];
@@ -83,7 +91,7 @@ export class AddressService {
       catchError((error: any) => {
         console.error('Error fetching streets:', error);
         return of([]);
-      })
+      }),
     );
   }
 }

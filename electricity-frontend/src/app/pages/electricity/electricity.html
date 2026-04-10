@@ -74,6 +74,7 @@
         <div class="compare-person" *ngIf="!showCustomInput">
           <div class="person-option">
             <button
+              type="button"
               class="person"
               (click)="selectPersons(1)"
               [class.active]="selectedPersons === 1"
@@ -84,6 +85,7 @@
               <span class="person-count">1</span>
             </button>
             <button
+              type="button"
               class="person"
               (click)="selectPersons(2)"
               [class.active]="selectedPersons === 2"
@@ -94,6 +96,7 @@
               <span class="person-count">2</span>
             </button>
             <button
+              type="button"
               class="person"
               (click)="selectPersons(3)"
               [class.active]="selectedPersons === 3"
@@ -104,6 +107,7 @@
               <span class="person-count">3</span>
             </button>
             <button
+              type="button"
               class="person"
               (click)="selectPersons(4)"
               [class.active]="selectedPersons === 4"
@@ -113,7 +117,7 @@
               </span>
               <span class="person-count">4</span>
             </button>
-            <button class="person" (click)="selectMehr()">
+            <button type="button" class="person" (click)="selectMehr()">
               <span class="person-icon">
                 <img src="assets/icons/Familie_6.png" class="icon-family-6" alt="family" />
               </span>
@@ -122,7 +126,7 @@
           </div>
         </div>
         <div class="total-consumption" *ngIf="!showCustomInput">
-          <span class="consumption-number"> {{ consumption | number }}</span>
+          <span id="consumptionValue" class="consumption-number"> {{ consumption | number }}</span>
           <span class="watt-per-year">kWh / Jahr</span>
         </div>
         <!-- Extra persons (shown when mehr clicked) -->
@@ -133,23 +137,25 @@
             </div>
             <div class="total-consumption">
               <input
-                id="personsInput"
+                #personsInput
                 type="number"
                 min="1"
                 class="consumption-area"
                 placeholder="z. B. 6"
-                (input)="onCustomPersonsChange($any($event.target).value)"
+                (input)="onCustomPersonsChange(personsInput.value)"
               />
               <span>Personen im Haushalt</span>
             </div>
             <div class="total-consumption">
-              <span class="consumption-number"> {{ consumption | number }}</span>
+              <span id="consumptionValue" class="consumption-number"> {{ consumption | number }}</span>
               <span class="watt-per-year">kWh / Jahr</span>
             </div>
           </div>
         </ng-container>
         <div class="container-compare">
-          <button class="compare">Jetzt Vergleichen</button>
+          <button type="button" class="compare" (click)="goToComparison()">
+            Jetzt Vergleichen
+          </button>
         </div>
       </div>
     </div>

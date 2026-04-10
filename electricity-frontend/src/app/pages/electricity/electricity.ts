@@ -10,6 +10,7 @@ import { AddressService } from './../../services/address.service';
 import { Registration } from '../../layout/registration/registration';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-electricity',
@@ -31,6 +32,7 @@ export class Electricity implements OnInit {
   addressForm!: FormGroup;
   cityOptions: { city: string; city_id: string }[] = [];
   streetOptions: { street: string; street_id: string }[] = [];
+  isRestoring = false;
 
   constructor(
     public dialog: MatDialog,
@@ -38,6 +40,7 @@ export class Electricity implements OnInit {
     private addressService: AddressService,
     private ngZone: NgZone,
     private cdr: ChangeDetectorRef,
+    private router: Router,
   ) {}
 
   discountinfo = `<p> <strong>So haben wir gerechnet </strong> </p>
@@ -85,6 +88,52 @@ export class Electricity implements OnInit {
     this.handlePostalCodeChanges();
     this.handleCityChanges();
     this.handleStreetChanges();
+
+    // Restore saved data
+    const saved = this.addressService.getData();
+
+    if (saved) {
+      this.isRestoring = true;
+
+      this.addressForm.patchValue({
+        postalCode: saved.zip,
+      });
+
+      this.selectedPersons = saved.persons;
+      this.consumption = saved.consumption;
+
+      this.addressService.getCitiesByZip(saved.zip).subscribe((cities) => {
+        this.cityOptions = cities;
+        this.addressForm.get('city')?.enable();
+
+        const matchedCity = cities.find((c) => c.city === saved.city);
+
+        if (matchedCity) {
+          this.addressForm.get('city')?.setValue(matchedCity.city_id, { emitEvent: false });
+
+          this.addressService.getStreetsByCity(matchedCity.city_id).subscribe((streets) => {
+            this.streetOptions = streets;
+            this.addressForm.get('street')?.enable();
+
+            this.addressForm.patchValue(
+              {
+                street: saved.street,
+              },
+              { emitEvent: false },
+            );
+
+            this.addressForm.get('houseNumber')?.enable();
+            this.addressForm.patchValue({
+              houseNumber: saved.houseNumber,
+            });
+
+            this.isRestoring = false;
+          });
+        } else {
+          this.isRestoring = false;
+        }
+      });
+    }
   }
 
   private handlePostalCodeChanges() {
@@ -93,6 +142,7 @@ export class Electricity implements OnInit {
       ?.valueChanges.pipe(
         debounceTime(500),
         switchMap((zip) => {
+          if (this.isRestoring) return of([]);
           this.resetCity();
           this.resetStreet();
           this.resetHouseNumber();
@@ -123,7 +173,7 @@ export class Electricity implements OnInit {
       .get('city')
       ?.valueChanges.pipe(debounceTime(300))
       .subscribe((placeId) => {
-        if (!placeId) return;
+        if (!placeId || this.isRestoring) return;
         this.streetOptions = [];
         this.resetStreet();
         this.resetHouseNumber();
@@ -187,31 +237,47 @@ export class Electricity implements OnInit {
     this.showCustomInput = false;
     this.selectedPersons = persons;
     this.consumption = this.calculateConsumption(persons);
+    this.updateConsumptionUI();
   }
 
   selectMehr() {
     this.showCustomInput = true;
     this.consumption = 0;
     this.selectedPersons = 0;
+    setTimeout(() => {
+      this.updateConsumptionUI();
+    });
   }
 
   onCustomPersonsChange(value: string) {
     const persons = Number(value);
     if (!persons || persons < 1) {
       this.consumption = 0;
+      this.updateConsumptionUI();
       return;
     }
     this.customPersons = persons;
     this.selectedPersons = persons;
     this.consumption = this.calculateConsumption(persons);
+    this.updateConsumptionUI();
+  }
+
+  updateConsumptionUI() {
+    const formatted = this.consumption.toLocaleString();
+
+    const el1 = document.getElementById('consumptionValue');
+    if (el1) el1.innerText = formatted;
+
+    const el2 = document.getElementById('consumptionValueMore');
+    if (el2) el2.innerText = formatted;
   }
 
   calculateConsumption(persons: number): number {
     if (persons <= 3) {
-      return this.baseConsumptions[persons];
+      return this.baseConsumptions[persons] || 0;
     }
 
-    const base = this.baseConsumptions[3];
+    const base = this.baseConsumptions[3] || 0;
     return base + (persons - 3) * this.extraPerPerson;
   }
 
@@ -227,5 +293,30 @@ export class Electricity implements OnInit {
   openInfo(template: any, text: string) {
     this.currentDialogText = text;
     this.dialog.open(template, { width: '200px', maxWidth: '80vw' });
+  }
+
+  goToComparison() {
+    if (this.addressForm.invalid) {
+      this.addressForm.markAllAsTouched();
+      return;
+    }
+
+    const selectedCityId = this.addressForm.value.city;
+
+    const selectedCityObj = this.cityOptions.find((c) => c.city_id === selectedCityId);
+
+    const data = {
+      zip: this.addressForm.value.postalCode,
+      city: selectedCityObj?.city,
+      city_id: selectedCityObj?.city_id,
+      street: this.addressForm.value.street,
+      houseNumber: this.addressForm.value.houseNumber,
+      persons: this.selectedPersons,
+      consumption: this.consumption,
+    };
+
+    this.addressService.setData(data);
+
+    this.router.navigate(['/electricity-comparision']);
   }
 }

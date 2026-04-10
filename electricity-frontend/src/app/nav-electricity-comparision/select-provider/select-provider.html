@@ -1,18 +1,33 @@
 <div class="page-layout">
-
   <!-- ══════════ SIDEBAR ══════════ -->
   <aside class="sidebar">
     <div class="address-card">
       <div class="address-card__header">
         <!-- lightning bolt icon -->
-        <img src="assets/icons/Stromvergleich.png" class="nav-icon-strom" alt="stromvergleich">
+        <img src="assets/icons/Stromvergleich.png" class="nav-icon-strom" alt="stromvergleich" />
         Strom | Hausstrom
       </div>
       <div class="address-card__body">
+        <!-- <ng-container *ngIf="hasAddress"> 
+         <strong>Ihre Adresse:</strong>
+          <p>{{ street }} {{ houseNumber }}<br />{{ zip }} {{ city }}</p>
+          <p class="verbrauch">
+            <strong>Verbrauch / Jahr:</strong> {{ consum | number: '1.0-0' }} kWh
+          </p>
+        </ng-container> -->
         <strong>Ihre Adresse:</strong>
-        <p>{{ street }} {{ houseNumber }}<br />{{ zip }} {{ city }}</p>
-        <p class="verbrauch"><strong>Verbrauch / Jahr:</strong> {{ consum | number:'1.0-0' }} kWh</p>
-        <button class="btn-suche">Suche ändern</button>
+        <ng-container *ngIf="hasAddress; else noAddress">
+          <p>{{ street }} {{ houseNumber }}<br />{{ zip }} {{ city }}</p>
+          <p class="verbrauch">
+            <strong>Verbrauch / Jahr:</strong> {{ consum | number: '1.0-0' }} kWh
+          </p>
+        </ng-container>
+        <ng-template #noAddress>
+          <p class="no-address-msg">
+            Bitte wählen Sie zuerst eine Adresse aus, um den Vergleich zu starten.
+          </p>
+        </ng-template>
+        <button class="btn-suche" (click)="goBack()">Suche ändern</button>
       </div>
     </div>
 
@@ -24,12 +39,20 @@
       </div>
       <div class="filter-box__body">
         <label class="cb-row">
-          <input type="checkbox" [checked]="priceDisplayMonthly"
-            (change)="priceDisplayMonthly = true; onFilterChange()" /> Monatlich
+          <input
+            type="checkbox"
+            [checked]="priceDisplayMonthly"
+            (change)="priceDisplayMonthly = true; onFilterChange()"
+          />
+          Monatlich
         </label>
         <label class="cb-row">
-          <input type="checkbox" [checked]="!priceDisplayMonthly"
-            (change)="priceDisplayMonthly = false; onFilterChange()" /> Jährlich
+          <input
+            type="checkbox"
+            [checked]="!priceDisplayMonthly"
+            (change)="priceDisplayMonthly = false; onFilterChange()"
+          />
+          Jährlich
         </label>
       </div>
     </div>
@@ -38,16 +61,24 @@
     <div class="filter-box">
       <div class="filter-box__header">
         Kundentyp
-        <span class=" info-base info-blue">i</span>
+        <span class="info-base info-blue">i</span>
       </div>
       <div class="filter-box__body">
         <label class="cb-row">
-          <input type="checkbox" [checked]="kundenPrivat"
-            (change)="kundenPrivat = true; type = 'private'; onFilterChange()" /> Privatkunde
+          <input
+            type="checkbox"
+            [checked]="kundenPrivat"
+            (change)="kundenPrivat = true; type = 'private'; onFilterChange()"
+          />
+          Privatkunde
         </label>
         <label class="cb-row">
-          <input type="checkbox" [checked]="!kundenPrivat"
-            (change)="kundenPrivat = false; type = 'business'; onFilterChange()" /> Geschäftskunde
+          <input
+            type="checkbox"
+            [checked]="!kundenPrivat"
+            (change)="kundenPrivat = false; type = 'business'; onFilterChange()"
+          />
+          Geschäftskunde
         </label>
       </div>
     </div>
@@ -60,11 +91,20 @@
       </div>
       <div class="filter-box__body">
         <label class="cb-row">
-          <input type="checkbox" [checked]="alleTarife" (change)="alleTarife = true; onFilterChange()" /> Alle Tarife
+          <input
+            type="checkbox"
+            [checked]="alleTarife"
+            (change)="alleTarife = true; onFilterChange()"
+          />
+          Alle Tarife
         </label>
         <label class="cb-row">
-          <input type="checkbox" [checked]="!alleTarife" (change)="alleTarife = false; onFilterChange()" /> Nur
-          Ökotarife
+          <input
+            type="checkbox"
+            [checked]="!alleTarife"
+            (change)="alleTarife = false; onFilterChange()"
+          />
+          Nur Ökotarife
         </label>
       </div>
     </div>
@@ -78,18 +118,30 @@
       <div class="filter-box__body">
         <div>
           <label class="cb-row">
-            <input type="checkbox" [checked]="maxTermEgal"
-              (change)="maxTermEgal = true; maxTerm24 = false; maxTerm12 = false; onFilterChange()" /> Egal
+            <input
+              type="checkbox"
+              [checked]="maxTermEgal"
+              (change)="maxTermEgal = true; maxTerm24 = false; maxTerm12 = false; onFilterChange()"
+            />
+            Egal
           </label>
         </div>
-        <div style="display: flex; flex-direction:column; gap: 0.3rem;">
+        <div style="display: flex; flex-direction: column; gap: 0.3rem">
           <label class="cb-row">
-            <input type="checkbox" [checked]="maxTerm24"
-              (change)="maxTerm24 = true; maxTerm12 = false; maxTermEgal = false; onFilterChange()" /> Max. 24 Monate
+            <input
+              type="checkbox"
+              [checked]="maxTerm24"
+              (change)="maxTerm24 = true; maxTerm12 = false; maxTermEgal = false; onFilterChange()"
+            />
+            Max. 24 Monate
           </label>
           <label class="cb-row">
-            <input type="checkbox" [checked]="maxTerm12"
-              (change)="maxTerm12 = true; maxTerm24 = false; maxTermEgal = false; onFilterChange()" /> Max. 12 Monate
+            <input
+              type="checkbox"
+              [checked]="maxTerm12"
+              (change)="maxTerm12 = true; maxTerm24 = false; maxTermEgal = false; onFilterChange()"
+            />
+            Max. 12 Monate
           </label>
         </div>
       </div>
@@ -104,25 +156,61 @@
       <div class="filter-box__body">
         <div>
           <label class="cb-row">
-            <input type="checkbox" [checked]="minGuaranteeEgal"
-              (change)="minGuaranteeEgal = true; minGuarantee24 = false; minGuarantee12 = false; minGuarantee6 = false; onFilterChange()" />
+            <input
+              type="checkbox"
+              [checked]="minGuaranteeEgal"
+              (change)="
+                minGuaranteeEgal = true;
+                minGuarantee24 = false;
+                minGuarantee12 = false;
+                minGuarantee6 = false;
+                onFilterChange()
+              "
+            />
             Egal
           </label>
         </div>
-        <div style="display: flex; flex-direction:column; gap: 0.3rem;">
+        <div style="display: flex; flex-direction: column; gap: 0.3rem">
           <label class="cb-row">
-            <input type="checkbox" [checked]="minGuarantee24"
-              (change)="minGuarantee24 = true; minGuarantee12 = false; minGuarantee6 = false; minGuaranteeEgal = false; onFilterChange()" />
+            <input
+              type="checkbox"
+              [checked]="minGuarantee24"
+              (change)="
+                minGuarantee24 = true;
+                minGuarantee12 = false;
+                minGuarantee6 = false;
+                minGuaranteeEgal = false;
+                onFilterChange()
+              "
+            />
             Min. 24 Monate
           </label>
           <label class="cb-row">
-            <input type="checkbox" [checked]="minGuarantee12"
-              (change)="minGuarantee12 = true; minGuarantee24 = false; minGuarantee6 = false; minGuaranteeEgal = false; onFilterChange()" />
+            <input
+              type="checkbox"
+              [checked]="minGuarantee12"
+              (change)="
+                minGuarantee12 = true;
+                minGuarantee24 = false;
+                minGuarantee6 = false;
+                minGuaranteeEgal = false;
+                onFilterChange()
+              "
+            />
             Min. 12 Monate
           </label>
           <label class="cb-row">
-            <input type="checkbox" [checked]="minGuarantee6"
-              (change)="minGuarantee6 = true; minGuarantee24 = false; minGuarantee12 = false; minGuaranteeEgal = false; onFilterChange()" />
+            <input
+              type="checkbox"
+              [checked]="minGuarantee6"
+              (change)="
+                minGuarantee6 = true;
+                minGuarantee24 = false;
+                minGuarantee12 = false;
+                minGuaranteeEgal = false;
+                onFilterChange()
+              "
+            />
             Min. 6 Monate
           </label>
         </div>
@@ -134,44 +222,66 @@
 
   <!-- ══════════ MAIN ══════════ -->
   <main class="main">
-
     <!-- Filter banner -->
     <div class="filter-banner">
       <div class="filter-banner__header">Filtereinstellungen - Bitte auswählen</div>
       <div class="filter-banner__body">
-
         <!-- Left column -->
         <div class="filter-col">
           <div class="filter-row">
             <span class="filter-row__label">Sind Sie Privat- oder Geschäftskunde?</span>
-            <div class="filter-row__options ">
+            <div class="filter-row__options">
               <label class="cb-row">
-                <input type="checkbox" [checked]="kundenPrivat"
-                  (change)="kundenPrivat = true; type = 'private'; onFilterChange()" /> Privatkunde
+                <input
+                  type="checkbox"
+                  [checked]="kundenPrivat"
+                  (change)="kundenPrivat = true; type = 'private'; onFilterChange()"
+                />
+                Privatkunde
               </label>
               <label class="cb-row">
-                <input type="checkbox" [checked]="!kundenPrivat"
-                  (change)="kundenPrivat = false; type = 'business'; onFilterChange()" /> Geschäftskunde
+                <input
+                  type="checkbox"
+                  [checked]="!kundenPrivat"
+                  (change)="kundenPrivat = false; type = 'business'; onFilterChange()"
+                />
+                Geschäftskunde
               </label>
             </div>
           </div>
           <div class="filter-row">
             <span class="filter-row__label">Ist eine maximale Vertragslaufzeit gewünscht?</span>
             <div class="opts-grid">
-              <label class="cb-row" style="padding-right: 3.1rem;">
-                <input type="checkbox" [checked]="maxTermEgal"
-                  (change)="maxTermEgal = true; maxTerm24 = false; maxTerm12 = false; onFilterChange()" /> Egal
+              <label class="cb-row" style="padding-right: 3.1rem">
+                <input
+                  type="checkbox"
+                  [checked]="maxTermEgal"
+                  (change)="
+                    maxTermEgal = true; maxTerm24 = false; maxTerm12 = false; onFilterChange()
+                  "
+                />
+                Egal
               </label>
               <label class="cb-row">
-                <input type="checkbox" [checked]="maxTerm24"
-                  (change)="maxTerm24 = true; maxTerm12 = false; maxTermEgal = false; onFilterChange()" /> Max. 24
-                Monate
+                <input
+                  type="checkbox"
+                  [checked]="maxTerm24"
+                  (change)="
+                    maxTerm24 = true; maxTerm12 = false; maxTermEgal = false; onFilterChange()
+                  "
+                />
+                Max. 24 Monate
               </label>
               <label class="cb-row"> </label>
               <label class="cb-row">
-                <input type="checkbox" [checked]="maxTerm12"
-                  (change)="maxTerm12 = true; maxTerm24 = false; maxTermEgal = false; onFilterChange()" /> Max. 12
-                Monate
+                <input
+                  type="checkbox"
+                  [checked]="maxTerm12"
+                  (change)="
+                    maxTerm12 = true; maxTerm24 = false; maxTermEgal = false; onFilterChange()
+                  "
+                />
+                Max. 12 Monate
               </label>
             </div>
           </div>
@@ -183,15 +293,25 @@
         <!-- Right column -->
         <div class="filter-col filter-col--right">
           <div class="filter-row">
-            <span class="filter-row__label">Sollen alle Tarife angezeigt werden oder nur Ökotarife?</span>
+            <span class="filter-row__label"
+              >Sollen alle Tarife angezeigt werden oder nur Ökotarife?</span
+            >
             <div class="filter-row__options filter-row__options--col">
               <label class="cb-row">
-                <input type="checkbox" [checked]="alleTarife" (change)="alleTarife = true; onFilterChange()" /> Alle
-                Tarife
+                <input
+                  type="checkbox"
+                  [checked]="alleTarife"
+                  (change)="alleTarife = true; onFilterChange()"
+                />
+                Alle Tarife
               </label>
               <label class="cb-row">
-                <input type="checkbox" [checked]="!alleTarife" (change)="alleTarife = false; onFilterChange()" /> Nur
-                Ökotarife
+                <input
+                  type="checkbox"
+                  [checked]="!alleTarife"
+                  (change)="alleTarife = false; onFilterChange()"
+                />
+                Nur Ökotarife
               </label>
             </div>
           </div>
@@ -199,33 +319,69 @@
             <span class="filter-row__label">Ist eine Energiepreisgarantie gewünscht?</span>
             <div class="opts-grid">
               <label class="cb-row">
-                <input type="checkbox" [checked]="minGuaranteeEgal"
-                  (change)="minGuaranteeEgal = true; minGuarantee24 = false; minGuarantee12 = false; minGuarantee6 = false; onFilterChange()" />
+                <input
+                  type="checkbox"
+                  [checked]="minGuaranteeEgal"
+                  (change)="
+                    minGuaranteeEgal = true;
+                    minGuarantee24 = false;
+                    minGuarantee12 = false;
+                    minGuarantee6 = false;
+                    onFilterChange()
+                  "
+                />
                 Egal
               </label>
               <label class="cb-row">
-                <input type="checkbox" [checked]="minGuarantee24"
-                  (change)="minGuarantee24 = true; minGuarantee12 = false; minGuarantee6 = false; minGuaranteeEgal = false; onFilterChange()" />
+                <input
+                  type="checkbox"
+                  [checked]="minGuarantee24"
+                  (change)="
+                    minGuarantee24 = true;
+                    minGuarantee12 = false;
+                    minGuarantee6 = false;
+                    minGuaranteeEgal = false;
+                    onFilterChange()
+                  "
+                />
                 Min. 24 Monate
               </label>
               <label class="cb-row">
-                <input type="checkbox" [checked]="minGuarantee12"
-                  (change)="minGuarantee12 = true; minGuarantee24 = false; minGuarantee6 = false; minGuaranteeEgal = false; onFilterChange()" />
+                <input
+                  type="checkbox"
+                  [checked]="minGuarantee12"
+                  (change)="
+                    minGuarantee12 = true;
+                    minGuarantee24 = false;
+                    minGuarantee6 = false;
+                    minGuaranteeEgal = false;
+                    onFilterChange()
+                  "
+                />
                 Min. 12 Monate
               </label>
               <label class="cb-row">
-                <input type="checkbox" [checked]="minGuarantee6"
-                  (change)="minGuarantee6 = true; minGuarantee24 = false; minGuarantee12 = false; minGuaranteeEgal = false; onFilterChange()" />
+                <input
+                  type="checkbox"
+                  [checked]="minGuarantee6"
+                  (change)="
+                    minGuarantee6 = true;
+                    minGuarantee24 = false;
+                    minGuarantee12 = false;
+                    minGuaranteeEgal = false;
+                    onFilterChange()
+                  "
+                />
                 Min. 6 Monate
               </label>
             </div>
           </div>
         </div>
-
       </div>
       <div class="filter-banner__footer">
         <button class="btn-weiter" (click)="toggleDiv()">
-          {{ isOpen ? 'Filterauswahl speichern' : 'Weiter zum Stromvergleich' }} </button>
+          {{ isOpen ? 'Filterauswahl speichern' : 'Weiter zum Stromvergleich' }}
+        </button>
       </div>
     </div>
     <!-- end filter-banner -->
@@ -235,11 +391,15 @@
       <!-- Top navbar -->
       <div class="comp-navbar">
         <div class="comp-navbar__left">
-          <img src="assets/icons/Vergleich_weiss.png" class="nav-icon-vergleich" alt="stromvergleich">
+          <img
+            src="assets/icons/Vergleich_weiss.png"
+            class="nav-icon-vergleich"
+            alt="stromvergleich"
+          />
           Ihr Vergleich
         </div>
         <div class="comp-navbar__right">
-          <img src="assets/icons/Stromvergleich.png" class="nav-icon-strom" alt="stromvergleich">
+          <img src="assets/icons/Stromvergleich.png" class="nav-icon-strom" alt="stromvergleich" />
           Strom | Hausstrom
         </div>
       </div>
@@ -247,12 +407,15 @@
       <!-- Vergleichstarif bar -->
       <div class="container-vergleich-bar">
         <div class="vergleich-bar">
-          <span>Ihr Vergleichstarif: Grundversorger voreingestellt</span> &nbsp;<span class="info-base info-circ"
-            style="margin-top: 3px;">i</span>
+          <span>Ihr Vergleichstarif: Grundversorger voreingestellt</span> &nbsp;<span
+            class="info-base info-circ"
+            style="margin-top: 3px"
+            >i</span
+          >
           <a href="#" class="anpassen">
             anpassen
             <span class="item-image">
-              <img src="assets/icons/Bearbeiten_schwarz.png" class="icon-check" alt="check">
+              <img src="assets/icons/Bearbeiten_schwarz.png" class="icon-check" alt="check" />
             </span>
           </a>
         </div>
@@ -264,24 +427,30 @@
             <div class="tarif-title">{{ filteredRates[0].rateName }}</div>
             <div class="tarif-sub">
               Arbeitspreis:
-              <strong>{{ filteredRates[0].workPrice | number:'1.2-2' }} Ct./kWh</strong>
+              <strong>{{ filteredRates[0].workPrice | number: '1.2-2' }} Ct./kWh</strong>
               | Grundpreis:
-              <strong>{{ filteredRates[0].basePriceMonth | number:'1.2-2' }} €/Monat</strong>
+              <strong>{{ filteredRates[0].basePriceMonth | number: '1.2-2' }} €/Monat</strong>
             </div>
-            <a href="#" class="toggle-link" style="margin-top:4px;display:inline-flex;">Tarif- und Preisdetails
-              <span class="arrow down-v"></span></a>
+            <a href="#" class="toggle-link" style="margin-top: 4px; display: inline-flex"
+              >Tarif- und Preisdetails <span class="arrow down-v"></span
+            ></a>
           </div>
           <div class="provider-price">
             <div class="provider-price__amount">
-              {{ filteredRates[0].totalPriceMonth | number:'1.2-2' }} €
+              {{ filteredRates[0].totalPriceMonth | number: '1.2-2' }} €
             </div>
-            <div class="provider-price__sub">Ø pro Monat &nbsp;<span class="info-base info-circ">i</span></div>
+            <div class="provider-price__sub">
+              Ø pro Monat &nbsp;<span class="info-base info-circ">i</span>
+            </div>
           </div>
         </div>
         <div class="vergleich-bar__provider" *ngIf="isLoading">
           <div class="provider-name">Wird geladen...</div>
         </div>
-        <div class="vergleich-bar__provider" *ngIf="!isLoading && hasLoadedRates && filteredRates.length === 0">
+        <div
+          class="vergleich-bar__provider"
+          *ngIf="!isLoading && hasLoadedRates && filteredRates.length === 0"
+        >
           <div class="provider-name">Keine Daten gefunden</div>
         </div>
       </div>
@@ -290,7 +459,7 @@
       <div class="tariff-count-bar">
         <span *ngIf="!isLoading">
           {{ filteredRates.length }} Tarife ab
-          <strong>{{ getLowestPrice() | number:'1.2-2' }} €</strong>
+          <strong>{{ getLowestPrice() | number: '1.2-2' }} €</strong>
           {{ priceDisplayMonthly ? 'pro Monat' : 'pro Jahr' }}
         </span>
         <span *ngIf="isLoading">Tarife werden geladen...</span>
@@ -298,12 +467,14 @@
           <button class="btn-sortieren" (click)="toggleDropdown()">
             {{ selectedOption }}
             <span class="item-image">
-              <img src="assets/icons/Sortieren_schwarz.png" class="icon-sort" alt="check">
+              <img src="assets/icons/Sortieren_schwarz.png" class="icon-sort" alt="check" />
             </span>
           </button>
           <!-- Dropdown -->
           <div class="dropdown-menu" *ngIf="isDropdownOpen">
-            <div (click)="selectOption('Sortieren nach: Beste Treffer')">Sortieren nach: Beste Treffer</div>
+            <div (click)="selectOption('Sortieren nach: Beste Treffer')">
+              Sortieren nach: Beste Treffer
+            </div>
             <div (click)="selectOption('Niedrigster Preis')">Niedrigster Preis</div>
             <div (click)="selectOption('Niedrigster Arbeitspreis')">Niedrigster Arbeitspreis</div>
             <div (click)="selectOption('Niedrigster Grundpreis')">Niedrigster Grundpreis</div>
@@ -320,19 +491,15 @@
 
       <!-- ══ Tariff cards (ngFor over API results) ══ -->
       <div class="tariff-card" *ngFor="let rate of filteredRates; let i = index">
-
         <div class="tariff-card__badge" *ngIf="rate.recommended || rate.optEco">
           <ng-container *ngIf="rate.recommended">
             Beliebtester Tarif
             <span class="info-base info-blue">i</span>
           </ng-container>
-          <ng-container *ngIf="!rate.recommended && rate.optEco">
-            Ökostrom-Tarif
-          </ng-container>
+          <ng-container *ngIf="!rate.recommended && rate.optEco"> Ökostrom-Tarif </ng-container>
         </div>
 
         <div class="tariff-card__body">
-
           <!-- Logo + name -->
           <div class="tc-logo">
             <div class="tc-logo__name">
@@ -350,75 +517,92 @@
           <!-- Details -->
           <div class="tc-details">
             <div class="arbeits">
-              Arbeitspreis: <strong>{{ rate.workPrice | number:'1.2-2' }} Ct./kWh</strong>
-              | Grundpreis: <strong>{{ rate.basePriceMonth | number:'1.2-2' }} €/Monat</strong>
+              Arbeitspreis: <strong>{{ rate.workPrice | number: '1.2-2' }} Ct./kWh</strong> |
+              Grundpreis: <strong>{{ rate.basePriceMonth | number: '1.2-2' }} €/Monat</strong>
             </div>
 
             <!-- Bonus tags — only shown when non-zero -->
             <div class="bonus-tags" *ngIf="rate.optBonusInstant || rate.optBonus">
               <span class="bonus-tag" *ngIf="rate.optBonusInstant">
-                Sofortbonus: {{ rate.optBonusInstant | number:'1.0-0' }} €
+                Sofortbonus: {{ rate.optBonusInstant | number: '1.0-0' }} €
               </span>
               <span class="bonus-tag" *ngIf="rate.optBonus">
-                Neukundenbonus: {{ rate.optBonus | number:'1.0-0' }} €
+                Neukundenbonus: {{ rate.optBonus | number: '1.0-0' }} €
               </span>
             </div>
 
             <ul class="tc-check-list">
               <li>
                 <span class="item-image">
-                  <img src="assets/icons/Kreis_Haken_schwarz.png" class="icon-check" alt="check">
+                  <img src="assets/icons/Kreis_Haken_schwarz.png" class="icon-check" alt="check" />
                 </span>
                 Mindestvertragslaufzeit: {{ getTermLabel(rate) }}
               </li>
               <li *ngIf="rate.optGuarantee && rate.optGuarantee !== '0'">
                 <span class="item-image">
-                  <img src="assets/icons/Kreis_Haken_schwarz.png" class="icon-check" alt="check">
+                  <img src="assets/icons/Kreis_Haken_schwarz.png" class="icon-check" alt="check" />
                 </span>
                 Preisfixierung: {{ getGuaranteeLabel(rate) }}
               </li>
               <li>
                 <span class="item-image">
-                  <img src="assets/icons/Kreis_Haken_schwarz.png" class="icon-check" alt="check">
+                  <img src="assets/icons/Kreis_Haken_schwarz.png" class="icon-check" alt="check" />
                 </span>
-                Geschätzter Abschlag: {{ rate.totalPriceMonth | number:'1.0-0' }} €/Monat
+                Geschätzter Abschlag: {{ rate.totalPriceMonth | number: '1.0-0' }} €/Monat
               </li>
             </ul>
 
             <!-- Toggle detail — same class structure as original -->
             <div class="toggle-detail" (click)="toggleCard(rate)">
               Tarif- und Preisdetails
-              <span class="arrow" [class.top-v]="rate.uiExpanded"
-                [class.down-v]="!rate.uiExpanded"></span>
+              <span
+                class="arrow"
+                [class.top-v]="rate.uiExpanded"
+                [class.down-v]="!rate.uiExpanded"
+              ></span>
             </div>
 
             <!-- Tabs + tab content — only visible when card expanded -->
             <ng-container *ngIf="rate.uiExpanded">
               <div class="detail-tabs">
-                <span class="detail-tab" [class.active]="getActiveTab(rate.rateId) === 'overview'"
-                  (click)="setTab(rate.rateId, 'overview')">
+                <span
+                  class="detail-tab"
+                  [class.active]="getActiveTab(rate.rateId) === 'overview'"
+                  (click)="setTab(rate.rateId, 'overview')"
+                >
                   Tarifübersicht
                 </span>
-                <span class="detail-tab" [class.active]="getActiveTab(rate.rateId) === 'information'"
-                  (click)="setTab(rate.rateId, 'information')">
+                <span
+                  class="detail-tab"
+                  [class.active]="getActiveTab(rate.rateId) === 'information'"
+                  (click)="setTab(rate.rateId, 'information')"
+                >
                   Tarifinformationen
                 </span>
-                <span class="detail-tab" [class.active]="getActiveTab(rate.rateId) === 'price'"
-                  (click)="setTab(rate.rateId, 'price')">
+                <span
+                  class="detail-tab"
+                  [class.active]="getActiveTab(rate.rateId) === 'price'"
+                  (click)="setTab(rate.rateId, 'price')"
+                >
                   Preisdetails
                 </span>
-                <span class="detail-tab" [class.active]="getActiveTab(rate.rateId) === 'provider'"
-                  (click)="setTab(rate.rateId, 'provider')">
+                <span
+                  class="detail-tab"
+                  [class.active]="getActiveTab(rate.rateId) === 'provider'"
+                  (click)="setTab(rate.rateId, 'provider')"
+                >
                   Anbieter
                 </span>
-                <span class="detail-tab" [class.active]="getActiveTab(rate.rateId) === 'source'"
-                  (click)="setTab(rate.rateId, 'source')">
+                <span
+                  class="detail-tab"
+                  [class.active]="getActiveTab(rate.rateId) === 'source'"
+                  (click)="setTab(rate.rateId, 'source')"
+                >
                   Stromherkunft
                 </span>
               </div>
 
               <div class="tab-content">
-
                 <!-- Tarifübersicht -->
                 <div *ngIf="getActiveTab(rate.rateId) === 'overview'">
                   <table class="detail-table">
@@ -428,7 +612,7 @@
                     </tr>
                     <tr>
                       <td>Jahresverbrauch</td>
-                      <td>{{ consum | number:'1.0-0' }} kWh</td>
+                      <td>{{ consum | number: '1.0-0' }} kWh</td>
                     </tr>
                     <tr>
                       <td>Abschlagszahlung</td>
@@ -437,17 +621,19 @@
                     <tr>
                       <td>Grundpreis</td>
                       <td>
-                        {{ rate.basePriceMonth | number:'1.2-2' }} €/Monat
-                        ({{ rate.basePriceYear | number:'1.2-2' }} €/Jahr)
+                        {{ rate.basePriceMonth | number: '1.2-2' }} €/Monat ({{
+                          rate.basePriceYear | number: '1.2-2'
+                        }}
+                        €/Jahr)
                       </td>
                     </tr>
                     <tr>
                       <td>Arbeitspreis</td>
-                      <td>{{ rate.workPrice | number:'1.2-2' }} Cent/kWh</td>
+                      <td>{{ rate.workPrice | number: '1.2-2' }} Cent/kWh</td>
                     </tr>
                     <tr *ngIf="rate.optBonus">
                       <td>Neukundenbonus</td>
-                      <td>{{ rate.optBonus | number:'1.0-0' }} €</td>
+                      <td>{{ rate.optBonus | number: '1.0-0' }} €</td>
                     </tr>
                     <tr>
                       <td>Preisgarantie</td>
@@ -463,13 +649,13 @@
                     </tr>
                     <tr>
                       <td>Preis im 1. Jahr</td>
-                      <td>{{ rate.totalPriceMonth | number:'1.2-2' }} €/Monat</td>
+                      <td>{{ rate.totalPriceMonth | number: '1.2-2' }} €/Monat</td>
                     </tr>
                   </table>
-                  <span style="font-size:14px;">
+                  <span style="font-size: 14px">
                     (inkl. aller Kosten
                     <ng-container *ngIf="rate.optBonus">
-                      , Boni ({{ rate.optBonus | number:'1.0-0' }} € Neukundenbonus)
+                      , Boni ({{ rate.optBonus | number: '1.0-0' }} € Neukundenbonus)
                     </ng-container>
                     und Rabatte für das 1. Jahr)
                   </span>
@@ -480,55 +666,70 @@
                   <div class="container-information">
                     <div *ngIf="rate.optBonus">
                       <div class="header-info">
-                        <span>Neukundenbonus {{ rate.optBonus | number:'1.0-0' }} €</span>
+                        <span>Neukundenbonus {{ rate.optBonus | number: '1.0-0' }} €</span>
                       </div>
                       <div class="body-info">
-                        <span>Der Bonus wird spätestens nach 12 Monaten Belieferungszeit mit der dann folgenden
-                          Belieferung gutgeschrieben oder ausbezahlt.</span>
+                        <span
+                          >Der Bonus wird spätestens nach 12 Monaten Belieferungszeit mit der dann
+                          folgenden Belieferung gutgeschrieben oder ausbezahlt.</span
+                        >
                       </div>
                     </div>
                     <div *ngIf="rate.optBonusInstant">
                       <div class="header-info">
-                        <span>Sofortbonus {{ rate.optBonusInstant | number:'1.0-0' }} €</span>
+                        <span>Sofortbonus {{ rate.optBonusInstant | number: '1.0-0' }} €</span>
                       </div>
                       <div class="body-info">
-                        <span>Der Sofortbonus wird spätestens drei Monate nach Lieferbeginn ausgezahlt.</span>
+                        <span
+                          >Der Sofortbonus wird spätestens drei Monate nach Lieferbeginn
+                          ausgezahlt.</span
+                        >
                       </div>
                     </div>
                     <div>
                       <div class="header-info"><span>Nettopreisgarantie</span></div>
-                      <div class="body-info"><span>Der Anbeiter garantiert alle Preisbestandteile des Tarifs mit
-                          Ausnahme
-                          der Mehrwertsteuer
-                          und der Strom- bzw. Gassteuer sowie etwaigen nach Vertragsabschluss
-                          neu eingeführten Steuern, Abgaben und Umlagen.</span></div>
+                      <div class="body-info">
+                        <span
+                          >Der Anbeiter garantiert alle Preisbestandteile des Tarifs mit Ausnahme
+                          der Mehrwertsteuer und der Strom- bzw. Gassteuer sowie etwaigen nach
+                          Vertragsabschluss neu eingeführten Steuern, Abgaben und Umlagen.</span
+                        >
+                      </div>
                     </div>
                     <div *ngIf="rate.optEco">
                       <div class="header-info"><span>Ökotarif</span></div>
-                      <div class="body-info"><span>Bei diesem Tarif wird der Strom zu 100% aus erneuerbaren
-                          Energiequellen
+                      <div class="body-info">
+                        <span
+                          >Bei diesem Tarif wird der Strom zu 100% aus erneuerbaren Energiequellen
                           erzeugt.
-                        </span></div>
+                        </span>
+                      </div>
                     </div>
                     <div>
                       <div class="header-info"><span>Belieferung aller Zählerarten</span></div>
-                      <div class="body-info"><span>Sollte an Ihrer Lieferstelle eine moderne Messeinrichtung oder ein
-                          intelligentes
-                          Messsystem (iMS) vom grundzuständigen Messstellenbetreiber verbaut werden
-                          oder bereits eingebaut sein, erfolgt in diesem Tarif keine Erhöhung der Messentgelte
-                          in der Grundgebühr aufgrund Ihres Messsystems. Sie erhalten die Preise wie
-                          im Auftrag abgeschlossen.</span></div>
+                      <div class="body-info">
+                        <span
+                          >Sollte an Ihrer Lieferstelle eine moderne Messeinrichtung oder ein
+                          intelligentes Messsystem (iMS) vom grundzuständigen Messstellenbetreiber
+                          verbaut werden oder bereits eingebaut sein, erfolgt in diesem Tarif keine
+                          Erhöhung der Messentgelte in der Grundgebühr aufgrund Ihres Messsystems.
+                          Sie erhalten die Preise wie im Auftrag abgeschlossen.</span
+                        >
+                      </div>
                     </div>
                     <div *ngIf="rate.requiredEmail">
                       <div class="header-info"><span>Online-Tarif</span></div>
-                      <div class="body-info"><span>Die Kommunikation des Anbieters erfolgt bei diesem Tarif
-                          grundsätzlich
-                          online.
-                          Neben der Hinterlegung einer gültigen E-Mail-Adresse ist es bei manchen Anbietern
-                          erforderlich, sich im Online-Portal des Anbieters anzumelden. Informationen zu Lieferbeginn,
-                          Abschlagsplan, Abrechnung und möglichen Preiserhöhungen/-senkungen
-                          werden Ihnen per E-Mail an die angegebene E-Mail-Adresse zugesandt und ggf. im
-                          Kundenportal hinterlegt.</span></div>
+                      <div class="body-info">
+                        <span
+                          >Die Kommunikation des Anbieters erfolgt bei diesem Tarif grundsätzlich
+                          online. Neben der Hinterlegung einer gültigen E-Mail-Adresse ist es bei
+                          manchen Anbietern erforderlich, sich im Online-Portal des Anbieters
+                          anzumelden. Informationen zu Lieferbeginn, Abschlagsplan, Abrechnung und
+                          möglichen Preiserhöhungen/-senkungen werden Ihnen per E-Mail an die
+                          angegebene E-Mail-Adresse zugesandt und ggf. im Kundenportal
+                          hinterlegt.</span
+                        >
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -540,7 +741,7 @@
                       <span>Informationen zum Preis für {{ zip }} {{ city }}</span>
                     </div>
                     <div class="body-info">
-                      <span>Verbrauchsannahme: {{ consum | number:'1.0-0' }} kWh/Jahr</span>
+                      <span>Verbrauchsannahme: {{ consum | number: '1.0-0' }} kWh/Jahr</span>
                     </div>
                   </div>
                   <div>
@@ -548,79 +749,99 @@
                       <tr>
                         <td>Arbeitspreis pro kWh brutto (netto)</td>
                         <td>x</td>
-                        <td>{{ rate.workPrice | number:'1.2-2' }} Ct./kWh</td>
+                        <td>{{ rate.workPrice | number: '1.2-2' }} Ct./kWh</td>
                       </tr>
                       <tr>
                         <td>Arbeitspreis gesamt</td>
                         <td>=</td>
-                        <td>{{ getWorkPriceAnnual(rate) | number:'1.2-2' }} €/Jahr</td>
+                        <td>{{ getWorkPriceAnnual(rate) | number: '1.2-2' }} €/Jahr</td>
                       </tr>
                       <tr>
                         <td>Grundpreis brutto (netto)</td>
                         <td>+</td>
-                        <td>{{ rate.basePriceYear | number:'1.2-2' }} €/Jahr</td>
+                        <td>{{ rate.basePriceYear | number: '1.2-2' }} €/Jahr</td>
                       </tr>
                       <tr>
                         <td>Bruttopreis ohne Bonus im 1. Jahr</td>
                         <td>=</td>
-                        <td>{{ rate.totalPrice | number:'1.2-2' }} €/Jahr</td>
+                        <td>{{ rate.totalPrice | number: '1.2-2' }} €/Jahr</td>
                       </tr>
                       <tr>
                         <td>Durchschnitt pro Monat</td>
                         <td></td>
-                        <td>{{ rate.totalPriceMonth | number:'1.2-2' }} €/Monat</td>
+                        <td>{{ rate.totalPriceMonth | number: '1.2-2' }} €/Monat</td>
                       </tr>
                       <tr *ngIf="rate.optBonus">
                         <td>Neukundenbonus</td>
                         <td></td>
-                        <td>{{ rate.optBonus | number:'1.0-0' }} €</td>
+                        <td>{{ rate.optBonus | number: '1.0-0' }} €</td>
                       </tr>
                       <tr *ngIf="rate.optBonus">
                         <td>Bruttopreis inkl. Bonus im 1. Jahr</td>
                         <td>=</td>
-                        <td>{{ rate.totalPrice - rate.optBonus | number:'1.2-2' }} €/Jahr</td>
+                        <td>{{ rate.totalPrice - rate.optBonus | number: '1.2-2' }} €/Jahr</td>
                       </tr>
                     </table>
                     <table class="table-monthly blue">
                       <tr>
                         <td>Durchschnitt pro Monat</td>
-                        <td>{{ rate.totalPriceMonth | number:'1.2-2' }} €/Monat</td>
+                        <td>{{ rate.totalPriceMonth | number: '1.2-2' }} €/Monat</td>
                       </tr>
                     </table>
-                    <table class="table-monthly ">
+                    <table class="table-monthly">
                       <tr>
                         <td>Geschätzter Abschlag*</td>
-                        <td>ca. {{ rate.totalPriceMonth | number:'1.0-0' }} €/Monat</td>
+                        <td>ca. {{ rate.totalPriceMonth | number: '1.0-0' }} €/Monat</td>
                       </tr>
                     </table>
                   </div>
                   <div class="body-info">
-                    <span>* Sie zahlen bei diesem Tarif {{ rate.partialPayment }} monatliche Abschläge.</span>
+                    <span
+                      >* Sie zahlen bei diesem Tarif {{ rate.partialPayment }} monatliche
+                      Abschläge.</span
+                    >
                   </div>
-                  <div class="body-info"><span>Als Berechnungsgrundlage des geschätzten Abschlags dient der
-                      <strong>Bruttopreis
-                        ohne
-                        Bonus im 1. Jahr.</strong> </span></div>
-                  <div class="body-info"><span>Sämtliche Berechnungen beziehen sich auf das erste Vertragsjahr.
+                  <div class="body-info">
+                    <span
+                      >Als Berechnungsgrundlage des geschätzten Abschlags dient der
+                      <strong>Bruttopreis ohne Bonus im 1. Jahr.</strong>
+                    </span>
+                  </div>
+                  <div class="body-info">
+                    <span
+                      >Sämtliche Berechnungen beziehen sich auf das erste Vertragsjahr.
                       <strong>Neukundenboni</strong>
                       werden nach Ablauf von 12 Belieferungsmonaten mit der dann folgenden Rechnung
-                      gutgeschrieben oder ausgezahlt. <strong>Sofortboni</strong> werden spätestens drei Monate nach
-                      Lieferbeginn ausgezahlt. In den geschätzten Abschlägen werden diese Boni nicht
-                      berücksichtigt.</span></div>
-                  <div class="body-info"><span>Tarifversion {{ rate.rateId }}, gültig seit {{ rate.termAfterNewMaxDate
-                      }}.
+                      gutgeschrieben oder ausgezahlt. <strong>Sofortboni</strong> werden spätestens
+                      drei Monate nach Lieferbeginn ausgezahlt. In den geschätzten Abschlägen werden
+                      diese Boni nicht berücksichtigt.</span
+                    >
+                  </div>
+                  <div class="body-info">
+                    <span
+                      >Tarifversion {{ rate.rateId }}, gültig seit {{ rate.termAfterNewMaxDate }}.
                       <strong>Bruttopreise</strong> beinhalten alle Steuern und Abgaben.
-                      <strong>Nettopreise</strong> sind zzgl. der Mehrwertsteuer.</span></div>
-                  <div class="body-info"><span>Fehlt ein Tarif oder haben Sie einen Fehler gefunden? <br>
-                      Dann nehmen Sie bitte Kontakt mit uns auf: <a href="">mm@energiehanbel.bayern</a> </span></div>
+                      <strong>Nettopreise</strong> sind zzgl. der Mehrwertsteuer.</span
+                    >
+                  </div>
+                  <div class="body-info">
+                    <span
+                      >Fehlt ein Tarif oder haben Sie einen Fehler gefunden? <br />
+                      Dann nehmen Sie bitte Kontakt mit uns auf:
+                      <a href="">mm@energiehanbel.bayern</a>
+                    </span>
+                  </div>
                 </div>
 
                 <!-- Anbieter -->
                 <div class="provider" *ngIf="getActiveTab(rate.rateId) === 'provider'">
-                  <div class="header-info"><span>{{ rate.providerName }}</span></div>
+                  <div class="header-info">
+                    <span>{{ rate.providerName }}</span>
+                  </div>
                   <div class="body-info">
                     <span>
-                      Tarif: <strong>{{ rate.rateName }}</strong><br />
+                      Tarif: <strong>{{ rate.rateName }}</strong
+                      ><br />
                       Branche: {{ rate.branch }} | Kundentyp: {{ rate.type }}<br />
                       Lieferant-ID: {{ rate.rateId }}
                     </span>
@@ -629,40 +850,42 @@
 
                 <!-- Stromherkunft -->
                 <div *ngIf="getActiveTab(rate.rateId) === 'source'">Stromherkunft Content</div>
-
               </div>
             </ng-container>
             <!-- end expanded -->
-
           </div>
           <!-- end tc-details -->
 
           <!-- Price -->
           <div class="tc-price">
-            <div class="tc-price__amount">
-              {{ getDisplayPrice(rate) | number:'1.2-2' }} €
-            </div>
+            <div class="tc-price__amount">{{ getDisplayPrice(rate) | number: '1.2-2' }} €</div>
             <div class="tc-price__sub">
               {{ getDisplayPriceSuffix() }} &nbsp;<span class="info-base info-circ">i</span>
             </div>
             <div class="tc-price__savings" *ngIf="rate.savingPerYear < 0">
-              Sie sparen: <span class="amount">{{ rate.savingPerYear * -1 | number:'1.2-2' }} €</span> &nbsp;
+              Sie sparen:
+              <span class="amount">{{ rate.savingPerYear * -1 | number: '1.2-2' }} €</span> &nbsp;
               <span class="info-wrapper" #popoverContainer>
-                <span class=" info-base info-circ" (click)="toggleInfo($event)">i</span>
+                <span class="info-base info-circ" (click)="toggleInfo($event)">i</span>
                 <div class="info-popover" *ngIf="isInfoOpen">
                   <div class="dialog-box">
                     <div class="dialog-content">
-                      <div class="label" style="font-weight: 600; ">Preisvergleichrechnung
-                      </div>
+                      <div class="label" style="font-weight: 600">Preisvergleichrechnung</div>
                       <div class="tc-price__vergleich">
-                        <div class="label">Kosten pro Jahr: &nbsp; &nbsp; &nbsp; {{ rate.totalPrice | number:'1.2-2' }}
-                          €</div>
-                        <div class="label-low" style="margin-right: 6rem;">(mit diesem Tarif)</div>
-                        <br />
-                        <div class="label">Gespart: &nbsp; &nbsp; &nbsp;
-                          <span class="gespart">{{ rate.savingPerYear * -1 | number:'1.2-2' }} €</span>
+                        <div class="label">
+                          Kosten pro Jahr: &nbsp; &nbsp; &nbsp;
+                          {{ rate.totalPrice | number: '1.2-2' }} €
                         </div>
-                        <div style="margin-top: 16px; ">(In der Preisvergleichrechnung<br />wurde nur das erste Jahr
+                        <div class="label-low" style="margin-right: 6rem">(mit diesem Tarif)</div>
+                        <br />
+                        <div class="label">
+                          Gespart: &nbsp; &nbsp; &nbsp;
+                          <span class="gespart"
+                            >{{ rate.savingPerYear * -1 | number: '1.2-2' }} €</span
+                          >
+                        </div>
+                        <div style="margin-top: 16px">
+                          (In der Preisvergleichrechnung<br />wurde nur das erste Jahr
                           berücksichtigt)
                         </div>
                       </div>
@@ -671,15 +894,14 @@
                 </div>
               </span>
             </div>
-            <button class="btn-weiter-card" style="margin-top: auto;" (click)="openPage()">Weiter</button>
+            <button class="btn-weiter-card" style="margin-top: auto" (click)="openPage()">
+              Weiter
+            </button>
           </div>
-
         </div>
       </div>
       <!-- end *ngFor tariff-card -->
-
     </div>
     <!-- end comp-container -->
-
   </main>
 </div>
