@@ -38,7 +38,6 @@
           </div>
           <div class="step-label">Zahlungsart</div>
         </div>
-
         <div class="step">
           <div class="step-circle">
             <div class="inner-circle">5</div>
@@ -53,7 +52,7 @@
     <div class="section-panel">
       <div class="section-header">
         Lieferadresse
-        <div class="container-icon" style=" align-items: center;">
+        <div class="container-icon" style="align-items: center;">
           <span class="info-base info-green">i</span>
         </div>
       </div>
@@ -64,7 +63,8 @@
           <div class="form-group">
             <div class="field-wrap">
               <span class="field-label">E-Mail-Adresse</span>
-              <input name="email" autocomplete="email" type="email" placeholder="manuel.markovic@gmx.net" value="">
+              <input name="deliveryEmail" autocomplete="email" type="email" placeholder="manuel.markovic@gmx.net"
+                [(ngModel)]="deliveryEmail">
             </div>
           </div>
           <span class="info-base info-icon" style="flex-shrink:0;">i</span>
@@ -72,9 +72,11 @@
 
         <!-- Title buttons -->
         <div class="form-row container-salutation">
-          <button class="title-btn">Dr.</button>
-          <button class="title-btn">Prof.</button>
-          <button class="title-btn">Prof. Dr.</button>
+          <button class="title-btn" [class.active]="deliveryTitle === 'Dr.'" (click)="selectTitle('Dr.')">Dr.</button>
+          <button class="title-btn" [class.active]="deliveryTitle === 'Prof.'"
+            (click)="selectTitle('Prof.')">Prof.</button>
+          <button class="title-btn" [class.active]="deliveryTitle === 'Prof. Dr.'"
+            (click)="selectTitle('Prof. Dr.')">Prof. Dr.</button>
         </div>
 
         <!-- Name row -->
@@ -82,13 +84,13 @@
           <div class="form-group">
             <div class="field-wrap">
               <span class="field-label">Vorname</span>
-              <input type="text" placeholder="">
+              <input name="deliveryFirstName" type="text" [(ngModel)]="deliveryFirstName">
             </div>
           </div>
           <div class="form-group">
             <div class="field-wrap">
               <span class="field-label">Nachname</span>
-              <input type="text" placeholder="">
+              <input name="deliveryLastName" type="text" [(ngModel)]="deliveryLastName">
             </div>
           </div>
           <span class="info-base info-icon" style="flex-shrink:0;">i</span>
@@ -100,17 +102,19 @@
             <div class="form-group" style="flex:0 0 160px;">
               <div class="field-wrap readonly">
                 <span class="field-label">Ihre PLZ</span>
-                <input type="text" class="text-field" value="12345" readonly>
+                <input name="deliveryPLZ" type="text" class="text-field" value="12345" readonly>
                 <span class="field-icon">
                   <img src="assets/icons/Schloss.png" class="icon-schloss" alt="check">
                 </span>
               </div>
             </div>
-            <div class="form-group ">
+            <div class="form-group">
               <div class="field-wrap readonly">
                 <span class="field-label">Ort</span>
-                <input type="text" class="text-field" value="Musterhausen" readonly>
-                <span class="field-icon"><img src="assets/icons/Schloss.png" class="icon-schloss" alt="check"></span>
+                <input name="deliveryOrt" type="text" class="text-field" value="Musterhausen" readonly>
+                <span class="field-icon">
+                  <img src="assets/icons/Schloss.png" class="icon-schloss" alt="check">
+                </span>
               </div>
             </div>
           </div>
@@ -120,15 +124,19 @@
             <div class="form-group">
               <div class="field-wrap readonly">
                 <span class="field-label">Ihre Straße</span>
-                <input type="text" class="text-field" value="Musterstraße" readonly>
-                <span class="field-icon"><img src="assets/icons/Schloss.png" class="icon-schloss" alt="check"></span>
+                <input name="deliveryStreet" type="text" class="text-field" value="Musterstraße" readonly>
+                <span class="field-icon">
+                  <img src="assets/icons/Schloss.png" class="icon-schloss" alt="check">
+                </span>
               </div>
             </div>
             <div class="form-group" style="flex:0 0 160px;">
               <div class="field-wrap readonly">
                 <span class="field-label">Hausnummer</span>
-                <input type="text" class="text-field" value="10" readonly>
-                <span class="field-icon"><img src="assets/icons/Schloss.png" class="icon-schloss" alt="check"></span>
+                <input name="deliveryHouseNumber" type="text" class="text-field" value="10" readonly>
+                <span class="field-icon">
+                  <img src="assets/icons/Schloss.png" class="icon-schloss" alt="check">
+                </span>
               </div>
             </div>
           </div>
@@ -142,26 +150,27 @@
           <div class="form-group">
             <div class="field-wrap">
               <span class="field-label">Handynummer</span>
-              <input type="phone" placeholder="">
+              <input name="deliveryMobile" type="tel" placeholder="" [(ngModel)]="deliveryMobile">
             </div>
           </div>
           <div class="form-group">
             <div class="field-wrap">
               <span class="field-label">Telefonnummer</span>
-              <input type="tel" placeholder="">
+              <input name="deliveryPhone" type="tel" placeholder="" [(ngModel)]="deliveryPhone">
             </div>
           </div>
           <span class="info-base info-circ" style="flex-shrink:0;">i</span>
         </div>
 
-        <!-- Geburtsdatum -->
+        <!-- Gewünschter Liefertermin -->
         <div class="form-row" style="align-items:center;">
           <div class="form-group">
             <div class="field-wrap date">
               <div style="width: 100%;">
                 <span class="field-label">Gewünschter Liefertermin</span>
                 <div style="display: flex; flex-direction: row;">
-                  <input matInput [matDatepicker]="picker" placeholder="TT.MM.JJJJ" (click)="picker.open()">
+                  <input matInput name="deliveryDate" [matDatepicker]="picker" placeholder="TT.MM.JJJJ"
+                    [(ngModel)]="deliveryDate" (click)="picker.open()">
                 </div>
               </div>
               <mat-datepicker-toggle matSuffix [for]="picker">
@@ -181,17 +190,24 @@
       <div class="section-header">
         Abweichende Rechnungsadresse
         <div>
-          <span class="info-base info-green">i</span></div>
+          <span class="info-base info-green">i</span>
+        </div>
       </div>
       <div class="section-body">
         <div class="toggle-row">
           <div class="toggle-box" style="width: 98.5%;">
-            <div class="toggle-opt" onclick="selectToggle(this, 'rech')">
-              <label class="cb-row"><input type="checkbox" /></label>
+            <div class="toggle-opt" [class.selected]="hasDifferentBilling === true" (click)="setBillingToggle(true)">
+              <label class="cb-row">
+                <input type="checkbox" name="billingToggleJa" [checked]="hasDifferentBilling === true"
+                  (click)="$event.stopPropagation()" />
+              </label>
               Ja
             </div>
-            <div class="toggle-opt selected" onclick="selectToggle(this, 'rech')">
-              <label class="cb-row"><input type="checkbox" checked /> </label>
+            <div class="toggle-opt" [class.selected]="hasDifferentBilling === false" (click)="setBillingToggle(false)">
+              <label class="cb-row">
+                <input type="checkbox" name="billingToggleNein" [checked]="hasDifferentBilling === false"
+                  (click)="$event.stopPropagation()" />
+              </label>
               Nein
             </div>
           </div>
@@ -199,7 +215,47 @@
             <span class="info-base info-icon">i</span>
           </div>
         </div>
-        <button class="btn-primary" (click)="openPage()">Lieferadresse übernehmen</button>
+
+        <!-- Extra billing address fields — visible only when "Ja" is selected -->
+        <div *ngIf="hasDifferentBilling">
+          <div class="form-row">
+            <div class="form-group" style="flex:0 0 160px;">
+              <div class="field-wrap">
+                <span class="field-label">Ihre PLZ</span>
+                <input name="billingPLZ" type="text" [(ngModel)]="billingPLZ" placeholder="">
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="field-wrap">
+                <span class="field-label">Ort</span>
+                <input name="billingOrt" type="text" [(ngModel)]="billingOrt" placeholder="">
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <div class="field-wrap">
+                <span class="field-label">Ihre Straße</span>
+                <input name="billingStreet" type="text" [(ngModel)]="billingStreet" placeholder="">
+              </div>
+            </div>
+            <div class="form-group" style="flex:0 0 160px;">
+              <div class="field-wrap">
+                <span class="field-label">Hausnummer</span>
+                <input name="billingHouseNumber" type="text" [(ngModel)]="billingHouseNumber" placeholder="">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- API feedback messages -->
+        <div *ngIf="successMessage" class="api-message api-success">{{ successMessage }}</div>
+        <div *ngIf="errorMessage" class="api-message api-error">{{ errorMessage }}</div>
+
+        <button class="btn-primary" [disabled]="isLoading" (click)="openPage()">
+          <span *ngIf="isLoading" class="btn-spinner"></span>
+          {{ isLoading ? 'Wird gespeichert…' : 'Lieferadresse übernehmen' }}
+        </button>
       </div>
     </div>
 
