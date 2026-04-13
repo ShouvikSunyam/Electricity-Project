@@ -149,9 +149,9 @@ AUTH MODE
   private readonly mainStepRoutes: Record<number, string> = {
     1: '/electricity-comparision/register', // Account (adjust if different)
     2: '/electricity-comparision/delivery-address',
-    3: '/electricity-comparision/connection-data', // replace with actual path
-    4: '/electricity-comparision/payment-method', // replace with actual path
-    5: '/electricity-comparision/checkout', // replace with actual path
+    3: '/electricity-comparision/anschlussdaten', // replace with actual path
+    4: '/electricity-comparision/zahlungsart', // replace with actual path
+    5: '/electricity-comparision/abschluss', // replace with actual path
   };
 
   navigateToMainStep(step: number) {

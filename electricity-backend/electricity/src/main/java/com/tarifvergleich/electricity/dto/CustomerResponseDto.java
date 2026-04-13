@@ -3,6 +3,8 @@ package com.tarifvergleich.electricity.dto;
 import java.math.BigInteger;
 import java.util.List;
 
+import com.tarifvergleich.electricity.model.CustomerDelivery;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,5 +30,6 @@ public class CustomerResponseDto {
     private Boolean status;
     
     private List<CustomerAddressDto> addresses;
+    private List<CustomerDelivery> delivery;
         
 }

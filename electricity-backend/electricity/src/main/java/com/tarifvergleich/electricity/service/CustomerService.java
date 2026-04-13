@@ -9,16 +9,22 @@ import org.springframework.stereotype.Service;
 
 import com.tarifvergleich.electricity.dto.CustomerBillingRequestDto;
 import com.tarifvergleich.electricity.dto.CustomerConnectionRequestDto;
+import com.tarifvergleich.electricity.dto.CustomerContactScheduleRequestDto;
 import com.tarifvergleich.electricity.dto.CustomerDeliveryDto;
+import com.tarifvergleich.electricity.dto.CustomerDeliveryResponseDto;
+import com.tarifvergleich.electricity.dto.CustomerPaymentRequestDto;
+import com.tarifvergleich.electricity.dto.CustomerPaymentRequestDto.AccountHolderDto;
+import com.tarifvergleich.electricity.dto.CustomerPaymentRequestDto.PaymentDto;
 import com.tarifvergleich.electricity.exception.InternalServerException;
 import com.tarifvergleich.electricity.mapper.CustomerResponseMapper;
 import com.tarifvergleich.electricity.model.Customer;
 import com.tarifvergleich.electricity.model.CustomerAddress;
 import com.tarifvergleich.electricity.model.CustomerBillingAddress;
 import com.tarifvergleich.electricity.model.CustomerConnect;
+import com.tarifvergleich.electricity.model.CustomerContactSchedule;
 import com.tarifvergleich.electricity.model.CustomerDelivery;
+import com.tarifvergleich.electricity.model.CustomerPayment;
 import com.tarifvergleich.electricity.repository.CustomerAddressRepository;
-import com.tarifvergleich.electricity.repository.CustomerBillingAddressRepository;
 import com.tarifvergleich.electricity.repository.CustomerDeliveryRepository;
 import com.tarifvergleich.electricity.repository.CustomerRepository;
 import com.tarifvergleich.electricity.util.Helper;
@@ -34,11 +40,10 @@ public class CustomerService {
 	private final CustomerAddressRepository customerAddressRepo;
 	private final CustomerResponseMapper customerResponseMapper;
 	private final CustomerDeliveryRepository customerDeliveryRepo;
-	private final CustomerBillingAddressRepository customerBillingAddressRepo;
 	private final Helper helper;
 
 	@Transactional
-	public Map<String, Object> saveDelivery(Integer customerId, CustomerDeliveryDto deliveryDto,
+	public Map<String, Object> saveDelivery(Integer customerId, Integer deliveryId, CustomerDeliveryDto deliveryDto,
 			CustomerBillingRequestDto billingRequestDto) {
 
 		if (customerId == null || customerId <= 0)
@@ -46,6 +51,11 @@ public class CustomerService {
 
 		Customer customer = customerRepo.findById(customerId)
 				.orElseThrow(() -> new InternalServerException("Customer not found", HttpStatus.BAD_REQUEST));
+
+		CustomerDelivery editDelivery = null;
+		if (deliveryId != null)
+			editDelivery = customerDeliveryRepo.findById(deliveryId).orElseThrow(
+					() -> new InternalServerException("Delivery record not found", HttpStatus.BAD_REQUEST));
 
 		if (deliveryDto == null)
 			throw new InternalServerException("Delivery details not found", HttpStatus.BAD_REQUEST);
@@ -82,13 +92,34 @@ public class CustomerService {
 			if (billingRequestDto.getStreet() == null || billingRequestDto.getStreet().isEmpty())
 				throw new InternalServerException("Billing street missing", HttpStatus.BAD_REQUEST);
 
-			billingAddress = CustomerBillingAddress.builder().zip(billingRequestDto.getZip())
-					.city(billingRequestDto.getCity()).street(billingRequestDto.getStreet())
-					.houseNumber(billingRequestDto.getHouseNumber()).isDifferent(true).build();
+			if (editDelivery == null) {
+
+				billingAddress = CustomerBillingAddress.builder().zip(billingRequestDto.getZip())
+						.city(billingRequestDto.getCity()).street(billingRequestDto.getStreet())
+						.houseNumber(billingRequestDto.getHouseNumber()).isDifferent(true).build();
+			} else {
+				billingAddress = editDelivery.getBillingAddress();
+
+				billingAddress.setZip(billingRequestDto.getZip());
+				billingAddress.setCity(billingRequestDto.getCity());
+				billingAddress.setStreet(billingRequestDto.getStreet());
+				billingAddress.setHouseNumber(billingRequestDto.getHouseNumber());
+				billingAddress.setIsDifferent(true);
+			}
 		} else {
-			billingAddress = CustomerBillingAddress.builder().zip(deliveryDto.getZip()).city(deliveryDto.getCity())
-					.street(deliveryDto.getStreet()).houseNumber(deliveryDto.getHouseNumber()).isDifferent(false)
-					.build();
+			if (editDelivery == null) {
+				billingAddress = CustomerBillingAddress.builder().zip(deliveryDto.getZip()).city(deliveryDto.getCity())
+						.street(deliveryDto.getStreet()).houseNumber(deliveryDto.getHouseNumber()).isDifferent(false)
+						.build();
+			} else {
+				billingAddress = editDelivery.getBillingAddress();
+
+				billingAddress.setZip(deliveryDto.getZip());
+				billingAddress.setCity(deliveryDto.getCity());
+				billingAddress.setStreet(deliveryDto.getStreet());
+				billingAddress.setHouseNumber(deliveryDto.getHouseNumber());
+				billingAddress.setIsDifferent(false);
+			}
 		}
 
 		CustomerAddress address = customerAddressRepo.findAddress(customerId, deliveryDto.getZip(),
@@ -102,20 +133,32 @@ public class CustomerService {
 			customer.addCustomerAddress(address);
 		}
 
-		CustomerDelivery delivery = CustomerDelivery.builder().firstName(deliveryDto.getFirstName())
-				.lastName(deliveryDto.getLastName()).address(address).billingAddress(billingAddress)
-				.mobile(deliveryDto.getMobile()).telephone(deliveryDto.getTelephone())
-				.deliveryDate(helper.toGermamUnixTimestamp(deliveryDto.getDeliveryDate())).build();
+		if (editDelivery == null) {
+			CustomerDelivery delivery = CustomerDelivery.builder().firstName(deliveryDto.getFirstName())
+					.lastName(deliveryDto.getLastName()).address(address).billingAddress(billingAddress)
+					.mobile(deliveryDto.getMobile()).telephone(deliveryDto.getTelephone())
+					.deliveryDate(helper.toGermamUnixTimestamp(deliveryDto.getDeliveryDate())).build();
 
-		customer.addCustomerDelivery(delivery);
+			customer.addCustomerDelivery(delivery);
+			customerRepo.save(customer);
+			deliveryId = customer.getCustomerDelivery().getLast().getId();
+		} else {
+			editDelivery.setFirstName(deliveryDto.getFirstName());
+			editDelivery.setLastName(deliveryDto.getLastName());
+			editDelivery.setMobile(deliveryDto.getMobile());
+			editDelivery.setTelephone(deliveryDto.getTelephone());
+			editDelivery.setDeliveryDate(helper.toGermamUnixTimestamp(deliveryDto.getDeliveryDate()));
+			editDelivery.setBillingAddress(billingAddress);
 
-		customerRepo.save(customer);
-
-		Integer deliveryId = customer.getCustomerDelivery().getLast().getId();
+			editDelivery.setAddress(address);
+			customerDeliveryRepo.save(editDelivery);
+			customerRepo.save(customer);
+		}
 
 		return Map.of("res", true, "customerId", customerId, "deliveryId", deliveryId);
 	}
 
+	@Transactional
 	public Map<String, Object> saveConnection(Integer customerId, Integer deliveryId,
 			CustomerConnectionRequestDto customerConnectDto) {
 
@@ -150,7 +193,7 @@ public class CustomerService {
 			if (customerConnectDto.getDelivery()) {
 				if (customerConnectDto.getDesiredDelivery() == null
 						|| customerConnectDto.getDesiredDelivery().isBefore(LocalDate.now(ZoneId.of("Europe/Berlin"))))
-					;
+					
 				throw new InternalServerException("Desired Delivery not found or ill formed", HttpStatus.BAD_REQUEST);
 			}
 		}
@@ -163,27 +206,184 @@ public class CustomerService {
 
 		CustomerDelivery delivery = customerDeliveryRepo.findById(deliveryId)
 				.orElseThrow(() -> new InternalServerException("Delivery record not found", HttpStatus.BAD_REQUEST));
-		Customer customer = customerRepo.findById(customerId)
-				.orElseThrow(() -> new InternalServerException("Customer not found", HttpStatus.BAD_REQUEST));
 
-		CustomerConnect customerConnect = CustomerConnect.builder().isMovingIn(customerConnectDto.getIsMovingIn())
-				.moveInDate(customerConnectDto.getMoveInDate() != null
-						? helper.toGermamUnixTimestamp(customerConnectDto.getMoveInDate())
-						: null)
-				.submitLater(customerConnectDto.getSubmitLater()).meterNumber(customerConnectDto.getMeterNumber())
-				.currentProvider(customerConnectDto.getCurrentProvider())
-				.autoCancellation(customerConnectDto.getAutoCancellation())
-				.alreadyCancelled(customerConnectDto.getAlreadyCancelled())
-				.selfCancellation(customerConnectDto.getSelfCancellation()).delivery(customerConnectDto.getDelivery())
-				.desiredDelivery(customerConnectDto.getDesiredDelivery() != null
-						? helper.toGermamUnixTimestamp(customerConnectDto.getDesiredDelivery())
-						: null)
-				.marketLocationId(customerConnectDto.getMarketLocationId()).customerDelivery(delivery).build();
+		if (delivery.getCustomerId().getCustomerId() != customerId)
+			throw new InternalServerException("Customer not found", HttpStatus.BAD_REQUEST);
 
-		delivery.setCustomerConnection(customerConnect);
+		if (delivery.getCustomerConnection() == null) {
+
+			CustomerConnect customerConnect = CustomerConnect.builder().isMovingIn(customerConnectDto.getIsMovingIn())
+					.moveInDate(customerConnectDto.getMoveInDate() != null
+							? helper.toGermamUnixTimestamp(customerConnectDto.getMoveInDate())
+							: null)
+					.submitLater(customerConnectDto.getSubmitLater()).meterNumber(customerConnectDto.getMeterNumber())
+					.currentProvider(customerConnectDto.getCurrentProvider())
+					.autoCancellation(customerConnectDto.getAutoCancellation())
+					.alreadyCancelled(customerConnectDto.getAlreadyCancelled())
+					.selfCancellation(customerConnectDto.getSelfCancellation())
+					.delivery(customerConnectDto.getDelivery())
+					.desiredDelivery(customerConnectDto.getDesiredDelivery() != null
+							? helper.toGermamUnixTimestamp(customerConnectDto.getDesiredDelivery())
+							: null)
+					.marketLocationId(customerConnectDto.getMarketLocationId()).customerDelivery(delivery).build();
+
+			delivery.setCustomerConnection(customerConnect);
+		}
+
+		else {
+			CustomerConnect customerConnect = delivery.getCustomerConnection();
+			customerConnect.setIsMovingIn(customerConnectDto.getIsMovingIn());
+			customerConnect.setMoveInDate(customerConnectDto.getMoveInDate() != null
+					? helper.toGermamUnixTimestamp(customerConnectDto.getMoveInDate())
+					: null);
+			customerConnect.setSubmitLater(customerConnectDto.getSubmitLater());
+			customerConnect.setMeterNumber(customerConnectDto.getMeterNumber());
+			customerConnect.setCurrentProvider(customerConnectDto.getCurrentProvider());
+			customerConnect.setAutoCancellation(customerConnectDto.getAutoCancellation());
+			customerConnect.setAlreadyCancelled(customerConnectDto.getAlreadyCancelled());
+			customerConnect.setSelfCancellation(customerConnectDto.getSelfCancellation());
+			customerConnect.setDelivery(customerConnectDto.getDelivery());
+			customerConnect.setDesiredDelivery(customerConnectDto.getDesiredDelivery() != null
+					? helper.toGermamUnixTimestamp(customerConnectDto.getDesiredDelivery())
+					: null);
+
+			customerConnect.setMarketLocationId(customerConnectDto.getMarketLocationId());
+		}
 
 		customerDeliveryRepo.save(delivery);
 		return Map.of("res", true, "customerId", customerId, "deliveryId", deliveryId);
+	}
+
+	@Transactional
+	public Map<String, Object> savePayment(CustomerPaymentRequestDto paymentDto) {
+
+		if (paymentDto.getCustomerId() == null || paymentDto.getCustomerId() <= 0)
+			throw new InternalServerException("Customer id missing", HttpStatus.BAD_REQUEST);
+
+		if (paymentDto.getDeliveryId() == null || paymentDto.getDeliveryId() <= 0)
+			throw new InternalServerException("Delivery id missing", HttpStatus.BAD_REQUEST);
+
+		CustomerDelivery delivery = customerDeliveryRepo.findById(paymentDto.getDeliveryId())
+				.orElseThrow(() -> new InternalServerException("Customer delivery not found", HttpStatus.BAD_REQUEST));
+
+		if (paymentDto.getPaymentData() == null)
+			throw new InternalServerException("Payment details missing", HttpStatus.BAD_REQUEST);
+
+		PaymentDto paymentDetails = paymentDto.getPaymentData();
+
+		if (paymentDetails.getPaymentMethod() == null || paymentDetails.getPaymentMethod().isEmpty())
+			throw new InternalServerException("Payment method missing", HttpStatus.BAD_REQUEST);
+
+		if (paymentDetails.getIban() == null || paymentDetails.getIban().isEmpty())
+			throw new InternalServerException("Iban missing", HttpStatus.BAD_REQUEST);
+
+		if (paymentDetails.getAccountHolder() == null)
+			throw new InternalServerException("Account holder data missing", HttpStatus.BAD_REQUEST);
+		
+		if(paymentDetails.getSepaConsent() == null)
+			throw new InternalServerException("Sepa Consent missing", HttpStatus.BAD_REQUEST);
+
+		AccountHolderDto account = paymentDetails.getAccountHolder();
+
+		if (account.getFirstName() == null || account.getLastName() == null || account.getFirstName().isEmpty()
+				|| account.getLastName().isEmpty())
+			throw new InternalServerException("Account holder details missing", HttpStatus.BAD_REQUEST);
+		
+		if(delivery.getCustomerPayment() == null) {
+
+		CustomerPayment payment = CustomerPayment.builder().paymentMethod(paymentDetails.getPaymentMethod())
+				.iban(paymentDetails.getIban()).accountHolderFirstName(account.getFirstName())
+				.accountHolderLastName(account.getLastName()).customerDeliveryId(delivery)
+				.sepaConsent(paymentDetails.getSepaConsent())
+				.build();
+
+		delivery.setCustomerPayment(payment);
+		
+		}
+		else {
+			CustomerPayment payment = delivery.getCustomerPayment();
+			
+			payment.setPaymentMethod(paymentDetails.getPaymentMethod());
+			payment.setIban(paymentDetails.getIban());
+			payment.setAccountHolderFirstName(account.getFirstName());
+			payment.setAccountHolderLastName(account.getLastName());
+			payment.setSepaConsent(paymentDetails.getSepaConsent());
+		}
+
+		customerDeliveryRepo.save(delivery);
+
+		return Map.of("res", true, "customerId", paymentDto.getCustomerId(), "deliveryId", delivery.getId());
+	}
+
+	public Map<String, Object> fetchByStep(Integer customerId, Integer deliveryId, Integer step) {
+
+		if (customerId == null || customerId <= 0)
+			throw new InternalServerException("Customer id missing", HttpStatus.BAD_REQUEST);
+
+		if (deliveryId == null || deliveryId <= 0)
+			throw new InternalServerException("Delivery id missing", HttpStatus.BAD_REQUEST);
+
+		if (step < 0 || step > 4)
+			throw new InternalServerException("Invalid step", HttpStatus.BAD_REQUEST);
+
+		Customer customer = customerRepo.findById(customerId)
+				.orElseThrow(() -> new InternalServerException("Customer not found", HttpStatus.BAD_REQUEST));
+		CustomerDelivery delivery = customerDeliveryRepo.findById(deliveryId)
+				.orElseThrow(() -> new InternalServerException("Delivery details not found", HttpStatus.BAD_REQUEST));
+
+		if (customer.getCustomerId() != delivery.getCustomerId().getCustomerId())
+			throw new InternalServerException("Customer id wirh delivery mismatch", HttpStatus.BAD_REQUEST);
+
+		if (step == 0)
+			return Map.of("res", true, "data", delivery, "message", "All details for step 0");
+
+		else if (step == 2)
+			return Map.of("res", true, "data", CustomerDeliveryResponseDto.mapResponse(delivery), "message",
+					"All details for step 2");
+		else if (step == 3)
+			return Map.of("res", true, "data", delivery.getCustomerConnection(), "message", "All details for step 3");
+		else if (step == 4)
+			return Map.of("res", true, "data", delivery.getCustomerPayment(), "message", "All details for step 4");
+		else
+			return Map.of("res", false, "message", "Enter a valid form step");
+	}
+
+	public Map<String, Object> submit(Integer customerId, Integer deliveryId) {
+		if (deliveryId == null || deliveryId <= 0)
+			throw new InternalServerException("Delivery id missing", HttpStatus.BAD_REQUEST);
+
+		CustomerDelivery delivery = customerDeliveryRepo.findById(deliveryId).orElseThrow(
+				() -> new InternalServerException("Customer Delivery details not found", HttpStatus.BAD_REQUEST));
+		if (delivery.getCustomerId().getCustomerId() != customerId)
+			throw new InternalServerException("Customer and delivery mis match", HttpStatus.BAD_REQUEST);
+
+		delivery.setOrderPlaced(true);
+
+		return Map.of("res", true, "message", "Order placed");
+	}
+
+	@Transactional
+	public Map<String, Object> submitCustomerSchedule(CustomerContactScheduleRequestDto schedule) {
+		if (schedule.getDeliveryId() == null || schedule.getDeliveryId() <= 0)
+			throw new InternalServerException("Delivery id missing", HttpStatus.BAD_REQUEST);
+
+		if (schedule.getDayOfWeek() == null || schedule.getDayOfWeek().isEmpty())
+			throw new InternalServerException("Day of the week missing", HttpStatus.BAD_REQUEST);
+
+		if (schedule.getTimeSlot() == null || schedule.getTimeSlot().isEmpty())
+			throw new InternalServerException("Time slot missing", HttpStatus.BAD_REQUEST);
+
+		CustomerDelivery delivery = customerDeliveryRepo.findById(schedule.getDeliveryId()).orElseThrow(
+				() -> new InternalServerException("Customer delivery details missing", HttpStatus.BAD_REQUEST));
+
+		CustomerContactSchedule customerSchedule = CustomerContactSchedule.builder().dayOfWeek(schedule.getDayOfWeek())
+				.timeSlot(schedule.getTimeSlot()).description(schedule.getDescription()).customerDelivery(delivery)
+				.build();
+		delivery.setCustomerSchedule(customerSchedule);
+
+		customerDeliveryRepo.save(delivery);
+
+		return Map.of("res", true, "message", "Schedule submitted");
 	}
 
 	public Map<String, Object> fetchCustomer(Integer id) {

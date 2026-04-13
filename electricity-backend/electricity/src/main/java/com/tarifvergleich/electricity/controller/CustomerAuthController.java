@@ -61,4 +61,9 @@ public class CustomerAuthController {
 		return ResponseEntity.ok(customerAuthService.resetPassword(customerDto.getId(), customerDto.getPassword()));
 	}
 	
+	@PostMapping("/register-login")
+	public ResponseEntity<?> loginAfterRegistration(@RequestBody CustomerDto customerDto, HttpServletRequest request){
+		return ResponseEntity.ok(customerAuthService.loginAfterRegistration(customerDto.getId(), request));
+	}
+	
 }

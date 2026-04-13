@@ -3,6 +3,10 @@ package com.tarifvergleich.electricity.dto;
 import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.tarifvergleich.electricity.model.CustomerAddress;
+import com.tarifvergleich.electricity.model.CustomerBillingAddress;
+import com.tarifvergleich.electricity.model.CustomerConnect;
+import com.tarifvergleich.electricity.model.CustomerPayment;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,4 +31,9 @@ public class CustomerDeliveryDto {
 	private String city;
 	private String street;
 	private String houseNumber;
+
+	private CustomerAddress customerAddress;
+	private CustomerBillingAddress billingAddress;
+	private CustomerConnect customerConnection;
+	private CustomerPayment customerPayment;
 }

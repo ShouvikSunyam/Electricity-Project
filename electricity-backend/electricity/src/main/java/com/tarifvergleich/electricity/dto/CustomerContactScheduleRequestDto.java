@@ -9,10 +9,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CustomerDeliveryRequestWrapper {
-	
+public class CustomerContactScheduleRequestDto {
+
+	private Integer id;
 	private Integer customerId;
 	private Integer deliveryId;
-    private CustomerDeliveryDto deliveryAddress;
-    private CustomerBillingRequestDto billingAddress;
+    private String dayOfWeek;
+    private String timeSlot;
+    private String description;
 }

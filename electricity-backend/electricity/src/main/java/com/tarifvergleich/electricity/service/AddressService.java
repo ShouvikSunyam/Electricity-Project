@@ -1,7 +1,13 @@
 package com.tarifvergleich.electricity.service;
 
+import java.net.URI;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,31 +50,59 @@ public class AddressService {
 			throw new InternalServerException("Location api response error", HttpStatus.BAD_REQUEST);
 		}).body(GeoapifyResponse.class);
 
-		return Map.of("res", true, "data", resp.results().stream()
+		return Map.of("res", true, "data", resp.results().stream().filter(distinctByKey(res -> res.city()))
 				.map(res -> Map.of("city", res.city(), "city_id", res.placeId())).distinct().toList());
 	}
-
+	
 	public Map<String, Object> getStreetsByCity(String placeId) {
 
-		if (placeId == null || placeId.isEmpty())
-			throw new InternalServerException("Zip code not found", HttpStatus.BAD_REQUEST);
+	    if (placeId == null || placeId.isEmpty()) {
+	        throw new InternalServerException("Place ID is required", HttpStatus.BAD_REQUEST);
+	    }
 
-		GeoapifyFeatureResponse resp = geoApi.get().uri(uriBuilder -> {
-			uriBuilder.path("/v2/places");
+	    GeoapifyFeatureResponse resp = geoApi.get().uri(uriBuilder -> {
+	        uriBuilder.path("/v2/places");
+	        
+	        uriBuilder.queryParam("categories", "building,commercial");
+	        uriBuilder.queryParam("filter", "place:" + placeId);
+	        uriBuilder.queryParam("apiKey", apiKey);
+	        uriBuilder.queryParam("limit", "500"); // Use 50 as a safe standard limit
+	        
+	        URI url = uriBuilder.build();
+	        System.out.println("Requesting Geoapify URL: " + url);
+	        return url;
+	    }).retrieve().onStatus(HttpStatusCode::isError, (request, response) -> {
+	        throw new InternalServerException("Location api response error", HttpStatus.BAD_REQUEST);
+	    }).body(GeoapifyFeatureResponse.class);
+	    
+	    if (resp == null || resp.features() == null) {
+	        return Map.of("res", true, "data", List.of());
+	    }
 
-			uriBuilder.queryParam("categories", "building");
-			uriBuilder.queryParam("filter", "place:" + placeId);
-			uriBuilder.queryParam("apiKey", apiKey);
+	    AtomicInteger index = new AtomicInteger(1);
 
-			return uriBuilder.build();
-		}).retrieve().onStatus(HttpStatusCode::isError, (request, response) -> {
-			throw new InternalServerException("Location api response error", HttpStatus.BAD_REQUEST);
-		}).body(GeoapifyFeatureResponse.class);
-		
-		AtomicInteger index = new AtomicInteger(1);
+	    List<Map<String, Object>> streetData = resp.features().stream()
+	        .map(feature -> {
+	            String street = (feature.properties() != null && feature.properties().street() != null) 
+	                          ? feature.properties().street() 
+	                          : "Unknown Street";
+	            
+	            return Map.<String, Object>of(
+	                "street", street, 
+	                "street_id", index.getAndIncrement()
+	            );
+	        })
+	        .filter(m -> !"Unknown Street".equals(m.get("street")))
+	        .filter(distinctByKey(m -> m.get("street")))
+	        .sorted((a,b) -> a.get("street").toString().charAt(0) -  b.get("street").toString().charAt(0))
+	        .toList();
 
-		return Map.of("res", true, "data", resp.features().stream().map(res -> {
-			return Map.of("street", res.properties().name(), "street_id", index.getAndIncrement());
-		}).toList());
+	    return Map.of("res", true, "data", streetData);
+	}
+	
+	
+	public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
+	    Set<Object> seen = ConcurrentHashMap.newKeySet();
+	    return t -> seen.add(keyExtractor.apply(t));
 	}
 }

@@ -13,5 +13,5 @@ public class CustomerConnectWrapper {
 
 	private Integer customerId;
 	private Integer deliveryId;
-	private CustomerConnectionRequestDto customerConnectionDto;
+	private CustomerConnectionRequestDto connectionData;
 }

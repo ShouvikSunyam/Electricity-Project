@@ -62,13 +62,21 @@ public class CustomerDelivery {
 	@JoinColumn(name = "customer_billing_id")
 	private CustomerBillingAddress billingAddress;
 	
-	@OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+	@ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
 	@JoinColumn(name = "customer_address_id")
 	private CustomerAddress address;
 	
 	@OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
 	@JoinColumn(name = "customer_connection_id")
 	private CustomerConnect customerConnection;
+	
+	@OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+	@JoinColumn(name = "customer_payment_id")
+	private CustomerPayment customerPayment;
+	
+	@OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+	@JoinColumn(name = "customer_schedule_id")
+	private CustomerContactSchedule customerSchedule;
 	
 	@ManyToOne
 	@JoinColumn(name = "customer_id")

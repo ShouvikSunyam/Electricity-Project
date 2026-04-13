@@ -33,6 +33,7 @@ public class CustomerResponseMapper {
                 .isVerified(customer.getIsVerified())
                 .status(customer.getStatus())
                 .addresses(mapAddressList(customer.getCustomerAddresses()))
+                .delivery(customer.getCustomerDelivery())
                 .build();
     }
 	
