@@ -40,14 +40,6 @@ export class AddressService {
   private baseUrl: string;
   private data: any;
 
-  setData(data: any) {
-    this.data = data;
-  }
-
-  getData() {
-    return this.data;
-  }
-
   constructor(
     @Inject(ENVIRONMENT) private env: Environment,
     private http: HttpClient,

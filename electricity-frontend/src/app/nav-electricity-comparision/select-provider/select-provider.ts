@@ -17,6 +17,7 @@ import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { ContactPerson } from '../../layout/contact-person/contact-person';
 import { NeedSupport } from '../../layout/need-support/need-support';
 import { AddressService } from '../../services/address.service';
+import { AuthService } from '../../services/auth.service';
 
 export interface Rate {
   rateId: number;
@@ -58,8 +59,25 @@ export interface Rate {
 }
 
 export interface RatesResponse {
-  result: Rate[];
-  total: number;
+  rates: {
+    result: Rate[];
+    total: number;
+  };
+  baseProvider: {
+    result: {
+      providerId: number;
+      providerName: string;
+      rates: {
+        rateId: number;
+        rateName: string;
+        basePriceYear: number;
+        basePriceMonth: number;
+        workPrice: number;
+        workPriceNt: number;
+      }[];
+    }[];
+  };
+  res: boolean;
 }
 
 @Component({
@@ -123,11 +141,12 @@ export class SelectProvider implements OnInit {
     public dialog: MatDialog,
     private eRef: ElementRef,
     private addressService: AddressService,
+    private authService: AuthService,
   ) {}
   hasAddress = false;
   // ngOnInit(): void {}
   ngOnInit(): void {
-    const data = this.addressService.getData();
+    const data = this.authService.getAddressData();
 
     console.log('Received:', data);
 
@@ -161,6 +180,7 @@ export class SelectProvider implements OnInit {
     this.hasLoadedRates = false;
     this.allRates = [];
     this.filteredRates = [];
+    const customerId = this.authService.getUserId() || 0;
 
     const body = {
       zip: this.zip,
@@ -171,17 +191,29 @@ export class SelectProvider implements OnInit {
       consum: this.consum,
       type: this.type,
       branch: this.branch,
+      customerId: Number(customerId) ,
     };
-
-    this.fetchBaseProvider();
 
     this.http.post<RatesResponse>('http://192.168.0.155:8080/api/get-rates', body).subscribe({
       next: (res) => {
-        this.allRates = (res?.result ?? []).map((rate) => ({
+        if (!res?.res) {
+          console.error('Invalid response');
+          return;
+        }
+
+        const rates = res.rates?.result || [];
+        const total = res.rates?.total || rates.length;
+        const baseProviderData = res.baseProvider?.result?.[0] || null;
+
+        this.allRates = rates.map((rate: Rate) => ({
           ...rate,
           uiExpanded: true,
         }));
-        this.totalCount = res?.total ?? this.allRates.length;
+
+        this.totalCount = total;
+
+        this.baseProvider = baseProviderData;
+        this.baseRate = baseProviderData?.rates?.[0] || null;
 
         this.allRates.forEach((r) => {
           if (!this.activeTabMap[r.rateId]) {
@@ -190,14 +222,12 @@ export class SelectProvider implements OnInit {
         });
 
         this.applyFiltersAndSort();
-
-        /* expand AFTER filtering */
         this.expandVisibleRates();
 
-        /* force dropdown open */
         this.isDropdownOpen = true;
         this.hasLoadedRates = true;
         this.isLoading = false;
+
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -206,46 +236,6 @@ export class SelectProvider implements OnInit {
         this.hasLoadedRates = true;
       },
     });
-  }
-
-  private fetchBaseProvider(): void {
-    //   if (!this.hasAddress) {
-    //   console.warn('Missing address, skipping API call');
-    //   alert('Please select an address before compare');
-    //   return;
-    // }
-
-    const params = {
-      zip: this.zip,
-      city: this.city,
-      street: this.street,
-      houseNumber: this.houseNumber,
-      branch: this.branch,
-      consum: this.consum.toString(),
-      type: this.type,
-    };
-
-    this.http
-      .get<any>('/baseProvider/', {
-        params,
-        headers: {
-          Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJnOExmWFluajVxUXdDQ3hmcyIsImFwcElkIjoiYUF4TTR6WFNpSG1qSFJNcXEiLCJzZXJ2aWNlTmFtZSI6IlVzZXJTZXJ2aWNlIiwiZWdvbkFwaUtleSI6IjhhYWVkOWY0ZjkxMDQ1ZGY1NjI5MjJlN2Q2YmVjYjhlIiwiaWF0IjoxNzcwOTA5ODkwfQ.95AXT8kMNaFk5d-_XOodQU5L0DbEZCjsMy-m4ZdVtdY`,
-          Accept: 'application/json',
-        },
-      })
-      .subscribe({
-        next: (res) => {
-          console.log('Base Provider:', res);
-
-          this.baseProvider = res?.result?.[0] || null;
-          this.baseRate = this.baseProvider?.rates?.[0] || null;
-
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          console.error('Base Provider API Error:', err);
-        },
-      });
   }
 
   applyFiltersAndSort(): void {
@@ -298,8 +288,9 @@ export class SelectProvider implements OnInit {
     this.isOpen = !this.isOpen;
   }
 
-  openPage(): void {
-    this.router.navigate(['login'], { relativeTo: this.route });
+  openPage(selectedRate: Rate): void {
+    this.authService.setSelectedProvider(selectedRate);
+    this.router.navigate(['register'], { relativeTo: this.route });
   }
 
   toggleDropdown(): void {

@@ -5,12 +5,13 @@ import { Router } from '@angular/router';
 import { ContactPerson } from '../../layout/contact-person/contact-person';
 import { NeedSupport } from '../../layout/need-support/need-support';
 import { AuthService } from '../../services/auth.service';
+import { FormsModule } from '@angular/forms';
 const API_BASE = 'http://192.168.0.155:8080';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ContactPerson, NeedSupport],
+  imports: [CommonModule, ContactPerson, NeedSupport, FormsModule],
   templateUrl: './register.html',
   styleUrl: './register.css',
 })
@@ -20,7 +21,14 @@ export class Register {
 
   /* ── Step control ──────────────────────────────────────────────── */
   currentStep: number = 1;
-
+  // currentStepLogin:
+  //   | 'login'
+  //   | 'loggedIn'
+  //   | 'forgotPassword'
+  //   | 'generatedCode'
+  //   | 'verifyCode'
+  //   | 'changePassword'
+  //   | 'LoginFurther' = 'login';
   /* ── Main progress-bar step guard ──────────────────────────────── */
   // Tracks the highest main step the user is allowed to enter.
   // Starts at 1 (Account). Advances to 2 only after redirectToAccount()
@@ -36,9 +44,16 @@ export class Register {
   /* ── Loading / error state ─────────────────────────────────────── */
   isLoading: boolean = false;
   apiError: string = '';
+  signupError: string = '';
   loginError: string = '';
   otpError: string = '';
   resendSuccess: boolean = false;
+  email: string = '';
+  existingEmail: string = '';
+  password: string = '';
+  isLoadingReset: boolean = false;
+  isLoadingForgot: boolean = false;
+  repeatPassword: string = '';
 
   /* ── Registered customer id (returned from signup) ─────────────── */
   registeredCustomerId: number | null = null;
@@ -87,13 +102,60 @@ export class Register {
   /* ══════════════════════════════════════════════════════════════════
 AUTH MODE
 ══════════════════════════════════════════════════════════════════ */
+  isLoggedIn: boolean = false;
 
   setAuthMode(mode: 'register' | 'login') {
     this.authMode = mode;
     this.apiError = '';
     this.loginError = '';
+    this.currentStep = 1;
+
+    if (this.isLoggedIn && this.authMode == 'login') {
+      this.currentStep = 5;
+    } else {
+      this.currentStep = 1;
+    }
   }
 
+  setLoginMode(mode: 'register' | 'login') {
+    this.authMode = mode;
+    this.apiError = '';
+    this.loginError = '';
+    this.currentStep = 1;
+  }
+  selectedOption: 'same' | 'different' | null = null;
+  backCheck() {
+    if (this.isLoggedIn && this.authMode == 'login') {
+      this.currentStep = 5;
+    } else {
+      this.currentStep = 1;
+    }
+  }
+  handleContinue() {
+    if (this.selectedOption === 'same') {
+      this.router.navigate([this.mainStepRoutes[2]]);
+    } else if (this.selectedOption === 'different') {
+      this.currentStep = 1;
+    } else {
+      console.log('Please select an option');
+    }
+    this.cdr.detectChanges();
+  }
+
+  ngOnInit(): void {
+    this.isLoggedIn = this.authService.isLoggedIn();
+
+    if (this.isLoggedIn) {
+      // user logged in
+      const customerId = this.authService.getUserId();
+      this.existingEmail = this.authService.getUserEmailId() ?? '';
+      console.log('Logged in user:', customerId);
+    } else {
+      // guest / temp user
+      const tempId = this.authService.getTempUid();
+      console.log('Guest user:', tempId);
+    }
+  }
   /* ══════════════════════════════════════════════════════════════════
   LOGIN
   ══════════════════════════════════════════════════════════════════ */
@@ -146,12 +208,12 @@ AUTH MODE
 
   /** Maps outer progress-bar step numbers to their routes.
    *  Adjust the route paths to match your actual Angular routing config. */
-  private readonly mainStepRoutes: Record<number, string> = {
+ private readonly mainStepRoutes: Record<number, string> = {
     1: '/electricity-comparision/register', // Account (adjust if different)
     2: '/electricity-comparision/delivery-address',
-    3: '/electricity-comparision/anschlussdaten', // replace with actual path
-    4: '/electricity-comparision/zahlungsart', // replace with actual path
-    5: '/electricity-comparision/abschluss', // replace with actual path
+    3: '/electricity-comparision/connection-data', // replace with actual path
+    4: '/electricity-comparision/payment-method', // replace with actual path
+    5: '/electricity-comparision/checkout', // replace with actual path
   };
 
   navigateToMainStep(step: number) {
@@ -303,9 +365,19 @@ AUTH MODE
             /* Store in AuthService */
             this.authService.setTempUid(res.data.id.toString());
 
-            this.currentStep = 2;
-            this.apiError = '';
+            if (res.page === 'login') {
+              this.signupError = 'E-Mail bereits registriert. Bitte einloggen.';
+              console.log(this.signupError);
+              // setTimeout(() => {
+              this.setAuthMode('login');
+              // this.currentStep = 5;
+              // }, 2000);
 
+              // return;
+            } else {
+              this.currentStep = 2;
+              this.apiError = '';
+            }
             this.cdr.detectChanges();
             console.log('UI update triggered for step:', this.currentStep);
           }
@@ -525,5 +597,262 @@ AUTH MODE
         this.apiError = err?.error?.message || 'Anmeldung fehlgeschlagen. Bitte erneut versuchen.';
       },
     });
+  }
+
+  loginUser() {
+    this.loginError = '';
+
+    const payload = {
+      email: this.email,
+      password: this.password,
+    };
+
+    if (!this.email || !this.password) {
+      this.loginError = 'Bitte E-Mail und Passwort eingeben.';
+      return;
+    }
+
+    this.isLoading = true;
+
+    this.http
+      .post<{
+        res: boolean;
+        message: string;
+        data: { id: number; firstName: string; lastName: string; email: string };
+      }>(`${API_BASE}/auth/login`, payload)
+      .subscribe({
+        next: (res) => {
+          this.isLoading = false;
+
+          if (res.res && res.data) {
+            // Store user
+            this.authService.login({
+              user_id: res.data.id.toString(),
+              email: res.data.email,
+              full_name: `${res.data.firstName} ${res.data.lastName}`,
+              token: undefined,
+            });
+
+            console.log('Login successful');
+
+            // Redirect
+            this.router.navigate([this.mainStepRoutes[2]]);
+          } else {
+            this.loginError = res.message || 'Anmeldung fehlgeschlagen.';
+          }
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.isLoading = false;
+          this.loginError =
+            err?.error?.message || 'Anmeldung fehlgeschlagen. Bitte erneut versuchen.';
+        },
+      });
+  }
+
+  sendForgotPasswordOtp() {
+    this.apiError = '';
+
+    if (!this.email) {
+      this.apiError = 'Bitte geben Sie Ihre E-Mail-Adresse ein.';
+      return;
+    }
+
+    this.isLoadingForgot = true;
+    this.cdr.detectChanges();
+
+    this.http
+      .post<{
+        res: boolean;
+        message: string;
+        data?: { id: number };
+      }>(`${API_BASE}/auth/forget-password`, { email: this.email })
+      .subscribe({
+        next: (res) => {
+          this.isLoadingForgot = false;
+
+          if (res.res) {
+            //  store temp user id for OTP verification
+            if (res.data?.id) {
+              this.authService.setTempUid(res.data.id.toString());
+            }
+
+            //  move to OTP screen
+            this.goToStep(7);
+            this.cdr.detectChanges();
+          } else {
+            this.apiError = res.message || 'Fehler beim Senden des Codes.';
+          }
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.isLoadingForgot = false;
+          this.apiError =
+            err?.error?.message || 'Fehler beim Senden des Codes. Bitte erneut versuchen.';
+        },
+      });
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+  RESEND OTP Forgot
+  ══════════════════════════════════════════════════════════════════ */
+
+  resendOtpForgot() {
+    if (!this.authService.getTempUid()) return;
+    this.resendSuccess = false;
+    this.otpError = '';
+
+    this.http
+      .post<{
+        res: boolean;
+        message: string;
+      }>(`${API_BASE}/auth/resend-forget-otp`, { id: this.authService.getTempUid() })
+      .subscribe({
+        next: (res) => {
+          this.resendSuccess = true;
+          // Clear boxes
+          for (let i = 0; i < 6; i++) {
+            const el = document.getElementById(`otp-${i}`) as HTMLInputElement;
+            if (el) el.value = '';
+          }
+          this.otpValue = '';
+          setTimeout(() => (this.resendSuccess = false), 4000);
+        },
+        error: () => {
+          this.otpError = 'Code konnte nicht gesendet werden. Bitte erneut versuchen.';
+        },
+      });
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+  VERIFY OTP Forgot
+  ══════════════════════════════════════════════════════════════════ */
+  verifyOtpForgot() {
+    this.collectOtp();
+    if (this.otpValue.length < 6) {
+      this.otpError = 'Bitte alle 6 Stellen eingeben.';
+      return;
+    }
+    if (!this.authService.getTempUid()) {
+      this.otpError = 'Sitzung abgelaufen. Bitte neu registrieren.';
+      return;
+    }
+
+    this.isLoading = true;
+    this.otpError = '';
+
+    this.http
+      .post<{
+        res: boolean;
+        message: string;
+      }>(`${API_BASE}/auth/verify-otp`, { id: this.authService.getTempUid(), otp: this.otpValue })
+      .subscribe({
+        // inside subscribe next block for verify-otp
+        next: (res) => {
+          this.isLoading = false;
+          if (res.res) {
+            this.otpInvalid = false;
+
+            // this.authService.finalizeUser(this.authService.getTempUid()!);
+
+            this.goToStep(9);
+            this.cdr.detectChanges();
+          } else {
+            this.otpError = 'Der eingegebene Code ist ungültig.';
+            this.otpInvalid = true;
+            this.goToStep(8);
+            this.cdr.detectChanges();
+          }
+        },
+        error: (err) => {
+          this.isLoading = false;
+          this.otpError =
+            err?.error?.message || 'Code-Überprüfung fehlgeschlagen. Bitte erneut versuchen.';
+        },
+      });
+  }
+
+  resetPassword() {
+    console.log('resetPassword called');
+    this.apiError = '';
+
+    //  run validation first
+    const isValid = this.validateStepReset(this.repeatPassword);
+
+    if (!isValid) {
+      console.log('not valid');
+      return; // fieldErrors will be shown in UI
+    }
+
+    if (!this.authService.getTempUid()) {
+      this.apiError = 'Session abgelaufen.';
+      console.log('Session abgelaufen.');
+      return;
+    }
+
+    this.isLoadingReset = true;
+
+    this.http
+      .post<{
+        res: boolean;
+        message: string;
+      }>(`${API_BASE}/auth/reset-password`, {
+        id: Number(this.authService.getTempUid()),
+        password: this.password,
+      })
+      .subscribe({
+        next: (res) => {
+          this.isLoadingReset = false;
+
+          if (res.res) {
+            this.setLoginMode('login');
+            this.cdr.detectChanges();
+          } else {
+            this.apiError = res.message || 'Fehler beim Zurücksetzen des Passworts.';
+          }
+        },
+        error: (err) => {
+          this.isLoadingReset = false;
+          this.apiError =
+            err?.error?.message || 'Fehler beim Zurücksetzen. Bitte erneut versuchen.';
+        },
+      });
+  }
+
+  validateForgotPassword(password: string, repeat: string, email?: string) {
+    // Update form data
+    this.password = password;
+
+    // Criteria validation
+    this.pw_length = password.length >= 8 && password.length <= 50;
+    this.pw_case = /[a-z]/.test(password) && /[A-Z]/.test(password);
+    this.pw_special = /[!@\$%\^&\*\+#]/.test(password);
+    this.pw_number = /[0-9]/.test(password);
+    this.pw_noEmail = email ? !password.toLowerCase().includes(email.toLowerCase()) : true;
+
+    // Mismatch logic: Only show error if repeat field is not empty
+    if (repeat.length > 0) {
+      this.passwordMismatch = password !== repeat;
+    } else {
+      this.passwordMismatch = false;
+    }
+  }
+  private validateStepReset(passwordRepeat: string): boolean {
+    this.fieldErrors = {};
+    let valid = true;
+
+    if (!this.password) {
+      this.fieldErrors['password'] = 'Passwort ist erforderlich.';
+      valid = false;
+    } else if (!this.isPasswordValid()) {
+      this.fieldErrors['password'] = 'Passwort erfüllt nicht alle Anforderungen.';
+      valid = false;
+    }
+
+    if (this.password !== passwordRepeat) {
+      this.passwordMismatch = true;
+      valid = false;
+    }
+    return valid;
   }
 }

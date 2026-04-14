@@ -144,14 +144,6 @@ export class LoginPage {
     this.fieldErrors = {};
     let valid = true;
 
-    // if (!this.email) {
-    //   this.fieldErrors['email'] = 'E-Mail-Adresse ist erforderlich.';
-    //   valid = false;
-    // } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email)) {
-    //   this.fieldErrors['email'] = 'Bitte geben Sie eine gültige E-Mail-Adresse ein.';
-    //   valid = false;
-    // }
-
     if (!this.password) {
       this.fieldErrors['password'] = 'Passwort ist erforderlich.';
       valid = false;

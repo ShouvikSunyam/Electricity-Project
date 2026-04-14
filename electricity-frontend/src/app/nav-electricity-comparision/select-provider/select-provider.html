@@ -412,7 +412,7 @@
             style="margin-top: 3px"
             >i</span
           >
-          <a href="#" class="anpassen">
+          <a class="anpassen">
             anpassen
             <span class="item-image">
               <img src="assets/icons/Bearbeiten_schwarz.png" class="icon-check" alt="check" />
@@ -431,9 +431,9 @@
               | Grundpreis:
               <strong>{{ baseRate.basePriceMonth | number: '1.2-2' }} €/Monat</strong>
             </div>
-            <a href="#" class="toggle-link" style="margin-top: 4px; display: inline-flex"
+            <!-- <a href="#" class="toggle-link" style="margin-top: 4px; display: inline-flex"
               >Tarif- und Preisdetails <span class="arrow down-v"></span
-            ></a>
+            ></a> -->
           </div>
           <div class="provider-price">
             <div class="provider-price__amount">
@@ -898,7 +898,7 @@
                 </div>
               </span>
             </div>
-            <button class="btn-weiter-card" style="margin-top: auto" (click)="openPage()">
+            <button class="btn-weiter-card" style="margin-top: auto" (click)="openPage(rate)">
               Weiter
             </button>
           </div>

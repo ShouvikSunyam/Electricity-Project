@@ -11,6 +11,7 @@ import { Registration } from '../../layout/registration/registration';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { Router } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-electricity',
@@ -41,6 +42,7 @@ export class Electricity implements OnInit {
     private ngZone: NgZone,
     private cdr: ChangeDetectorRef,
     private router: Router,
+    private authService: AuthService,
   ) {}
 
   discountinfo = `<p> <strong>So haben wir gerechnet </strong> </p>
@@ -69,6 +71,7 @@ export class Electricity implements OnInit {
   extraPerPerson = 850;
   streetDropdownKey = 0;
   isStreetLoading = false;
+  customPersonsValue: number = 0;
 
   ngOnInit(): void {
     this.addressForm = this.fb.group({
@@ -90,7 +93,7 @@ export class Electricity implements OnInit {
     this.handleStreetChanges();
 
     // Restore saved data
-    const saved = this.addressService.getData();
+    const saved = this.authService.getAddressData();
 
     if (saved) {
       this.isRestoring = true;
@@ -102,6 +105,12 @@ export class Electricity implements OnInit {
       this.selectedPersons = saved.persons;
       this.consumption = saved.consumption;
 
+      // if (this.selectedPersons > 4) {
+      //   this.showCustomInput = true;
+      //   this.customPersonsValue = this.selectedPersons; // 👈 for input field
+      // } else {
+      //   this.showCustomInput = false;
+      // }
       this.addressService.getCitiesByZip(saved.zip).subscribe((cities) => {
         this.cityOptions = cities;
         this.addressForm.get('city')?.enable();
@@ -256,6 +265,7 @@ export class Electricity implements OnInit {
       this.updateConsumptionUI();
       return;
     }
+    this.customPersonsValue = persons;
     this.customPersons = persons;
     this.selectedPersons = persons;
     this.consumption = this.calculateConsumption(persons);
@@ -304,18 +314,21 @@ export class Electricity implements OnInit {
     const selectedCityId = this.addressForm.value.city;
 
     const selectedCityObj = this.cityOptions.find((c) => c.city_id === selectedCityId);
+    if (!selectedCityObj) {
+      return; // or show error
+    }
 
     const data = {
       zip: this.addressForm.value.postalCode,
-      city: selectedCityObj?.city,
-      city_id: selectedCityObj?.city_id,
+      city: selectedCityObj.city,
+      city_id: selectedCityObj.city_id,
       street: this.addressForm.value.street,
       houseNumber: this.addressForm.value.houseNumber,
       persons: this.selectedPersons,
       consumption: this.consumption,
     };
 
-    this.addressService.setData(data);
+    this.authService.setAddressData(data);
 
     this.router.navigate(['/electricity-comparision']);
   }

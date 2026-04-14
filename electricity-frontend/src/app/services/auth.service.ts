@@ -12,8 +12,20 @@ export interface AuthUser {
   delivery_id?: string;
 }
 
+// export interface AddressData {
+//   zip: string;
+//   city: string;
+//   city_id?: number;
+//   street: string;
+//   houseNumber: string;
+//   persons?: number;
+//   consumption?: number;
+// }
+
 /* Storage Keys */
 const AUTH_STORAGE_KEY = 'auth_user';
+const ADDRESS_KEY = 'address_data';
+const PROVIDER_STORAGE_KEY = 'selected_provider';
 
 @Injectable({
   providedIn: 'root',
@@ -22,11 +34,14 @@ export class AuthService {
   /* Platform check for SSR safety */
   private platformId = inject(PLATFORM_ID);
 
+  private addressData: any | null = null;
+
   /* Internal BehaviorSubject to track auth state */
   private authState$: BehaviorSubject<AuthUser | null> = new BehaviorSubject<AuthUser | null>(null);
 
   constructor() {
     this.loadUserFromStorage();
+    this.loadFromStorage();
   }
 
   /* -------------------------------
@@ -179,6 +194,11 @@ export class AuthService {
     return user?.user_id || null;
   }
 
+   getUserEmailId(): string | null {
+    const user = this.getCurrentUser();
+    return user?.email || null;
+  }
+
   /* -------------------------------
      TEMP USER FLOW (MULTI-STEP FORM)
   --------------------------------*/
@@ -278,5 +298,82 @@ export class AuthService {
   getDeliveryId(): string | null {
     const user = this.getCurrentUser();
     return user?.delivery_id || null;
+  }
+
+  /// Address save local ///
+
+  /* Load from localStorage */
+  private loadFromStorage(): void {
+    try {
+      const data = localStorage.getItem(ADDRESS_KEY);
+      if (data) {
+        this.addressData = JSON.parse(data);
+      }
+    } catch (e) {
+      console.error('Error loading address', e);
+      this.addressData = null;
+    }
+  }
+
+  /* Save to localStorage */
+  private saveToStorage(data: any): void {
+    try {
+      localStorage.setItem(ADDRESS_KEY, JSON.stringify(data));
+    } catch (e) {
+      console.error('Error saving address', e);
+    }
+  }
+
+  /* Set data */
+  setAddressData(data: any): void {
+    this.addressData = data;
+    this.saveToStorage(data);
+  }
+
+  /* Get data */
+  getAddressData(): any | null {
+    return this.addressData;
+  }
+
+  /* Clear data (optional) */
+  clearAddress(): void {
+    localStorage.removeItem(ADDRESS_KEY);
+    this.addressData = null;
+  }
+
+  /* Check if exists */
+  hasAddress(): boolean {
+    return !!(this.addressData?.zip && this.addressData?.city && this.addressData?.street);
+  }
+
+  ///---- Select Provider ----///
+  setSelectedProvider(provider: any): void {
+    if (!this.isBrowser()) return;
+
+    try {
+      localStorage.setItem(PROVIDER_STORAGE_KEY, JSON.stringify(provider));
+    } catch (error) {
+      console.error('Error saving provider:', error);
+    }
+  }
+  getSelectedProvider(): any {
+    if (!this.isBrowser()) return null;
+
+    try {
+      const data = localStorage.getItem(PROVIDER_STORAGE_KEY);
+      return data ? JSON.parse(data) : null;
+    } catch (error) {
+      console.error('Error getting provider:', error);
+      return null;
+    }
+  }
+  clearSelectedProvider(): void {
+    if (!this.isBrowser()) return;
+
+    try {
+      localStorage.removeItem(PROVIDER_STORAGE_KEY);
+    } catch (error) {
+      console.error('Error clearing provider:', error);
+    }
   }
 }

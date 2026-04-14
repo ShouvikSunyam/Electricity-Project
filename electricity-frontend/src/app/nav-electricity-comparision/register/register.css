@@ -18,8 +18,13 @@
 }
 .login-text {
   line-height: 2;
-  font-size: 13px;
+  /* font-size: 13px; */
 }
+.login-header {
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
 .login-subtext {
   font-size: 13px;
 }
