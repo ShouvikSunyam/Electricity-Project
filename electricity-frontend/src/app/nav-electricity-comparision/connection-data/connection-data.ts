@@ -14,6 +14,35 @@ import { AuthService } from '../../services/auth.service';
 
 const API_BASE = 'http://192.168.0.155:8080';
 
+interface CustomerConnection {
+  isMovingIn?: boolean | null;
+  moveInDate?: number | string | null;
+  submitLater?: boolean | null;
+  meterNumber?: string | null;
+  currentProvider?: string | null;
+  autoCancellation?: boolean | null;
+  alreadyCancelled?: boolean | null;
+  selfCancellation?: boolean | null;
+  delivery?: boolean | string | number | null;
+  desiredDelivery?: boolean | string | number | null;
+  deliveryDate?: {
+    hasDesiredDate?: boolean | null;
+    desiredDate?: number | string | null;
+  } | null;
+  marketLocationId?: string | null;
+}
+
+interface CustomerFormData extends CustomerConnection {
+  customerConnection?: CustomerConnection | null;
+  connectionData?: CustomerConnection | null;
+}
+
+interface FetchFormResponse {
+  data?: CustomerFormData | null;
+  message?: string;
+  res?: boolean;
+}
+
 @Component({
   selector: 'app-connection-data',
   imports: [
@@ -77,8 +106,9 @@ export class ConnectionData implements OnInit {
 
   ngOnInit(): void {
     const userId = this.authService.getUserId();
-    const deliveryId = this.authService.getDeliveryId();
+    const deliveryId = this.getDeliveryId();
     console.log('ConnectionData init — userId:', userId, '| deliveryId:', deliveryId);
+    this.fetchFormData();
   }
 
   // ── Toggle helpers ───────────────────────────────────────────────────────
@@ -155,7 +185,7 @@ export class ConnectionData implements OnInit {
     }
 
     const userId = this.authService.getUserId();
-    const deliveryId = this.authService.getDeliveryId();
+    const deliveryId = this.getDeliveryId();
 
     this.successMessage = '';
     this.errorMessage = '';
@@ -179,13 +209,14 @@ export class ConnectionData implements OnInit {
             alreadyCancelled: this.alreadyCancelled,
             selfCancellation: this.selfCancellation,
           },
-          deliveryDate: {
-            hasDesiredDate: this.deliveryOption === 'wunschtermin',
-            desiredDate:
-              this.deliveryOption === 'wunschtermin' && this.desiredDeliveryDate
-                ? this.formatDate(this.desiredDeliveryDate)
-                : null,
-          },
+          autoCancellation: this.autoCancellation,
+          alreadyCancelled: this.alreadyCancelled,
+          selfCancellation: this.selfCancellation,
+          delivery: this.deliveryOption === 'wunschtermin',
+          desiredDelivery:
+            this.deliveryOption === 'wunschtermin' && this.desiredDeliveryDate
+              ? this.formatDate(this.desiredDeliveryDate)
+              : null,
         }),
       },
     };
@@ -213,5 +244,115 @@ export class ConnectionData implements OnInit {
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const year = d.getFullYear();
     return `${day}.${month}.${year}`;
+  }
+
+  private fetchFormData(): void {
+    const userId = this.authService.getUserId();
+    const deliveryId = this.getDeliveryId();
+
+    if (!deliveryId) {
+      return;
+    }
+
+    this.errorMessage = '';
+    this.isLoading = true;
+
+    const payload = {
+      customerId: parseInt(userId ?? '0', 10),
+      deliveryId: parseInt(deliveryId, 10),
+      step: 3,
+    };
+
+    this.http.post<FetchFormResponse>(`${API_BASE}/customer/fetch-form`, payload).subscribe({
+      next: (res) => {
+        this.isLoading = false;
+
+        if (res?.res === false) {
+          this.errorMessage = res?.message || 'Die gespeicherten Daten konnten nicht geladen werden.';
+          return;
+        }
+
+        this.prefillForm(res?.data ?? null);
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.errorMessage =
+          err?.error?.message || 'Die gespeicherten Daten konnten nicht geladen werden.';
+        console.error('Connection data fetch-form API error:', err);
+      },
+    });
+  }
+
+  private prefillForm(data: CustomerFormData | null): void {
+    const connection = data?.customerConnection || data?.connectionData || data;
+
+    if (!connection) {
+      return;
+    }
+
+    if (connection.isMovingIn !== null && connection.isMovingIn !== undefined) {
+      this.selection = connection.isMovingIn ? 'yes' : 'no';
+    }
+
+    this.moveInDate = this.parseStoredDate(connection.moveInDate);
+    this.submitLaterChecked = !!connection.submitLater;
+    this.meterNumber = connection.meterNumber || '';
+    this.marketLocationId = connection.marketLocationId || '';
+    this.currentProvider = connection.currentProvider || '';
+    this.autoCancellation = connection.autoCancellation ?? true;
+    this.alreadyCancelled = !!connection.alreadyCancelled;
+    this.selfCancellation = !!connection.selfCancellation;
+
+    const desiredDate =
+      this.parseStoredDate(connection.desiredDelivery) ||
+      this.parseStoredDate(connection.deliveryDate?.desiredDate) ||
+      this.parseStoredDate(connection.delivery);
+
+    if (desiredDate || connection.deliveryDate?.hasDesiredDate) {
+      this.deliveryOption = 'wunschtermin';
+      this.desiredDeliveryDate = desiredDate;
+    } else {
+      this.deliveryOption = 'schnellstmoeglich';
+      this.desiredDeliveryDate = null;
+    }
+  }
+
+  private parseStoredDate(value?: boolean | number | string | null): Date | null {
+    if (
+      value === null ||
+      value === undefined ||
+      value === '' ||
+      typeof value === 'boolean' ||
+      (typeof value === 'string' && value.toLowerCase().includes('schnell'))
+    ) {
+      return null;
+    }
+
+    if (typeof value === 'number' || /^\d+$/.test(value)) {
+      const numericValue = Number(value);
+      const milliseconds = numericValue < 1000000000000 ? numericValue * 1000 : numericValue;
+      const parsed = new Date(milliseconds);
+
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    const germanDate = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(value);
+    if (germanDate) {
+      const [, day, month, year] = germanDate;
+      return new Date(Number(year), Number(month) - 1, Number(day));
+    }
+
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  private getDeliveryId(): string | null {
+    return (
+      this.authService.getDeliveryId() ||
+      this.route.snapshot.queryParamMap.get('deliveryId') ||
+      this.route.snapshot.queryParamMap.get('deliveryid') ||
+      this.route.snapshot.paramMap.get('deliveryId') ||
+      this.route.snapshot.paramMap.get('deliveryid')
+    );
   }
 }

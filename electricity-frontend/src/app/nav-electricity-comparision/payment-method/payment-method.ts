@@ -12,6 +12,29 @@ import { AuthService } from '../../services/auth.service';
 
 const API_BASE = 'http://192.168.0.155:8080';
 
+interface CustomerPayment {
+  paymentMethod?: string | null;
+  iban?: string | null;
+  accountHolderFirstName?: string | null;
+  accountHolderLastName?: string | null;
+  accountHolder?: {
+    firstName?: string | null;
+    lastName?: string | null;
+  } | null;
+  sepaConsent?: boolean | null;
+}
+
+interface CustomerFormData extends CustomerPayment {
+  customerPayment?: CustomerPayment | null;
+  paymentData?: CustomerPayment | null;
+}
+
+interface FetchFormResponse {
+  data?: CustomerFormData | null;
+  message?: string;
+  res?: boolean;
+}
+
 @Component({
   selector: 'app-payment-method',
   imports: [
@@ -63,8 +86,9 @@ export class PaymentMethod implements OnInit {
 
   ngOnInit(): void {
     const userId = this.authService.getUserId();
-    const deliveryId = this.authService.getDeliveryId();
+    const deliveryId = this.getDeliveryId();
     console.log('PaymentMethod init — userId:', userId, '| deliveryId:', deliveryId);
+    this.fetchFormData();
   }
 
   // ── Toggle helpers ───────────────────────────────────────────────────────
@@ -129,7 +153,7 @@ export class PaymentMethod implements OnInit {
     }
 
     const userId = this.authService.getUserId();
-    const deliveryId = this.authService.getDeliveryId();
+    const deliveryId = this.getDeliveryId();
 
     this.successMessage = '';
     this.errorMessage = '';
@@ -166,5 +190,80 @@ export class PaymentMethod implements OnInit {
         console.error('Payment method API error:', err);
       },
     });
+  }
+
+  private fetchFormData(): void {
+    const userId = this.authService.getUserId();
+    const deliveryId = this.getDeliveryId();
+
+    if (!deliveryId) {
+      return;
+    }
+
+    this.errorMessage = '';
+    this.isLoading = true;
+
+    const payload = {
+      customerId: parseInt(userId ?? '0', 10),
+      deliveryId: parseInt(deliveryId, 10),
+      step: 4,
+    };
+
+    this.http.post<FetchFormResponse>(`${API_BASE}/customer/fetch-form`, payload).subscribe({
+      next: (res) => {
+        this.isLoading = false;
+
+        if (res?.res === false) {
+          this.errorMessage = res?.message || 'Die gespeicherten Daten konnten nicht geladen werden.';
+          return;
+        }
+
+        this.prefillForm(res?.data ?? null);
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.errorMessage =
+          err?.error?.message || 'Die gespeicherten Daten konnten nicht geladen werden.';
+        console.error('Payment method fetch-form API error:', err);
+      },
+    });
+  }
+
+  private prefillForm(data: CustomerFormData | null): void {
+    const payment = data?.customerPayment || data?.paymentData || data;
+
+    if (!payment) {
+      return;
+    }
+
+    this.paymentMethod = this.normalizePaymentMethod(payment.paymentMethod);
+    this.iban = payment.iban || '';
+    this.firstName = payment.accountHolderFirstName || payment.accountHolder?.firstName || '';
+    this.lastName = payment.accountHolderLastName || payment.accountHolder?.lastName || '';
+    this.sepaConsent = !!payment.sepaConsent;
+  }
+
+  private normalizePaymentMethod(paymentMethod?: string | null): string {
+    const normalized = (paymentMethod || '').trim().toLowerCase();
+
+    if (normalized === 'lastschrift') {
+      return 'lastschrift';
+    }
+
+    if (normalized.includes('berweisung')) {
+      return 'ueberweisung';
+    }
+
+    return this.paymentMethod;
+  }
+
+  private getDeliveryId(): string | null {
+    return (
+      this.authService.getDeliveryId() ||
+      this.route.snapshot.queryParamMap.get('deliveryId') ||
+      this.route.snapshot.queryParamMap.get('deliveryid') ||
+      this.route.snapshot.paramMap.get('deliveryId') ||
+      this.route.snapshot.paramMap.get('deliveryid')
+    );
   }
 }

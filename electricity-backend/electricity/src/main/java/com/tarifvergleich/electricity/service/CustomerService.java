@@ -134,7 +134,7 @@ public class CustomerService {
 		}
 
 		if (editDelivery == null) {
-			CustomerDelivery delivery = CustomerDelivery.builder().firstName(deliveryDto.getFirstName())
+			CustomerDelivery delivery = CustomerDelivery.builder().title(deliveryDto.getTitle()).firstName(deliveryDto.getFirstName())
 					.lastName(deliveryDto.getLastName()).address(address).billingAddress(billingAddress)
 					.mobile(deliveryDto.getMobile()).telephone(deliveryDto.getTelephone())
 					.deliveryDate(helper.toGermamUnixTimestamp(deliveryDto.getDeliveryDate())).build();
@@ -143,6 +143,7 @@ public class CustomerService {
 			customerRepo.save(customer);
 			deliveryId = customer.getCustomerDelivery().getLast().getId();
 		} else {
+			editDelivery.setTitle(deliveryDto.getTitle());
 			editDelivery.setFirstName(deliveryDto.getFirstName());
 			editDelivery.setLastName(deliveryDto.getLastName());
 			editDelivery.setMobile(deliveryDto.getMobile());

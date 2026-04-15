@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { ConnectionData } from './connection-data';
 
@@ -8,7 +10,8 @@ describe('ConnectionData', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ConnectionData]
+      imports: [ConnectionData],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
     })
     .compileComponents();
 

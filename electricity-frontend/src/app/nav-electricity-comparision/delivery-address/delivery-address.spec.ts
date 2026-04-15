@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { DeliveryAddress } from './delivery-address';
 
@@ -8,7 +10,8 @@ describe('DeliveryAddress', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [DeliveryAddress]
+      imports: [DeliveryAddress],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
     })
     .compileComponents();
 
