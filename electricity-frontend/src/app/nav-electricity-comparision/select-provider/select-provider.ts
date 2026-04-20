@@ -257,15 +257,13 @@ export class SelectProvider implements OnInit {
       this.selectedPersons = saved.persons;
       this.consum = saved.consumption;
 
-      this.addressService.getCitiesByZip(saved.zip).subscribe((res: any) => {
-        const cities = res?.data || res || [];
-
+      this.addressService.getCitiesByZip(saved.zip).subscribe((cities) => {
         this.cityOptions = cities;
         this.filteredCityOptions = [...cities];
 
         this.addressForm.get('city')?.enable();
 
-        const matchedCity = cities.find((c: any) => c.city === saved.city);
+        const matchedCity = cities.find((c) => c.city === saved.city);
 
         if (!matchedCity) {
           this.isRestoring = false;
@@ -275,17 +273,20 @@ export class SelectProvider implements OnInit {
         this.citySearch = matchedCity.city;
         this.lastValidCity = matchedCity;
 
-        this.addressForm.get('city')?.setValue(matchedCity.city_id, {
-          emitEvent: false,
-        });
+        this.addressForm.get('city')?.setValue(matchedCity.city_id);
 
-        this.addressService.getStreetsByCity(matchedCity.city_id).subscribe((streets: any[]) => {
+        this.isStreetLoading = true;
+        this.addressForm.get('street')?.enable();
+
+        this.addressService.getStreetsByCity(matchedCity.city_id).subscribe((streets) => {
           this.streetOptions = streets;
           this.filteredStreetOptions = [...streets];
 
           this.addressForm.get('street')?.enable();
 
-          const matchedStreet = streets.find((s) => s.street === saved.street);
+          const matchedStreet = streets.find(
+            (s) => s.street.trim().toLowerCase() === (saved.street ?? '').trim().toLowerCase(),
+          );
 
           if (matchedStreet) {
             this.streetSearch = matchedStreet.street;
@@ -309,7 +310,7 @@ export class SelectProvider implements OnInit {
           this.showDropdown = false;
 
           this.isStreetLoading = false;
-          this.isRestoring = false;
+          // this.isRestoring = false;
         });
       });
     }
@@ -321,8 +322,9 @@ export class SelectProvider implements OnInit {
   lastValidStreet: string | null = null;
 
   onCityInput(event: any) {
+    if (this.addressForm.get('city')?.disabled) return;
     this.closeAllDropdowns();
-    const value = event.target.value.toLowerCase();
+    const value = event.target.value.trim().toLowerCase();
     this.citySearch = value;
 
     this.filteredCityOptions = this.cityOptions.filter((c) => c.city.toLowerCase().includes(value));
@@ -341,13 +343,15 @@ export class SelectProvider implements OnInit {
   }
 
   onStreetInput(event: any) {
-    this.closeAllDropdowns();
-    const value = event.target.value.toLowerCase();
+    if (this.addressForm.get('street')?.disabled) return;
+    const value = event.target.value.trim().toLowerCase();
     this.streetSearch = value;
 
     this.filteredStreetOptions = this.streetOptions.filter((s) =>
-      s.street.toLowerCase().includes(value),
+      (s.street ?? '').toLowerCase().includes(value),
     );
+
+    this.showDropdown = true;
   }
 
   selectStreet(street: any) {
@@ -355,9 +359,10 @@ export class SelectProvider implements OnInit {
 
     this.addressForm.get('street')?.setValue(street.street);
 
-    this.filteredStreetOptions = this.streetOptions;
     this.lastValidStreet = street.street;
     this.showDropdown = false;
+
+    this.filteredStreetOptions = this.streetOptions;
   }
   goBack() {
     this.router.navigate(['/home/electricity']);
@@ -463,10 +468,14 @@ export class SelectProvider implements OnInit {
       ?.valueChanges.pipe(
         debounceTime(500),
         switchMap((zip) => {
+          const isValidZip = /^\d{5}$/.test(zip);
           if (this.isRestoring) return of([]);
           this.resetCity();
           this.resetStreet();
           this.resetHouseNumber();
+          if (!isValidZip) {
+            return of([]);
+          }
 
           if (zip && zip.length === 5) {
             return this.addressService.getCitiesByZip(zip);
@@ -485,8 +494,16 @@ export class SelectProvider implements OnInit {
         if (cities.length > 0) {
           this.addressForm.get('city')?.enable();
           if (cities.length === 1) {
-            this.addressForm.get('city')?.setValue(cities[0].city_id);
+            const city = cities[0];
+
+            this.citySearch = city.city;
+            this.lastValidCity = city;
+            this.showCityDropdown = false;
+
+            this.addressForm.get('city')?.setValue(city.city_id);
           }
+        } else {
+          this.addressForm.get('city')?.disable();
         }
       });
   }
@@ -496,7 +513,11 @@ export class SelectProvider implements OnInit {
       .get('city')
       ?.valueChanges.pipe(debounceTime(300))
       .subscribe((placeId) => {
-        if (!placeId || this.isRestoring) return;
+        const zip = this.addressForm.get('postalCode')?.value;
+
+        if (!placeId || this.isRestoring || !/^\d{5}$/.test(zip)) {
+          return;
+        }
         this.streetOptions = [];
         this.resetStreet();
         this.resetHouseNumber();
@@ -510,12 +531,16 @@ export class SelectProvider implements OnInit {
 
             this.filteredStreetOptions = [...streets];
 
+            this.streetDropdownKey++;
+            const streetControl = this.addressForm.get('street');
+            streetControl?.setValue(null);
+
             this.isStreetLoading = false;
+            this.cdr.detectChanges();
 
-            this.addressForm.get('street')?.enable();
-
-            this.addressForm.get('street')?.setValue(null, { emitEvent: false });
-
+            if (streets.length > 0) {
+              this.addressForm.get('street')?.enable();
+            }
             this.streetSearch = '';
 
             this.showDropdown = true;
@@ -538,6 +563,7 @@ export class SelectProvider implements OnInit {
     this.filteredCityOptions = [];
     this.citySearch = '';
     this.showCityDropdown = false;
+    this.lastValidCity = null;
 
     const control = this.addressForm.get('city');
     control?.reset(null, { emitEvent: false });
@@ -549,6 +575,7 @@ export class SelectProvider implements OnInit {
     this.filteredStreetOptions = [];
     this.streetSearch = '';
     this.showDropdown = false;
+    this.lastValidStreet = '';
 
     const control = this.addressForm.get('street');
     control?.reset(null, { emitEvent: false });

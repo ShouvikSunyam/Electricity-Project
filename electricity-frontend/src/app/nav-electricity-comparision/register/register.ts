@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef, NgZone } from '@angular/core';
+import { Component, ChangeDetectorRef, NgZone, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router, NavigationEnd } from '@angular/router';
@@ -7,17 +7,25 @@ import { NeedSupport } from '../../layout/need-support/need-support';
 import { AuthService } from '../../services/auth.service';
 import { FormsModule } from '@angular/forms';
 import { interval, Subscription } from 'rxjs';
-import { filter } from 'rxjs/operators';
+import { filter, map, takeWhile } from 'rxjs/operators';
+import { CountdownComponent, CountdownConfig, CountdownEvent } from 'ngx-countdown';
+import { environment } from '../../environments/environment';
+
 const API_BASE = 'http://192.168.0.155:8080';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ContactPerson, NeedSupport, FormsModule],
+  imports: [CommonModule, ContactPerson, NeedSupport, FormsModule, CountdownComponent],
   templateUrl: './register.html',
   styleUrl: './register.css',
 })
 export class Register {
+  //  remainingTime$ = interval(1000).pipe(
+  //   map(val => 60 - val), // Start from 60 seconds
+  //   takeWhile(val => val >= 0) // Stop at 0
+  // );
+
   /* ── Auth mode ─────────────────────────────────────────────────── */
   authMode: 'register' | 'login' = 'register';
 
@@ -104,6 +112,24 @@ export class Register {
     private zone: NgZone,
   ) { }
 
+  @ViewChild('countdown', { static: false }) private countdown!: CountdownComponent;
+
+  // Configuration: 60 seconds, displayed as m:s
+  config: CountdownConfig = {
+    leftTime: environment.resendTimer,
+    format: 'm:ss',
+    demand: false,
+  };
+
+  isResendDisabled: boolean = true;
+
+  // This handles the state change when the timer hits 0
+  handleEvent(event: CountdownEvent) {
+    // Use 'action' to check the state
+    if (event.action === 'done') {
+      this.isResendDisabled = false;
+    }
+  }
   /* ══════════════════════════════════════════════════════════════════
 AUTH MODE
 ══════════════════════════════════════════════════════════════════ */
@@ -148,6 +174,10 @@ AUTH MODE
   }
 
   ngOnInit(): void {
+    if (this.authMode === 'login' && this.currentStep === 7) {
+      this.countdown.restart();
+    }
+
     this.initPrefillData();
 
     this.routerSub = this.router.events
@@ -375,7 +405,15 @@ AUTH MODE
     this.currentStep = step;
     this.apiError = '';
     this.otpError = '';
-    this.isLoading = false; // always re-enable submit when navigating back
+    this.isLoading = false;
+
+    if (step === 7) {
+      setTimeout(() => {
+        if (this.countdown) {
+          this.countdown.restart();
+        }
+      }, 0);
+    }
   }
 
   /* ══════════════════════════════════════════════════════════════════
@@ -495,7 +533,7 @@ AUTH MODE
     this.http
       .post<{
         res: boolean;
-        data?: { id: number; firstName: string; lastName: string; email: string };
+        data?: { id: number; firstName: string; lastName: string; email: string; adminId: 1 };
         page?: string;
         message?: string;
       }>(`${API_BASE}/auth/signup`, payload)
@@ -790,7 +828,7 @@ AUTH MODE
         },
       });
   }
-  newOtp = false;
+
   sendForgotPasswordOtp() {
     this.apiError = '';
 
@@ -806,7 +844,7 @@ AUTH MODE
       .post<{
         res: boolean;
         message: string;
-        newOtp?: boolean;
+
         data?: { id: number };
       }>(`${API_BASE}/auth/forget-password`, { email: this.email })
       .subscribe({
@@ -818,7 +856,7 @@ AUTH MODE
             if (res.data?.id) {
               this.authService.setTempUid(res.data.id.toString());
             }
-            this.newOtp = !!res.newOtp;
+
             //  move to OTP screen
             this.goToStep(7);
             this.cdr.detectChanges();
@@ -840,35 +878,15 @@ AUTH MODE
   RESEND OTP Forgot
   ══════════════════════════════════════════════════════════════════ */
 
-  resendTimer: number = 60;
-  isResendDisabled: boolean = true;
-  private timerSub!: Subscription;
-
-  startResendTimer() {
-    if (this.timerSub) {
-      this.timerSub.unsubscribe();
-    }
-
-    this.resendTimer = 60;
-    this.isResendDisabled = true;
-
-    this.zone.runOutsideAngular(() => {
-      this.timerSub = interval(1000).subscribe(() => {
-        this.zone.run(() => {
-          if (this.resendTimer > 0) {
-            this.resendTimer--;
-          } else {
-            this.isResendDisabled = false;
-            this.timerSub.unsubscribe();
-          }
-        });
-      });
-    });
-  }
-
 
   resendOtpForgot() {
     if (!this.authService.getTempUid()) return;
+    if (this.isResendDisabled) return;
+    this.isResendDisabled = true;
+
+    setTimeout(() => {
+      this.countdown?.restart();
+    });
     this.resendSuccess = false;
     this.otpError = '';
 
@@ -886,8 +904,19 @@ AUTH MODE
             if (el) el.value = '';
           }
           this.otpValue = '';
+
+          // this.isResendDisabled = false;
+
+          // setTimeout(() => {
+          //   this.isResendDisabled = true;
+
+          //   // restart countdown AFTER DOM update
+          //   setTimeout(() => {
+          //     this.countdown?.restart();
+          //   });
+          // });
+
           setTimeout(() => (this.resendSuccess = false), 4000);
-          this.startResendTimer();
         },
         error: () => {
           this.otpError = 'Code konnte nicht gesendet werden. Bitte erneut versuchen.';
@@ -898,8 +927,7 @@ AUTH MODE
   formatTime(seconds: number): string {
     const min = Math.floor(seconds / 60);
     const sec = seconds % 60;
-
-    return `${this.pad(min)}:${this.pad(sec)}`;
+    return `${min}:${sec < 10 ? '0' + sec : sec}`;
   }
 
   pad(value: number): string {
@@ -908,6 +936,7 @@ AUTH MODE
   /* ══════════════════════════════════════════════════════════════════
   VERIFY OTP Forgot
   ══════════════════════════════════════════════════════════════════ */
+  newOtp = false;
   verifyOtpForgot() {
     this.collectOtp();
     if (this.otpValue.length < 6) {
@@ -925,6 +954,7 @@ AUTH MODE
     this.http
       .post<{
         res: boolean;
+        newOtp?: boolean;
         message: string;
       }>(`${API_BASE}/auth/verify-otp`, { id: this.authService.getTempUid(), otp: this.otpValue })
       .subscribe({
@@ -941,7 +971,8 @@ AUTH MODE
           } else {
             this.otpError = 'Der eingegebene Code ist ungültig.';
             this.otpInvalid = true;
-            this.goToStep(8);
+            this.newOtp = !!res.newOtp;
+            // this.goToStep(8);
             this.cdr.detectChanges();
           }
         },
