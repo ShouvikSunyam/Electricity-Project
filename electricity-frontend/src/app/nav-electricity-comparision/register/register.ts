@@ -10,6 +10,7 @@ import { interval, Subscription } from 'rxjs';
 import { filter, map, takeWhile } from 'rxjs/operators';
 import { CountdownComponent, CountdownConfig, CountdownEvent } from 'ngx-countdown';
 import { environment } from '../../environments/environment';
+
 const API_BASE = 'http://192.168.0.155:8080';
 
 @Component({
@@ -109,7 +110,7 @@ export class Register {
     private authService: AuthService,
     private router: Router,
     private zone: NgZone,
-  ) {}
+  ) { }
 
   @ViewChild('countdown', { static: false }) private countdown!: CountdownComponent;
 
@@ -876,6 +877,7 @@ AUTH MODE
   /* ══════════════════════════════════════════════════════════════════
   RESEND OTP Forgot
   ══════════════════════════════════════════════════════════════════ */
+
 
   resendOtpForgot() {
     if (!this.authService.getTempUid()) return;

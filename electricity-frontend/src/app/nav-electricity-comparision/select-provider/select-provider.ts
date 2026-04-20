@@ -609,7 +609,7 @@ export class SelectProvider implements OnInit {
       consum: this.consum,
       type: this.type,
       branch: this.branch,
-      customerId: Number(customerId),
+      customerId: Number(customerId) ,
     };
 
     this.http.post<RatesResponse>('http://192.168.0.155:8080/api/get-rates', body).subscribe({
