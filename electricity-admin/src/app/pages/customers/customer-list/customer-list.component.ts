@@ -2,6 +2,7 @@ import { Component, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { ApiService } from "../../../shared/services/api.service";
 import { AuthService } from "../../../shared/services/auth.service";
+import { FormsModule } from "@angular/forms";
 
 /**
  * Updated Type to align with API response and template needs
@@ -33,7 +34,7 @@ type AdminCustomer = {
 @Component({
   selector: "app-customer-list",
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: "./customer-list.component.html",
   styleUrl: "./customer-list.component.css",
 })
@@ -47,6 +48,10 @@ export class CustomerListComponent implements OnInit {
   private readonly PAGE_LIMIT = 5;
   currentPage = 1;
 
+  searchTerm: string = "";
+  selectedUserType: string = ""; // "", "PRIVATE", "BUSINESS"
+  selectedVerifiedStatus: string = ""; // "", "true", "false"
+
   constructor(
     private api: ApiService,
     private authService: AuthService,
@@ -56,6 +61,10 @@ export class CustomerListComponent implements OnInit {
     this.fetchCustomers();
   }
 
+  onFilterChange(): void {
+    this.fetchCustomers(1);
+  }
+
   /**
    * Toggles the accordion view for a specific customer
    */
@@ -63,12 +72,14 @@ export class CustomerListComponent implements OnInit {
     this.expandedRow = this.expandedRow === id ? null : id;
   }
 
-  // Modified to accept a page number
   fetchCustomers(page: number = 1): void {
     this.currentPage = page;
     const payload = {
       adminId: this.authService.getUserId(),
-      page: this.currentPage, // Sending page to backend
+      page: this.currentPage,
+      search: this.searchTerm,
+      userType: this.selectedUserType,
+      isVerified: this.selectedVerifiedStatus
     };
 
     this.isLoading = true;
@@ -80,9 +91,6 @@ export class CustomerListComponent implements OnInit {
         this.isLoading = false;
         const newData = this.extractList(res);
         this.customers = newData;
-
-        // Logic: If we received fewer items than the limit,
-        // it's the last page.
         this.hasMoreData = newData.length === this.PAGE_LIMIT;
 
         this.expandedRow = null;

@@ -8,7 +8,12 @@ import { AuthService } from '../../services/auth.service';
 import { FormsModule } from '@angular/forms';
 import { interval, Subscription } from 'rxjs';
 import { filter, map, takeWhile } from 'rxjs/operators';
-import { CountdownModule, CountdownConfig, CountdownEvent, CountdownComponent } from 'ngx-countdown';
+import {
+  CountdownModule,
+  CountdownConfig,
+  CountdownEvent,
+  CountdownComponent,
+} from 'ngx-countdown';
 import { environment } from '../../environments/environment';
 
 const API_BASE = 'http://192.168.0.155:8080';
@@ -518,6 +523,7 @@ AUTH MODE
     if (!this.validateStep1(passwordRepeat)) return;
 
     const payload = {
+      adminId: 1,
       firstName: this.formData.firstName.trim(),
       lastName: this.formData.lastName.trim(),
       email: this.formData.email.trim(),

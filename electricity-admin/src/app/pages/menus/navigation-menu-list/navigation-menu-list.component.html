@@ -5,10 +5,27 @@
             Navigationsmenüs
         </h2>
 
-        <a routerLink="/menus/navigation/create"
-            class="px-4 py-2 text-sm bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition cursor-pointer">
-            + Menü erstellen
-        </a>
+        <div class="flex items-center gap-3">
+            <!-- Save Order Button: only visible when order has been changed -->
+            @if (orderChanged) {
+            <button (click)="saveSortOrder()" [disabled]="isSaving"
+                class="px-4 py-2 text-sm bg-green-500 text-white rounded-lg hover:bg-green-600 transition cursor-pointer flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
+                @if (isSaving) {
+                <div class="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-white"></div>
+                } @else {
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                }
+                Reihenfolge speichern
+            </button>
+            }
+
+            <a routerLink="/menus/navigation/create"
+                class="px-4 py-2 text-sm bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition cursor-pointer">
+                + Menü erstellen
+            </a>
+        </div>
     </div>
 
     @if (isLoading) {
@@ -20,10 +37,22 @@
 
     @if (!isLoading && !errorMessage && menus.length > 0) {
     <div class="overflow-x-auto">
+
+        <!-- Drag hint -->
+        <p class="text-xs text-gray-400 dark:text-gray-500 mb-2 flex items-center gap-1">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"></path>
+            </svg>
+            Zeilen ziehen, um die Reihenfolge zu ändern
+        </p>
+
         <table class="w-full text-sm text-left border-collapse">
 
             <thead class="text-xs uppercase bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
                 <tr>
+                    <th class="px-3 py-3 w-12 text-center">Pos.</th>
+                    <th class="px-2 py-3 w-8"></th>
                     <th class="px-4 py-3">Bild</th>
                     <th class="px-4 py-3">Titel</th>
                     <th class="px-4 py-3">Untertitel</th>
@@ -32,10 +61,33 @@
                 </tr>
             </thead>
 
-            <tbody class="divide-y dark:divide-gray-700">
+            <tbody class="divide-y dark:divide-gray-700 cursor-pointer">
 
-                @for (menu of menus; track menu.id) {
-                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+                @for (menu of menus; track menu.id; let i = $index) {
+                <tr draggable="true" (dragstart)="onDragStart($event, i)" (dragover)="onDragOver($event, i)"
+                    (dragleave)="onDragLeave($event)" (drop)="onDrop($event, i)" (dragend)="onDragEnd()"
+                    [class.opacity-40]="dragIndex === i" [class.border-t-2]="dropTargetIndex === i && dragIndex !== i"
+                    [class.border-brand-500]="dropTargetIndex === i && dragIndex !== i"
+                    class="hover:bg-gray-50 dark:hover:bg-gray-800 transition group">
+
+                    <td class="px-3 py-3 text-center">
+                        <span
+                            class="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-[10px] font-bold">
+                            {{ i + 1 }}
+                        </span>
+                    </td>
+
+                    <!-- Drag handle -->
+                    <td class="px-2 py-3">
+                        <div class="cursor-grab active:cursor-grabbing text-gray-300 dark:text-gray-600
+                                    group-hover:text-gray-400 dark:group-hover:text-gray-400 transition select-none"
+                            title="Ziehen zum Sortieren">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    d="M8 6a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM8 13.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM8 21a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM16 6a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM16 13.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM16 21a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+                            </svg>
+                        </div>
+                    </td>
 
                     <td class="px-4 py-3">
                         @if (menu.contentUrl) {

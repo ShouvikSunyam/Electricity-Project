@@ -5,14 +5,14 @@ import { AuthService } from '../../services/auth.service';
 import { Router } from 'express';
 import { CommonModule } from '@angular/common';
 import SignaturePad from 'signature_pad';
-import { CountdownComponent, CountdownConfig, CountdownEvent } from 'ngx-countdown';
+import { CountdownModule, CountdownConfig, CountdownEvent, CountdownComponent } from 'ngx-countdown';
 import { environment } from '../../environments/environment';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
 @Component({
   selector: 'app-customer',
-  imports: [CommonModule, CountdownComponent, MatFormFieldModule, MatInputModule],
+  imports: [CommonModule, CountdownModule, MatFormFieldModule, MatInputModule],
   templateUrl: './customer.html',
   styleUrl: './customer.css',
 })

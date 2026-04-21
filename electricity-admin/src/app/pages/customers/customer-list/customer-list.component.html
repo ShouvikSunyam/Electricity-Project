@@ -1,12 +1,40 @@
 <div class="p-6 bg-white dark:bg-gray-900 rounded-2xl shadow">
-  <div class="flex items-center justify-between mb-6">
-    <h2 class="text-xl font-semibold text-gray-800 dark:text-white">
+
+  <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-4">
+    <h2 class="text-xl font-semibold text-gray-800 dark:text-white shrink-0">
       Kundenliste
     </h2>
+
+    <div class="flex flex-wrap items-center gap-3 w-full lg:justify-end">
+      <div class="relative min-w-[200px] flex-1 lg:flex-none lg:w-64">
+        <input type="text" [(ngModel)]="searchTerm" (keyup.enter)="onFilterChange()"
+          placeholder="Suchen (Name, E-Mail, ID)..."
+          class="w-full pl-3 pr-10 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none transition" />
+      </div>
+
+      <select [(ngModel)]="selectedUserType" (change)="onFilterChange()"
+        class="text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 dark:text-white py-2 px-3 outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer">
+        <option value="">Alle Nutzertypen</option>
+        <option value="PRIVATE">Privat</option>
+        <option value="BUSINESS">Geschäftlich</option>
+      </select>
+
+      <select [(ngModel)]="selectedVerifiedStatus" (change)="onFilterChange()"
+        class="text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 dark:text-white py-2 px-3 outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer">
+        <option value="">Status (Alle)</option>
+        <option value="true">Verifiziert</option>
+        <option value="false">Unverifiziert</option>
+      </select>
+
+      <button (click)="onFilterChange()"
+        class="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm active:scale-95">
+        Suchen
+      </button>
+    </div>
   </div>
 
   @if (isLoading) {
-  <div class="flex items-center gap-2 text-gray-500 text-sm">
+  <div class="flex items-center gap-2 text-gray-500 text-sm py-4">
     <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-brand-500"></div>
     <span>Kunden werden geladen...</span>
   </div>
@@ -36,7 +64,6 @@
             <div class="font-semibold text-gray-900 dark:text-white">
               {{ customer.title }} {{ customer.firstName }} {{ customer.lastName }}
             </div>
-            <!-- <div class="text-xs text-gray-400">{{ customer.uniqueCustomerId }}</div> -->
           </td>
 
           <td class="px-4 py-4 text-gray-600 dark:text-gray-400">{{ customer.email }}</td>
@@ -108,19 +135,18 @@
   @if (!isLoading && errorMessage) {
   <div class="text-center py-12">
     <p class="text-red-500 font-medium">{{ errorMessage }}</p>
+    <button (click)="fetchCustomers(1)" class="mt-2 text-sm text-brand-500 underline">Erneut versuchen</button>
   </div>
   }
 
   @if (!isLoading && !errorMessage && customers.length === 0) {
   <div class="text-center py-12">
     <p class="text-gray-500 font-medium">Keine Kunden gefunden</p>
+    <p class="text-xs text-gray-400 mt-1">Versuchen Sie andere Filtereinstellungen.</p>
   </div>
   }
 
   @if (!isLoading && !errorMessage && customers.length > 0) {
-  <div class="overflow-x-auto">
-  </div>
-
   <div class="flex items-center justify-between px-4 py-4 border-t dark:border-gray-700 mt-4">
     <div class="text-sm text-gray-500">
       Seite <span class="font-medium text-gray-900 dark:text-white">{{ currentPage }}</span>
