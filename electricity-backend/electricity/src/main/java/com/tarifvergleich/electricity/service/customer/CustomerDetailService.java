@@ -109,7 +109,7 @@ public class CustomerDetailService {
 			attornyEntity.setIsRevoked(false);
 		}
 
-		attornyDto.setApprovalStatus(1);
+		attornyEntity.setApprovalStatus(1);
 		attornyEntity.setSalutation(attornyDto.getSalutation());
 		attornyEntity.setTitle(attornyDto.getTitle());
 		attornyEntity.setFirstName(attornyDto.getFirstName());

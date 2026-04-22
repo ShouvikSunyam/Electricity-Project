@@ -32,4 +32,23 @@ public class EmailTemplate {
 	           "<p>Best Regards,<br><strong>Tarifvergleich Security Team</strong></p>" +
 	           "</div>";
 	}
+	
+	public String createPasswordResetSuccessEmailBody(String salutation, String lastName, String firstName, String email, String dateTime) {
+	    return "<div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; border: 1px solid #eee; padding: 20px;'>" +
+	           "<h2 style='color: #2e7d32;'>You have successfully reset your password!</h2>" +
+	           "<p>Dear " + salutation + " " + lastName + ",</p>" +
+	           "<p>" + firstName + " " + lastName + "</p>" +
+	           "<p>You successfully reset your password for the email address <strong>" + email + "</strong> on " + dateTime + ".</p>" +
+	           
+	           "<p>If you changed your password yourself, you don't need to do anything else.</p>" +
+	           
+	           "<div style='margin-top: 25px; padding: 15px; background-color: #fff3e0; border-left: 4px solid #ff9800;'>" +
+	           "<p style='margin: 0; font-weight: bold;'>You did not carry out this action yourself?</p>" +
+	           "<p style='margin: 10px 0 0 0;'>In this case, please reset your password immediately to secure your account.</p>" +
+	           "</div>" +
+	           
+	           "<br>" +
+	           "<p>Best Regards,<br><strong>Tarifvergleich Security Team</strong></p>" +
+	           "</div>";
+	}
 }

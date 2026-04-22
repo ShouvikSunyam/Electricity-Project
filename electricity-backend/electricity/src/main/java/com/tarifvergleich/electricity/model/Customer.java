@@ -46,6 +46,9 @@ public class Customer {
 	private String lastName;
 
 	private String password;
+	
+	@Column(name = "temp_password")
+	private String tempPassword;
 
 	@Column(unique = true)
 	private String email;
@@ -118,6 +121,11 @@ public class Customer {
 	@OneToMany(mappedBy = "customer", cascade = { CascadeType.PERSIST, CascadeType.MERGE })
 	@JsonIgnoreProperties("customer")
 	private List<CustomerAttorny> customerAttorny;
+	
+
+	@OneToMany(mappedBy = "customer", cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+	@JsonIgnoreProperties("customer")
+	private List<CustomerChangePasswordHistory> customerChangePasswordHistories;
 
 	@ManyToOne
 	@JoinColumn(name = "admin_id")
@@ -168,10 +176,16 @@ public class Customer {
 		attorny.setCustomer(this);
 		customerAttorny.add(attorny);
 	}
+	
+	public void addCustomerChangePasswordHistory(CustomerChangePasswordHistory changePasswordHistory) {
+		if(customerChangePasswordHistories == null)
+			customerChangePasswordHistories = new LinkedList<CustomerChangePasswordHistory>();
+		changePasswordHistory.setCustomer(this);
+		customerChangePasswordHistories.add(changePasswordHistory);
+	}
 
 	public void setUserAdmin(AdminUser admin) {
 		this.admin = admin;
-		admin.addCustomer(this);
 	}
 
 }

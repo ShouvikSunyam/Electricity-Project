@@ -52,8 +52,11 @@ public class AdminCustomerManagementService {
 			return Map.of("res", true, "data", customerRes);
 
 		} else if (customerReq.getPage() != null) {
-
-			Pageable pageable = PageRequest.of(customerReq.getPage() - 1, 5, Sort.by("joinedOn").descending());
+			
+			if(customerReq.getSize() == null)
+				customerReq.setSize(20);
+			
+			Pageable pageable = PageRequest.of(customerReq.getPage() - 1, customerReq.getSize(), Sort.by("joinedOn").descending());
 
 			Page<Customer> customers = null;
 
@@ -97,8 +100,11 @@ public class AdminCustomerManagementService {
 			throw new InternalServerException("Admin id missing", HttpStatus.OK);
 
 		if (deliveryReq.getPage() != null) {
+			
+			if(deliveryReq.getSize() == null)
+				deliveryReq.setSize(20);
 
-			Pageable pageable = PageRequest.of(deliveryReq.getPage() - 1, 5, Sort.by("orderPlacedOn").descending());
+			Pageable pageable = PageRequest.of(deliveryReq.getPage() - 1, deliveryReq.getSize(), Sort.by("orderPlacedOn").descending());
 
 			Page<CustomerDelivery> customerDeliveries = customerDeliveryRepo.findAll(pageable);
 
@@ -119,14 +125,17 @@ public class AdminCustomerManagementService {
 		return Map.of("res", true, "data", customerDeliveryResponse);
 	}
 
-	public Map<String, Object> getAllComparison(Integer adminId, Integer page) {
+	public Map<String, Object> getAllComparison(Integer adminId, Integer page, Integer size) {
 
 		if (adminId == null || adminId <= 0)
 			throw new InternalServerException("Admin id missing", HttpStatus.OK);
 
 		if (page != null && page > 0) {
+			
+			if(size == null)
+				size = 20;;
 
-			Pageable pageable = PageRequest.of(page - 1, 5, Sort.by("comparedOn").descending());
+			Pageable pageable = PageRequest.of(page - 1, size, Sort.by("comparedOn").descending());
 
 			Page<CustomerComparingEnergy> energyComparisons = customerComparingEnergyRepo.findAll(pageable);
 

@@ -104,7 +104,6 @@ public class CustomerDelivery {
 	
 	public void setUserAdmin(AdminUser admin) {
 		this.admin = admin;
-		admin.addDelivery(this);
 	}
 	
 }
