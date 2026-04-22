@@ -329,7 +329,7 @@
                   margin-top: 10px;
                 "
               >
-                <button class="btn-primary" (click)="nextStep(2)">
+                <button class="btn-primary" (click)="toggleService(2)">
                   <span class="spinner"></span>
                   Anfrage abschicken
                 </button>
@@ -1291,17 +1291,17 @@
       <!-- OTP VERIFY  -->
       <div class="container-login" *ngIf="activeTab === 7 && currentStep === 2">
         <div class="login-berich">
-          {{ otpInvalid || newOtp ? 'Geben Sie den Code ein' : 'Bitte überprüfen Sie den Code' }}
+          {{ otpInvalid ? 'Bitte überprüfen Sie den Code' : 'Geben Sie den Code ein' }}
         </div>
 
         <div class="login-row">
-          <div class="login-text" *ngIf="otpInvalid">
+          <div class="login-text" *ngIf="otpInvalid" style="font-size: 15px">
             <strong>
               Der eingegebene Code stimmt leider nicht mit dem gesendeten Code überein
             </strong>
           </div>
 
-          <div class="login-text" *ngIf="newOtp">
+          <div class="login-text" *ngIf="newOtp" style="font-size: 14px">
             Wir haben bereits einen neuen Code an Ihre E-Mail-Adresse gesendet.
           </div>
 

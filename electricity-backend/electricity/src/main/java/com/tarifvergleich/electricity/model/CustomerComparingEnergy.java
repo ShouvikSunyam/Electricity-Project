@@ -90,12 +90,10 @@ public class CustomerComparingEnergy {
 	}
 	
 	public void setCustomerModel(Customer customer) {
-		customer.addEnergyComparison(this);
 		this.customer = customer;
 	}
 	
 	public void setRecordAdmin(AdminUser adminUser) {
-		adminUser.addCustomerEnergyComparison(this);
 		this.setAdmin(adminUser);
 	}
 }

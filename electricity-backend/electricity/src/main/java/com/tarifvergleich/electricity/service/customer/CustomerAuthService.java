@@ -14,6 +14,7 @@ import com.tarifvergleich.electricity.exception.InternalServerException;
 import com.tarifvergleich.electricity.model.AdminUser;
 import com.tarifvergleich.electricity.model.Customer;
 import com.tarifvergleich.electricity.model.CustomerAddress;
+import com.tarifvergleich.electricity.model.CustomerChangePasswordHistory;
 import com.tarifvergleich.electricity.model.CustomerLoginHistory;
 import com.tarifvergleich.electricity.repository.AdminUserRepository;
 import com.tarifvergleich.electricity.repository.CustomerAddressRepository;
@@ -69,7 +70,7 @@ public class CustomerAuthService {
 			if (customerDto.getCompanyName() == null || customerDto.getCompanyName().isEmpty())
 				throw new InternalServerException("Company name missing", HttpStatus.OK);
 		} else {
-			if(customerDto.getHouseNumber() == null || customerDto.getHouseNumber().trim().isEmpty())
+			if (customerDto.getHouseNumber() == null || customerDto.getHouseNumber().trim().isEmpty())
 				throw new InternalServerException("House number missing", HttpStatus.OK);
 		}
 
@@ -197,9 +198,10 @@ public class CustomerAuthService {
 			customer.setIsVerified(true);
 			if (customer.getVerifiedOn() == null)
 				customer.setVerifiedOn(Helper.getCurrentTimeBerlin());
+			customer.setOtp(null);
 			customerRepo.save(customer);
 			return Map.of("res", true, "message", "Valid otp");
-		} else if (isExpired) {
+		} else if (customer.getOtp() != null && isExpired) {
 			String newOtp = helper.generateOtp();
 			customer.setOtp(newOtp);
 			customer.setOtpGeneratedOn(Helper.getCurrentTimeBerlin());
@@ -233,7 +235,7 @@ public class CustomerAuthService {
 	}
 
 	@Transactional
-	public Map<String, Object> resendOtp(Integer id, boolean isForget) {
+	public Map<String, Object> resendOtp(Integer id, Boolean isForget, Boolean changePassword) {
 		if (id == null || id <= 0)
 			throw new InternalServerException("Customer id missing", HttpStatus.OK);
 
@@ -245,6 +247,18 @@ public class CustomerAuthService {
 		customer.setOtp(otp);
 		customer.setOtpGeneratedOn(Helper.getCurrentTimeBerlin());
 
+		if (changePassword) {
+			CustomerChangePasswordHistory changePasswordHistory = Optional
+					.ofNullable(customer.getCustomerChangePasswordHistories()).orElse(Collections.emptyList())
+					.getLast();
+
+			if (changePasswordHistory != null) {
+				changePasswordHistory.setOtp(otp);
+				changePasswordHistory.setCodeSendOn(Helper.getCurrentTimeBerlin());
+			}
+
+		}
+
 		customerRepo.save(customer);
 
 		String subject = "";
@@ -252,6 +266,9 @@ public class CustomerAuthService {
 
 		if (isForget) {
 			subject = "Forget Password - Tarifvergleich Electricity";
+			body = emailTemplate.createForgotPasswordEmailBody(customer.getFirstName(), otp);
+		} else if (changePassword) {
+			subject = "Verify Your Account - Tarifvergleich Electricity";
 			body = emailTemplate.createForgotPasswordEmailBody(customer.getFirstName(), otp);
 		} else {
 			subject = "Verify Your Account - Tarifvergleich Electricity";
@@ -352,5 +369,110 @@ public class CustomerAuthService {
 		customerRepo.save(customer);
 
 		return Map.of("res", true, "message", "Password changed successfully");
+	}
+
+	@Transactional
+	public Map<String, Object> changePasswordRequest(Integer adminId, Integer customerId, String oldPassword,
+			String newPassword, String confirmPassword) {
+
+		if (customerId == null || customerId <= 0)
+			throw new InternalServerException("Customer id missing", HttpStatus.OK);
+
+		if (!newPassword.equals(confirmPassword))
+			throw new InternalServerException("New password and confirm password mismatch", HttpStatus.OK);
+
+		Customer customer = customerRepo.findById(customerId).orElseThrow(
+				() -> new InternalServerException("Customer not found with this credential", HttpStatus.OK));
+
+		if (!customer.getAdmin().getAdminId().equals(adminId))
+			throw new InternalServerException("Admin id missing", HttpStatus.OK);
+
+		if (!customer.getPassword().equals(oldPassword))
+			throw new InternalServerException("Old password does not match", HttpStatus.OK);
+
+		if (!helper.isPasswordSecure(newPassword, customer.getEmail()))
+			throw new InternalServerException("Password is not secured", HttpStatus.OK);
+
+		String otp = helper.generateOtp();
+
+		String to = customer.getEmail();
+		String subject = "Verify Your Account - Tarifvergleich Electricity";
+		String body = emailTemplate.createForgotPasswordEmailBody(customer.getFirstName(), otp);
+
+		mailService.sendMail(to, subject, body);
+
+		customer.setOtp(otp);
+		customer.setOtpGeneratedOn(Helper.getCurrentTimeBerlin());
+		customer.setTempPassword(confirmPassword);
+
+		CustomerChangePasswordHistory history = CustomerChangePasswordHistory.builder().email(to).otp(otp)
+				.codeSendOn(Helper.getCurrentTimeBerlin()).admin(customer.getAdmin()).build();
+
+		customer.addCustomerChangePasswordHistory(history);
+		
+
+		customerRepo.save(customer);
+
+		return Map.of("res", true, "message", "Otp send successfully");
+	}
+
+	@Transactional
+	public Map<String, Object> changePasswordVerifyAndSet(Integer adminId, Integer customerId, String otp) {
+		if (customerId == null || customerId <= 0)
+			throw new InternalServerException("Customer id missing", HttpStatus.OK);
+
+		Customer customer = customerRepo.findById(customerId).orElseThrow(
+				() -> new InternalServerException("Customer not found with this credential", HttpStatus.OK));
+
+		if (!customer.getAdmin().getAdminId().equals(adminId))
+			throw new InternalServerException("Admin id missing", HttpStatus.OK);
+
+		BigInteger expiryMillis = BigInteger.valueOf(expiryMinutes).multiply(BigInteger.valueOf(60));
+
+		boolean isExpired = Helper.getCurrentTimeBerlin().subtract(customer.getOtpGeneratedOn())
+				.compareTo(expiryMillis) > 0;
+
+		CustomerChangePasswordHistory changePasswordHistory = Optional
+				.ofNullable(customer.getCustomerChangePasswordHistories()).orElse(Collections.emptyList()).getLast();
+
+		if (customer.getOtp().equals(otp)) {
+			if (customer.getTempPassword() != null && !customer.getTempPassword().isEmpty()) {
+				customer.setPassword(customer.getTempPassword());
+				customer.setTempPassword(null);
+				customer.setOtp(null);
+				changePasswordHistory.setCodeVerifiedOn(Helper.getCurrentTimeBerlin());
+				changePasswordHistory.setPasswordChangedOn(Helper.getCurrentTimeBerlin());
+
+				String subject = "Change Password Confirmation - Tarifvergleich Electricity";
+				String body = emailTemplate.createPasswordResetSuccessEmailBody(customer.getSalutation(),
+						customer.getLastName(), customer.getFirstName(), customer.getEmail(),
+						Helper.getLocalDateTimeFromBerlinEpoch().toString());
+
+				mailService.sendMail(customer.getEmail(), subject, body);
+
+				changePasswordHistory.setConfirmationSendOn(Helper.getCurrentTimeBerlin());
+				customerRepo.save(customer);
+				return Map.of("res", true, "message", "Password changed successfully");
+			} else
+				throw new InternalServerException("Bad request for changing password", HttpStatus.OK);
+		} else if (customer.getOtp() != null && isExpired) {
+			String newOtp = helper.generateOtp();
+			customer.setOtp(newOtp);
+			customer.setOtpGeneratedOn(Helper.getCurrentTimeBerlin());
+			String subject = "Verify Your Account - Tarifvergleich Electricity";
+			String body = emailTemplate.createOtpEmailBody(customer.getFirstName(), newOtp);
+
+			mailService.sendMail(customer.getEmail(), subject, body);
+			changePasswordHistory.setOtp(otp);
+			changePasswordHistory.setCodeSendOn(Helper.getCurrentTimeBerlin());
+			changePasswordHistory.setWrongCodeLastTriedOn(Helper.getCurrentTimeBerlin());
+			customerRepo.save(customer);
+			return Map.of("res", false, "newOtp", true, "message", "New otp generated");
+		}
+
+		changePasswordHistory.setWrongCodeLastTriedOn(Helper.getCurrentTimeBerlin());
+		customerRepo.save(customer);
+
+		return Map.of("res", false, "newOtp", false, "message", "Invalid otp");
 	}
 }

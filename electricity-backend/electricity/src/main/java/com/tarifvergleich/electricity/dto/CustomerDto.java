@@ -1,9 +1,12 @@
 package com.tarifvergleich.electricity.dto;
 
 import java.math.BigInteger;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import com.tarifvergleich.electricity.dto.CustomerChangePasswordHistoryDto.CustomerChangePasswordHistoryResDto;
+import com.tarifvergleich.electricity.dto.CustomerDeliveryResponseDto.CustomerAddressRes;
 import com.tarifvergleich.electricity.model.Customer;
 
 import lombok.AllArgsConstructor;
@@ -33,11 +36,11 @@ public class CustomerDto {
 	private Boolean isAcknowledged;
 	private List<CustomerDeliveryResponseDto> deliveryDetails;
 	private CustomerAddressDto address;
-	
+
 	private String zip;
-    private String city;
-    private String street;
-    private String houseNumber; 
+	private String city;
+	private String street;
+	private String houseNumber;
 
 	private Integer page;
 	private Integer size;
@@ -66,6 +69,7 @@ public class CustomerDto {
 		private BigInteger joinedOn;
 		private Boolean isAcknowledged;
 		private CustomerAddressDto address;
+		private List<CustomerChangePasswordHistoryResDto> changePasswordHistory;
 		private String uniqueCustomerId;
 		private Boolean status;
 	}
@@ -88,7 +92,7 @@ public class CustomerDto {
 		private BigInteger verifiedOn;
 		private BigInteger joinedOn;
 		private Boolean isAcknowledged;
-		private CustomerAddressDto address;
+		private CustomerAddressRes address;
 		private Boolean status;
 		private List<CustomerDeliveryResponseDto> deliveryDetails;
 	}
@@ -107,6 +111,19 @@ public class CustomerDto {
 		private String salutation;
 	}
 
+	@Data
+	@Builder
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class CustomerChangePasswordPayload {
+		Integer adminId;
+		private Integer id;
+		String oldPassword;
+		String newPassword;
+		String confirmPassword;
+		String otp;
+	}
+
 	public static SingleCustomerResponseDelivery getCustomerResponseDto(Customer customer) {
 		return SingleCustomerResponseDelivery.builder().id(customer.getCustomerId()).email(customer.getEmail())
 				.firstName(customer.getFirstName()).lastName(customer.getLastName())
@@ -114,6 +131,8 @@ public class CustomerDto {
 				.companyName(customer.getCompanyName()).mobileNumber(customer.getMobileNumber())
 				.status(customer.getStatus()).isVerified(customer.getIsVerified()).joinedOn(customer.getJoinedOn())
 				.isAcknowledged(customer.getIsAcknowledged())
+				.address(CustomerAddressRes.builder().zip(customer.getZip()).city(customer.getCity())
+						.street(customer.getStreet()).houseNumber(customer.getHouseNumber()).build())
 				.deliveryDetails(
 						customer.getCustomerDelivery().stream().map(CustomerDeliveryResponseDto::mapResponse).toList())
 				.build();
@@ -129,6 +148,9 @@ public class CustomerDto {
 				.uniqueCustomerId(customer.getCustomerUniqueId())
 				.address(Optional.ofNullable(customer.getCustomerAddresses()).filter(list -> !list.isEmpty())
 						.map(List::getLast).map(CustomerAddressDto::getCustomerAddressResponseDto).orElse(null))
+				.changePasswordHistory(Optional.ofNullable(customer.getCustomerChangePasswordHistories())
+						.orElse(Collections.emptyList()).stream().map(CustomerChangePasswordHistoryDto::mapAdminRes)
+						.toList())
 				.build();
 	}
 

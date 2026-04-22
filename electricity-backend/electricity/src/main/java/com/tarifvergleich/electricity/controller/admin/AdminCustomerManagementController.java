@@ -38,6 +38,7 @@ public class AdminCustomerManagementController {
 	public ResponseEntity<?> getCustomerComparisons(@RequestBody Map<String, Object> payload){
 		Integer adminId = (Integer) payload.get("adminId");
 		Integer page = (Integer) payload.get("page");
-		return ResponseEntity.ok(adminCustomerManagementService.getAllComparison(adminId, page));
+		Integer size = (Integer) payload.get("size");
+		return ResponseEntity.ok(adminCustomerManagementService.getAllComparison(adminId, page, size));
 	}
 }

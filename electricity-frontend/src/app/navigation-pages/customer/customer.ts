@@ -96,6 +96,9 @@ export class Customer {
 
     if (step === 2 && this.activeTab === 7) {
       setTimeout(() => {
+        this.isResendDisabled = true;
+        this.resendSuccess = false;
+
         if (this.countdown) {
           this.countdown.restart();
         }

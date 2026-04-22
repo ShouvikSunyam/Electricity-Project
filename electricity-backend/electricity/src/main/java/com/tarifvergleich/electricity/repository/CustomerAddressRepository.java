@@ -11,18 +11,12 @@ import com.tarifvergleich.electricity.model.CustomerAddress;
 
 @Repository
 public interface CustomerAddressRepository extends JpaRepository<CustomerAddress, Integer> {
-	
-	@Query("SELECT c FROM CustomerAddress c WHERE c.customerId.customerId = :id " +
-		       "AND c.zip LIKE :zip " +
-		       "AND c.city LIKE :city " +
-		       "AND c.street LIKE :street " +
-		       "AND c.houseNumber LIKE :houseNumber")
-		Optional<CustomerAddress> findAddress(
-		    @Param("id") Integer id, 
-		    @Param("zip") String zip, 
-		    @Param("city") String city, 
-		    @Param("street") String street, 
-		    @Param("houseNumber") String houseNumber
-		);
+
+	@Query(value = "SELECT * FROM customer_address c " + "WHERE c.customer_id = :id " + 
+			"AND c.zip LIKE :zip " + "AND c.city LIKE :city " + "AND c.street LIKE :street "
+			+ "AND c.house_number LIKE :houseNumber " +
+			"LIMIT 1", nativeQuery = true)
+	Optional<CustomerAddress> findAddress(@Param("id") Integer id, @Param("zip") String zip, @Param("city") String city,
+			@Param("street") String street, @Param("houseNumber") String houseNumber);
 
 }

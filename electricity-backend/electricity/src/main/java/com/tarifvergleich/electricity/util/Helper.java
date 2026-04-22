@@ -2,7 +2,9 @@ package com.tarifvergleich.electricity.util;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Map;
@@ -48,65 +50,74 @@ public class Helper {
 		return String.valueOf(otp);
 
 	}
-	
+
 	public boolean isPasswordSecure(String password, String email) {
-	    if (password == null || password.length() < 8 || password.length() > 50) return false;
+		if (password == null || password.length() < 8 || password.length() > 50)
+			return false;
 
-	    boolean hasUpper = false;
-	    boolean hasLower = false;
-	    boolean hasDigit = false;
-	    boolean hasSpecial = false;
-	    String specialChars = "!@$%^&*+#";
+		boolean hasUpper = false;
+		boolean hasLower = false;
+		boolean hasDigit = false;
+		boolean hasSpecial = false;
+		String specialChars = "!@$%^&*+#";
 
+		for (char c : password.toCharArray()) {
+			if (Character.isUpperCase(c))
+				hasUpper = true;
+			else if (Character.isLowerCase(c))
+				hasLower = true;
+			else if (Character.isDigit(c))
+				hasDigit = true;
+			else if (specialChars.indexOf(c) != -1)
+				hasSpecial = true;
+		}
 
-	    for (char c : password.toCharArray()) {
-	        if (Character.isUpperCase(c)) hasUpper = true;
-	        else if (Character.isLowerCase(c)) hasLower = true;
-	        else if (Character.isDigit(c)) hasDigit = true;
-	        else if (specialChars.indexOf(c) != -1) hasSpecial = true;
-	    }
-	    
-	    String emailPrefix = email.split("@")[0].toLowerCase();
+		String emailPrefix = email.split("@")[0].toLowerCase();
 
-	    String lowerPassword = password.toLowerCase();
+		String lowerPassword = password.toLowerCase();
 
-	    if (lowerPassword.contains(emailPrefix)) {
-	        return false;
-	    }
-	    
-	    return hasUpper && hasLower && hasDigit && hasSpecial;
+		if (lowerPassword.contains(emailPrefix)) {
+			return false;
+		}
+
+		return hasUpper && hasLower && hasDigit && hasSpecial;
 	}
-	
+
 	public BigInteger toGermamUnixTimestamp(LocalDate localDate) {
 		ZoneId zoneId = ZoneId.of("Europe/Berlin");
 		ZonedDateTime zonedDateTime = localDate.atStartOfDay(zoneId);
 		return BigInteger.valueOf(zonedDateTime.toEpochSecond());
 	}
-	
+
 	public static final BigInteger getCurrentTimeBerlin() {
 		ZonedDateTime nowInBerlin = ZonedDateTime.now(ZoneId.of("Europe/Berlin"));
 		return BigInteger.valueOf(nowInBerlin.toEpochSecond());
 	}
-	
-	public Map<String, Object> getDeviceInfo(String userAgentString){
+
+	public static LocalDateTime getLocalDateTimeFromBerlinEpoch() {
+		long seconds = getCurrentTimeBerlin().longValue();
+
+		Instant instant = Instant.ofEpochSecond(seconds);
+
+		return LocalDateTime.ofInstant(instant, ZoneId.of("Europe/Berlin"));
+	}
+
+	public Map<String, Object> getDeviceInfo(String userAgentString) {
 		Parser uaParser = new Parser();
 		Client client = uaParser.parse(userAgentString);
-		
-		return Map.of(
-		        "os", client.os.family,        
-		        "device", client.device.family, 
-		        "browser", client.userAgent.family 
-		    );
+
+		return Map.of("os", client.os.family, "device", client.device.family, "browser", client.userAgent.family);
 	}
-	
+
 	public static final String getUniqueIdForCustomerId() {
 		String currentMilli = String.valueOf(System.currentTimeMillis());
-        return "9" + currentMilli.substring(currentMilli.length() - 10).substring(1);
+		return "9" + currentMilli.substring(currentMilli.length() - 10).substring(1);
 	}
-	
+
 	public static final String getUniqueId() {
 		String currentMilli = String.valueOf(System.currentTimeMillis());
-		return String.valueOf(ThreadLocalRandom.current().nextInt(10, 99)) + currentMilli.substring(currentMilli.length() - 8);
+		return String.valueOf(ThreadLocalRandom.current().nextInt(10, 99))
+				+ currentMilli.substring(currentMilli.length() - 8);
 	}
-	
+
 }
