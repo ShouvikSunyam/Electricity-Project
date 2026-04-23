@@ -208,25 +208,25 @@ export class SelectProvider implements OnInit {
 
   ngOnInit(): void {
     this.restoreViewState();
-    // const data = this.authService.getAddressData();
+    const data = this.authService.getAddressData();
 
-    // console.log('Received:', data);
+    console.log('Received:', data);
 
-    // if (data && data.zip && data.city && data.street) {
-    //   this.zip = data.zip;
-    //   this.city = data.city;
-    //   this.street = data.street;
-    //   this.houseNumber = data.houseNumber;
-    //   this.consum = data.consumption;
+    if (data && data.zip && data.city && data.street) {
+      this.zip = data.zip;
+      this.city = data.city;
+      this.street = data.street;
+      this.houseNumber = data.houseNumber;
+      this.consum = data.consumption;
 
-    //   this.hasAddress = true;
-    //   // this.isOpen = true;
-    //   this.isOpen = false;
-    //   this.toggleDiv();
-    // } else {
-    //   this.hasAddress = false;
-    // }
-
+      this.hasAddress = true;
+      // this.isOpen = true;
+      // this.isOpen = false;
+      // this.toggleDiv();
+    } else {
+      this.hasAddress = false;
+    }
+    this.isOpen = false;
     this.addressForm = this.fb.group({
       postalCode: ['', [Validators.required, Validators.pattern(/^\d{5}$/)]],
 
@@ -246,17 +246,19 @@ export class SelectProvider implements OnInit {
     this.handleCityChanges();
     this.handleStreetChanges();
 
-    if (this.isLoggedIn()) {
-      this.authService.fetchCustomer();
-    }
+    // if (this.isLoggedIn()) {
+    //   this.authService.fetchCustomer();
+    // }
 
-    this.authService.getCustomerData().subscribe((data) => {
-      if (!data?.address) return;
-      this.hasAddress = true;
-      this.isOpen = false;
-      this.toggleDiv();
-      const saved = data.address;
+    // this.authService.getCustomerData().subscribe((data) => {
 
+    //   if (!data?.address) return;
+    //   this.hasAddress = true;
+    //   this.isOpen = false;
+    //   // this.toggleDiv();
+    //   const saved = data.address;
+    const saved = this.authService.getAddressData();
+    if (saved) {
       console.log('Prefill Address:', saved);
 
       this.isRestoring = true;
@@ -324,7 +326,8 @@ export class SelectProvider implements OnInit {
 
         // this.isRestoring = false;
       });
-    });
+    }
+    // });
   }
   streetSearch = '';
   filteredStreetOptions: any[] = [];
@@ -416,10 +419,10 @@ export class SelectProvider implements OnInit {
     this.houseNumber = data.houseNumber;
     this.selectedPersons = data.persons;
 
-    // this.authService.setAddressData(data);
+    this.authService.setAddressData(data);
     this.hasAddress = true;
-    this.fetchRates();
-    this.isOpen = true;
+    // this.fetchRates();
+    // this.isOpen = true;
   }
 
   closeAllDropdowns() {
@@ -600,8 +603,14 @@ export class SelectProvider implements OnInit {
 
   private fetchRates(): void {
     if (!this.hasAddress) {
-      console.warn('Missing address, skipping API call');
+      // this.isOpen = false;
+      this.isOpen = !this.isOpen;
+      this.isLoading = false;
+      this.hasLoadedRates = false;
+      this.filteredRates = [];
+
       alert('Please select an address before compare');
+      this.cdr.detectChanges();
       return;
     }
 

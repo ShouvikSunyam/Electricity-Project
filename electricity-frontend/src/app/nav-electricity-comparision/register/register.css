@@ -93,6 +93,10 @@
   border-color: #cc0000;
 }
 
+.field-wrap.field-error {
+  border-color: #cc0000;
+}
+
 .input-field input {
   background: transparent;
   /* box-sizing: border-box; */

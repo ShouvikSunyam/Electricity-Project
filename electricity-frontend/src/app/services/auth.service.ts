@@ -155,7 +155,7 @@ export class AuthService {
       this.authState$.next(null);
       this.customerData$.next(null);
       this.clearStorage();
-      // this.clearAddress();
+      this.clearAddress();
       this.clearSelectedProvider();
       this.currentUser.set(null);
       this.router.navigate(['/'], { relativeTo: this.route });

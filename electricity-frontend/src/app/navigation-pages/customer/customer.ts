@@ -22,11 +22,11 @@ const API_BASE = 'http://192.168.0.155:8080';
   selector: 'app-customer',
   imports: [
     CommonModule,
-    CountdownComponent,
     MatFormFieldModule,
     MatInputModule,
     MatIconModule,
     FormsModule,
+    CountdownModule,
   ],
   templateUrl: './customer.html',
   styleUrl: './customer.css',
@@ -52,8 +52,9 @@ export class Customer {
   ];
 
   /* ── Tab control ──────────────────────────────────────────────── */
-  activeTab: number = 7;
+  activeTab: number = 6;
   serviceTab: number = 1;
+  documentTab: number = 0;
   /* ── Step control ──────────────────────────────────────────────── */
   currentStep: number = 1;
   /* ── Customer Type (Personal/Business) ──────────────────────────────────────────────── */
@@ -84,6 +85,7 @@ export class Customer {
     this.activeTab = index;
     this.currentStep = 1;
     this.serviceTab = 1;
+    this.documentTab = 0;
   }
 
   nextStep(step: number) {
@@ -94,6 +96,7 @@ export class Customer {
       });
     }
 
+    this.isResendDisabled = true;
     if (step === 2 && this.activeTab === 7) {
       setTimeout(() => {
         this.isResendDisabled = true;
@@ -126,6 +129,8 @@ export class Customer {
 
   ngOnInit(): void {
     this.fetchCustomer();
+    this.fetchCards();
+    this.fetchCategories('general');
   }
 
   /*── Fetch customer details ──*/
@@ -196,21 +201,50 @@ export class Customer {
   selectedIndex: number = -1; // -1 = Orange card selected by default
   selectedCategory = '';
 
-  categories = [
-    'Rechnung / Billing',
-    'Vertrag / Contract',
-    'Zähler / Meter',
-    'Stromausfall / Power outage',
-    'Tarif / Pricing',
-    'Allgemeine Anfrage / General inquiry',
-  ];
+  categories = [];
+
+  private fetchCategories(serviceType: string): void {
+    this.isLoading = true;
+    const body = {
+      adminId: 1,
+      serviceType: serviceType,
+    };
+    this.http
+      .post<any>('http://192.168.0.155:8080/customer/fetch-cutomer-service', body)
+      .subscribe({
+        next: (res) => {
+          if (!res?.res || !res?.data) {
+            console.error('Invalid response');
+            this.categories = [];
+            this.isLoading = false;
+            return;
+          }
+
+          this.categories = res.data.map((item: any) => item.serviceName || '');
+
+          console.log('categories:', this.categories);
+
+          this.cdr.detectChanges();
+          this.isLoading = false;
+        },
+        error: (err) => {
+          console.error('API Error:', err);
+          this.categories = [];
+          this.isLoading = false;
+        },
+      });
+  }
 
   selectCard(index: number) {
     this.selectedIndex = index;
+    this.selectedCategory = '';
+    this.fetchCategories('delivery');
   }
 
   selectOrangeCard() {
     this.selectedIndex = -1;
+    this.selectedCategory = '';
+    this.fetchCategories('general');
   }
   toggleDropdown(event: Event) {
     event.stopPropagation();
@@ -308,6 +342,78 @@ export class Customer {
     },
   ];
 
+  private fetchCards(): void {
+    const customerId = this.authService.getUserId() || 0;
+
+    const body = {
+      id: Number(customerId),
+    };
+
+    this.isLoading = true;
+
+    this.http
+      .post<any>('http://192.168.0.155:8080/customer/fetch-placed-deliveries', body)
+      .subscribe({
+        next: (res) => {
+          if (!res?.res || !res?.delivery) {
+            console.error('Invalid response');
+            this.cards = [];
+            this.isLoading = false;
+            return;
+          }
+
+          this.cards = res.delivery.map((item: any) => {
+            const address = item?.customerAddress;
+
+            return {
+              logo: item?.provider?.providerSVG || 'assets/default.png',
+
+              title: item?.provider?.rateName || '',
+
+              date: item?.deliveryDate
+                ? new Date(item.deliveryDate * 1000).toLocaleDateString('de-DE')
+                : '',
+
+              data: [
+                {
+                  label: 'Zählernummer:',
+                  value: item?.connection?.meterNumber || '',
+                  icon: 'meter',
+                },
+                {
+                  label: 'Adresse:',
+                  value: address
+                    ? `${address.street || ''} ${address.houseNumber || ''}, ${address.zip || ''} ${address.city || ''}`
+                    : '',
+                  icon: 'home',
+                },
+                {
+                  label: 'Stromtyp:',
+                  value: item?.provider?.branch || '',
+                  icon: 'current',
+                },
+                {
+                  label: 'Vertragsnummer:',
+                  value: item?.uniqueDeliveryId || '',
+                  icon: 'doc',
+                },
+              ],
+            };
+          });
+
+          console.log('cards:', this.cards);
+
+          this.cdr.detectChanges();
+          this.isLoading = false;
+        },
+        error: (err) => {
+          console.error('API Error:', err);
+          this.cards = [];
+          this.isLoading = false;
+        },
+      });
+  }
+
   normalizeIcon(icon: string): string {
     if (!icon) return 'meter';
 
@@ -368,7 +474,91 @@ export class Customer {
   /*── Power of Attorney Section End ──*/
 
   /* ════════════════════════════════════════════════════════════════════════════════════════════════*/
+  /* ──  Document Section Start ──*/
+  orderDocuments = [
+    {
+      logo: 'assets/icons/Icons_energyprovider/eon.png',
+      title: 'E.ON ÖkoStrom Extra 12',
+      workPrice: '26,80',
+      basePrice: '14,90',
+      contractNumber: '0215/123456789',
+      monthly: '68,40',
+    },
+    {
+      logo: 'assets/icons/Icons_energyprovider/vattenfall.png',
+      title: 'Strom XXL Extra 12',
+      workPrice: '11,72',
+      basePrice: '21,90',
+      contractNumber: '012455-64564564k1245',
+      monthly: '151,40',
+    },
+  ];
 
+  attorneyDocuments = [
+    {
+      title: 'Beratervollmacht',
+      subtitle: 'für Privatkunden',
+      createdOn: 'Erstellt am 30.03.2026 umd 18:26 Uhr (MEZ)',
+    },
+    {
+      title: '360° Beraterservice',
+      subtitle: 'Beraterservicevollmacht für Privatkunden',
+      createdOn: 'Erteilt am 09.04.2026 umd 17:04 Uhr (MEZ)',
+    },
+  ];
+
+  cancelDocuments = [
+    {
+      logo: 'assets/icons/Icons_energyprovider/GruenWelt.png',
+      title: 'Grünwelt ÖkoStrom 12',
+      contractNumber: '0125/1789454784654',
+      terminatedOn: '09.01.2026',
+    },
+  ];
+
+  contractDocuments = [
+    {
+      logo: 'assets/icons/Icons_energyprovider/eon.png',
+      title: 'E.ON ÖkoStrom Extra 12',
+      workPrice: '26,80',
+      basePrice: '14,90',
+      contractNumber: '0215/123456789',
+      monthly: '68,40',
+    },
+    {
+      logo: 'assets/icons/Icons_energyprovider/vattenfall.png',
+      title: 'Strom XXL Extra 12',
+      workPrice: '11,72',
+      basePrice: '21,90',
+      contractNumber: '012455-64564564k1245',
+      monthly: '151,40',
+    },
+  ];
+
+  miscellaneousDocuments = [
+    {
+      title: 'Datenschutzbestimmungen',
+      subtitle: 'für Privatkunden',
+      createdOn: 'Erstellt am 30.03.2026 umd 18:26 Uhr (MEZ)',
+      viewBtn: 'Bestimmungen ansehen',
+      downloadBtn: 'Bestimmungen downloaden',
+    },
+    {
+      title: 'Widerrufsbelehrung',
+      subtitle: 'Beraterservicevollmacht für Privatkunden',
+      createdOn: 'Erstellt am 09.04.2026 umd 17:04 Uhr (MEZ)',
+      viewBtn: 'Belehrung ansehen ',
+      downloadBtn: 'Vollmacht downloaden',
+    },
+  ];
+
+  toggleDocument(step: number) {
+    this.documentTab = step;
+  }
+
+  /*── Document Section End ──*/
+
+  /* ════════════════════════════════════════════════════════════════════════════════════════════════*/
   /* ──  Reset Password Section Start ──*/
   /* ══════════════════════════════════════════════════════════════════
   STEP 1 — Password VALIDATION
