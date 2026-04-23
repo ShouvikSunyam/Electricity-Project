@@ -1104,6 +1104,232 @@
 
       <!-- ══════════ Power of Attorney End ══════════-->
 
+      <!--══════════ Document archive Section Start (Tab - 6) ══════════-->
+
+      <div class="container-login" *ngIf="activeTab === 6 && currentStep === 1">
+        <div class="login-berich">Dokumentarchiv - Übersicht</div>
+        <div *ngIf="activeTab === 6 && documentTab === 0">
+          <div class="tab-row">
+            <div class="form-group">
+              <div class="tab-header">
+                In der Übersicht können Sie Ihre Dokumente einsehen und downloaden.
+              </div>
+              <div class="tab-text">Klicken Sie einfach auf den entsprechenden Button.</div>
+            </div>
+            <div class="doc-buttons">
+              <button class="doc-btn" (click)="toggleDocument(1)">Auftragsdokumente</button>
+              <button class="doc-btn" (click)="toggleDocument(2)">Vollmachten</button>
+              <button class="doc-btn" (click)="toggleDocument(3)">Kündigungsbestätigungen</button>
+              <button class="doc-btn" (click)="toggleDocument(4)">Vertragsbestätigungen</button>
+              <button class="doc-btn" (click)="toggleDocument(5)">Sonstiges</button>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="activeTab === 6 && documentTab === 1">
+          <br />
+          <div class="attorney-berich">Auftragsdokumente zu aktiven Verträgen</div>
+          <div class="tab-row">
+            <div class="document-list">
+              <div class="document-item" *ngFor="let doc of orderDocuments">
+                <!-- BOX (border only here) -->
+                <div class="document-card">
+                  <div class="document-top">
+                    <!-- LEFT SIDE -->
+                    <div class="document-left">
+                      <img [src]="doc.logo" class="document-logo" />
+                      <div class="document-title">{{ doc.title }}</div>
+                    </div>
+
+                    <!-- RIGHT SIDE -->
+                    <div class="document-right">
+                      <div class="document-details">
+                        Arbeitspreis: <strong>{{ doc.workPrice }} Ct./kWh</strong><br />
+                        Grundpreis: <strong>{{ doc.basePrice }} €/Monat</strong><br />
+                        Vertragsnummer: <strong>{{ doc.contractNumber }}</strong
+                        ><br />
+                        Abschlag geschätzt pro Monat:
+                        <strong>{{ doc.monthly }} €</strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- BUTTONS OUTSIDE -->
+                <div class="document-actions">
+                  <button class="document-btn">Vertragsdetails ansehen</button>
+                  <button class="document-btn" (click)="nextStep(2)">Vertrag downloaden</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="activeTab === 6 && documentTab === 2">
+          <br />
+          <div class="attorney-berich">Meine Vollmachten</div>
+          <div class="tab-row">
+            <div class="document-list">
+              <div class="document-item" *ngFor="let doc of attorneyDocuments">
+                <!-- BOX (border only here) -->
+                <div class="document-card">
+                  <div class="document-top">
+                    <!-- LEFT SIDE -->
+                    <div class="document-left">
+                      <div class="document-title">{{ doc.title }}</div>
+                    </div>
+
+                    <!-- RIGHT SIDE -->
+                    <div class="document-right" style="margin-bottom: 20px">
+                      <div class="document-details">
+                        <strong>{{ doc.subtitle }}</strong>
+                        <br />
+                        <div style="padding-top: 10px">{{ doc.createdOn }}</div>
+                        <br />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- BUTTONS OUTSIDE -->
+                <div class="document-actions">
+                  <button class="document-btn">Vollmacht ansehen</button>
+                  <button class="document-btn" (click)="nextStep(2)">Vollmacht downloaden</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="activeTab === 6 && documentTab === 3">
+          <br />
+          <div class="attorney-berich">Meine gekündigten Verträge</div>
+          <div class="tab-row">
+            <div class="document-list">
+              <div class="document-item" *ngFor="let doc of cancelDocuments">
+                <!-- BOX (border only here) -->
+                <div class="document-card">
+                  <div class="document-top">
+                    <!-- LEFT SIDE -->
+                    <div class="document-left">
+                      <img [src]="doc.logo" class="document-logo" />
+                      <div class="document-title">{{ doc.title }}</div>
+                    </div>
+
+                    <!-- RIGHT SIDE -->
+                    <div class="document-right">
+                      <div class="document-details">
+                        Vertragsnummer: <strong>{{ doc.contractNumber }}</strong
+                        ><br />
+                        <strong>gekündigt am {{ doc.terminatedOn }}</strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- BUTTONS OUTSIDE -->
+                <div class="document-actions">
+                  <button class="document-btn">Kündigungssdetails ansehen</button>
+                  <button class="document-btn" (click)="nextStep(2)">Kündigung downloaden</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="activeTab === 6 && documentTab === 4">
+          <br />
+          <div class="attorney-berich">Vertragsdokumente zu aktiven Verträgen</div>
+          <div class="tab-row">
+            <div class="document-list">
+              <div class="document-item" *ngFor="let doc of contractDocuments">
+                <!-- BOX (border only here) -->
+                <div class="document-card">
+                  <div class="document-top">
+                    <!-- LEFT SIDE -->
+                    <div class="document-left">
+                      <img [src]="doc.logo" class="document-logo" />
+                      <div class="document-title">{{ doc.title }}</div>
+                    </div>
+
+                    <!-- RIGHT SIDE -->
+                    <div class="document-right">
+                      <div class="document-details">
+                        Arbeitspreis: <strong>{{ doc.workPrice }} Ct./kWh</strong><br />
+                        Grundpreis: <strong>{{ doc.basePrice }} €/Monat</strong><br />
+                        Vertragsnummer: <strong>{{ doc.contractNumber }}</strong
+                        ><br />
+                        Abschlag geschätzt pro Monat:
+                        <strong>{{ doc.monthly }} €</strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- BUTTONS OUTSIDE -->
+                <div class="document-actions">
+                  <button class="document-btn">Vertragsdetails ansehen</button>
+                  <button class="document-btn" (click)="nextStep(2)">Vertrag downloaden</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="activeTab === 6 && documentTab === 5">
+          <br />
+          <div class="attorney-berich">Sonstige Dokumente</div>
+          <div class="tab-row">
+            <div class="document-list">
+              <div class="document-item" *ngFor="let doc of miscellaneousDocuments">
+                <!-- BOX (border only here) -->
+                <div class="document-card">
+                  <div class="document-top" style="justify-content: normal;">
+                    <!-- LEFT SIDE -->
+                    <div class="document-left">
+                      <div class="document-title">{{ doc.title }}</div>
+                    </div>
+
+                    <!-- RIGHT SIDE -->
+                    <div class="document-right" style="margin-bottom: 20px">
+                      <div class="document-details">
+                        <br />
+                        <div style="padding-top: 10px">{{ doc.createdOn }}</div>
+                        <br />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- BUTTONS OUTSIDE -->
+                <div class="document-actions">
+                  <button class="document-btn">{{ doc.viewBtn }}</button>
+                  <button class="document-btn" (click)="nextStep(2)">{{ doc.downloadBtn }}</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="container-login" *ngIf="activeTab === 6 && currentStep === 2">
+        <div class="attorney-berich-green">Downloadbereich</div>
+        <div class="tab-row">
+          <div class="success-box">
+            <div class="success-content">
+              <div class="success-row">
+                <img src="assets/icons/Kreis_Haken_gruen.png" alt="success" />
+
+                <div class="text-block">
+                  <div class="tab-header">Download erfolgreich!</div>
+                  <div class="tab-text">
+                    Wir haben das gewünschte Dokument an Ihre E-Mail-Adresse
+                    {{ customerData.email }} verschickt.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- ══════════ Reset Password Start (Tab - 7) ══════════-->
 
       <div class="container-login" *ngIf="activeTab === 7 && currentStep === 1">
@@ -1252,23 +1478,9 @@
           </div>
 
           <!-- Back / Next -->
-          <div
-            style="
-              display: flex;
-              flex-direction: row;
-              justify-content: space-between;
-              margin-top: 10px;
-            "
-          >
-            <button class="btn-back">&lt; Zurück</button>
-            <!-- <div class="form-actions">
-              <button class="btn-primary" [disabled]="isLoadingReset" (click)="resetPassword()">
-                <span *ngIf="isLoadingReset" class="spinner"></span>
-                {{ isLoadingReset ? 'Einreichen...' : 'Neues Passwort absenden' }}
-              </button>
-            </div> -->
-
-             <div class="form-actions">
+          <div style="flex-direction: row; justify-content: space-between; margin-top: 10px">
+            <!-- <button class="btn-back">&lt; Zurück</button> -->
+            <div class="form-actions">
               <button
                 type="button"
                 class="btn-primary"

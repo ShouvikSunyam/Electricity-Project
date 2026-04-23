@@ -149,7 +149,7 @@ export class CheckoutPage implements OnInit {
 
     if (!userId || !deliveryId) {
       console.warn('[DEBUG] openPage: missing userId or deliveryId – showing error');
-      this.isLoading = false;   // ← guard never reset this; button stayed disabled forever
+      this.isLoading = false; // ← guard never reset this; button stayed disabled forever
       this.errorMessage = 'Bitte füllen Sie alle vorherigen Schritte vollständig aus.';
       this.cdr.detectChanges();
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -193,13 +193,18 @@ export class CheckoutPage implements OnInit {
             window.scrollTo({ top: 0, behavior: 'smooth' });
           },
           error: (err2) => {
-            console.error('[DEBUG] Both submit APIs failed. Primary err:', err, 'Fallback err:', err2);
+            console.error(
+              '[DEBUG] Both submit APIs failed. Primary err:',
+              err,
+              'Fallback err:',
+              err2,
+            );
             this.isLoading = false;
             this.errorMessage =
               err2?.error?.message ||
               err?.error?.message ||
               'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.';
-            this.cdr.detectChanges();   // ← was missing: error message and re-enabled button never rendered
+            this.cdr.detectChanges(); // ← was missing: error message and re-enabled button never rendered
             window.scrollTo({ top: 0, behavior: 'smooth' });
           },
         });
@@ -246,13 +251,13 @@ export class CheckoutPage implements OnInit {
 
     console.log('Schedule payload:', JSON.stringify(payload, null, 2));
 
-    const submit = (apiBase: string) =>
-      this.http.post(`${apiBase}/customer/add-schedule`, payload);
+    const submit = (apiBase: string) => this.http.post(`${apiBase}/customer/add-schedule`, payload);
 
     submit(this.API_BASE).subscribe({
       next: () => {
         this.isScheduleLoading = false;
-        this.scheduleSuccessMessage = 'Ihre Rückrufzeit wurde erfolgreich übermittelt. Vielen Dank!';
+        this.scheduleSuccessMessage =
+          'Ihre Rückrufzeit wurde erfolgreich übermittelt. Vielen Dank!';
         this.startSuccessRedirect('Ihre Anfrage wurde erfolgreich übermittelt.');
         this.cdr.detectChanges();
       },
@@ -315,7 +320,10 @@ export class CheckoutPage implements OnInit {
   get email(): string {
     const d: any = this.formData;
     return this.valueOrFallback(
-      d?.email ?? d?.deliveryAddress?.email ?? d?.address?.email ?? this.authService.getCurrentUser()?.email,
+      d?.email ??
+        d?.deliveryAddress?.email ??
+        d?.address?.email ??
+        this.authService.getCurrentUser()?.email,
     );
   }
 
@@ -556,7 +564,7 @@ export class CheckoutPage implements OnInit {
     if (res?.res === false) {
       this.errorMessage = res?.message || 'Die gespeicherten Daten konnten nicht geladen werden.';
       console.warn('[DEBUG] fetch-form returned res=false, errorMessage set:', this.errorMessage);
-      this.cdr.detectChanges();   // ← was missing: UI never saw isLoading=false
+      this.cdr.detectChanges(); // ← was missing: UI never saw isLoading=false
       return;
     }
 
@@ -564,7 +572,7 @@ export class CheckoutPage implements OnInit {
     this.isJourneyCompleted = !!this.formData?.orderPlaced;
     this.maxAccessibleStep = this.getMaxAccessibleStep(this.formData);
     console.log('[DEBUG] formData set, maxAccessibleStep=', this.maxAccessibleStep);
-    this.cdr.detectChanges();     // ← ensure button re-enables even with OnPush
+    this.cdr.detectChanges(); // ← ensure button re-enables even with OnPush
   }
 
   private handleFetchError(err: any): void {
@@ -572,7 +580,7 @@ export class CheckoutPage implements OnInit {
     this.isLoading = false;
     this.errorMessage =
       err?.error?.message || 'Die gespeicherten Daten konnten nicht geladen werden.';
-    this.cdr.detectChanges();   // ← was missing: UI never saw isLoading=false after fetch failure
+    this.cdr.detectChanges(); // ← was missing: UI never saw isLoading=false after fetch failure
   }
 
   private formatFlexibleDate(value: boolean | string | number): string {
@@ -599,6 +607,7 @@ export class CheckoutPage implements OnInit {
     }
 
     this.redirectTimeoutId = setTimeout(() => {
+      this.authService.clearAddress();
       this.router.navigate(['/home']);
     }, 5000);
   }

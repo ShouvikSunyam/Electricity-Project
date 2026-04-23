@@ -91,7 +91,7 @@ export class Register {
 
   /* ── Field-level validation errors ─────────────────────────────── */
   fieldErrors: Record<string, string> = {};
-
+  mobileError: string = '';
   /* ── Customer type ─────────────────────────────────────────────── */
   customerType: 'private' | 'business' = 'private';
 
@@ -99,6 +99,7 @@ export class Register {
   showPw: boolean = false;
   showRepPw: boolean = false;
   showLoginPw: boolean = false;
+  showResetPw: boolean = false;
 
   /* ── Password validation flags ──────────────────────────────────── */
   pw_length: boolean = false;
@@ -156,14 +157,21 @@ AUTH MODE
       this.currentStep = 1;
     }
   }
-
+  clearField() {
+    this.password = '';
+    this.loginError = '';
+  }
   setLoginMode(mode: 'register' | 'login') {
     this.authMode = mode;
     this.apiError = '';
     this.loginError = '';
     this.currentStep = 1;
+
+    if (this.authMode === 'login') {
+      this.clearField();
+    }
   }
-  selectedOption: 'same' | 'different' | null = null;
+  selectedOption: 'same' | 'different' = 'same';
   backCheck() {
     if (this.isLoggedIn && this.authMode == 'login') {
       this.currentStep = 5;
@@ -176,6 +184,8 @@ AUTH MODE
       this.router.navigate([this.mainStepRoutes[2]]);
     } else if (this.selectedOption === 'different') {
       this.currentStep = 1;
+
+      this.clearField();
     } else {
       console.log('Please select an option');
     }
@@ -200,10 +210,13 @@ AUTH MODE
     this.isLoggedIn = this.authService.isLoggedIn();
 
     if (this.isLoggedIn) {
+      this.authMode = 'login';
+      this.currentStep = 5;
       const customerId = this.authService.getUserId();
       this.existingEmail = this.authService.getUserEmailId() ?? '';
       this.email = this.existingEmail;
       console.log('Logged in user:', customerId);
+      this.cdr.detectChanges();
     } else {
       const tempId = this.authService.getTempUid();
       console.log('Guest user:', tempId);
@@ -420,6 +433,11 @@ AUTH MODE
     this.otpError = '';
     this.isLoading = false;
 
+    if (step === 1 && this.authMode === 'login') {
+      this.clearField();
+    }
+
+    this.isResendDisabled = true;
     if (step === 7) {
       setTimeout(() => {
         if (this.countdown) {
@@ -533,11 +551,28 @@ AUTH MODE
       valid = false;
     }
 
-    if (!this.formData.mobileNumberLocal.trim()) {
+    // if (!this.formData.mobileNumberLocal.trim()) {
+    //   this.fieldErrors['mobileNumber'] = 'Handynummer ist erforderlich.';
+    //   valid = false;
+    // }
+
+    const mobile = (this.formData.mobileNumberLocal || '').replace(/\s/g, '');
+
+    if (!mobile) {
       this.fieldErrors['mobileNumber'] = 'Handynummer ist erforderlich.';
+      valid = false;
+    } else if (!/^\d+$/.test(mobile)) {
+      this.fieldErrors['mobileNumber'] = 'Nur Zahlen sind erlaubt.';
+      valid = false;
+    } else if (mobile.length < 6) {
+      this.fieldErrors['mobileNumber'] = 'Mindestens 6 Ziffern erforderlich.';
+      valid = false;
+    } else if (mobile.length > 12) {
+      this.fieldErrors['mobileNumber'] = 'Maximal 12 Ziffern erlaubt.';
       valid = false;
     }
 
+    console.log('validation error', this.fieldErrors['mobileNumber']);
     return valid;
   }
 
@@ -586,7 +621,7 @@ AUTH MODE
               this.signupError = 'E-Mail bereits registriert. Bitte einloggen.';
               console.log(this.signupError);
               // setTimeout(() => {
-              this.setAuthMode('login');
+              // this.setAuthMode('login');
               // this.currentStep = 5;
               // }, 2000);
 
@@ -978,6 +1013,8 @@ AUTH MODE
     this.collectOtp();
     if (this.otpValue.length < 6) {
       this.otpError = 'Bitte alle 6 Stellen eingeben.';
+      this.otpInvalid = true;
+      this.cdr.detectChanges();
       return;
     }
     if (!this.authService.getTempUid()) {
@@ -1002,7 +1039,7 @@ AUTH MODE
             this.otpInvalid = false;
 
             // this.authService.finalizeUser(this.authService.getTempUid()!);
-
+            this.clearField();
             this.goToStep(9);
             this.cdr.detectChanges();
           } else {
