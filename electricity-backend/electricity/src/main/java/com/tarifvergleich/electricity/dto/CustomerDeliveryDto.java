@@ -32,6 +32,8 @@ public class CustomerDeliveryDto {
 	private String city;
 	private String street;
 	private String houseNumber;
+	
+	private String deliveryType;
 
 	private CustomerAddress customerAddress;
 	private CustomerBillingAddress billingAddress;
@@ -41,4 +43,5 @@ public class CustomerDeliveryDto {
 	private Integer adminId;
 	private Integer page;
 	private Integer size;
+	
 }

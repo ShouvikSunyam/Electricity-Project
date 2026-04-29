@@ -93,14 +93,15 @@ public class CustomerBookingService {
 		if (deliveryDto.getStreet() == null || deliveryDto.getStreet().isEmpty())
 			throw new InternalServerException("Street missing", HttpStatus.OK);
 
-//		if (deliveryDto.getDeliveryDate().isBefore(LocalDate.now(ZoneId.of("Europe/Berlin"))))
-//			throw new InternalServerException("Delivery date is past date", HttpStatus.OK);
+		if (deliveryDto.getDob() == null)
+			throw new InternalServerException("DOB missing", HttpStatus.OK);
+
 		LocalDate todayInBerlin = LocalDate.now(ZoneId.of("Europe/Berlin"));
 
-		// 2. Calculate the "cutoff" date (18 years ago)
+		// 1. Calculate the "cutoff" date (18 years ago)
 		LocalDate eighteenYearsAgo = todayInBerlin.minusYears(18);
 
-		// 3. Compare the provided date (e.g., dateOfBirth)
+		// 2. Compare the provided date (e.g., dateOfBirth)
 		if (deliveryDto.getDob().isAfter(eighteenYearsAgo)) {
 			throw new InternalServerException("User must be at least 18 years old", HttpStatus.OK);
 		}
@@ -339,7 +340,7 @@ public class CustomerBookingService {
 
 			account = paymentDetails.getAccountHolder();
 
-			if (account.getFirstName() == null || account.getLastName() == null || account.getFirstName().isEmpty()
+			if (account == null || account.getFirstName() == null || account.getLastName() == null || account.getFirstName().isEmpty()
 					|| account.getLastName().isEmpty())
 				throw new InternalServerException("Account holder details missing", HttpStatus.OK);
 		}

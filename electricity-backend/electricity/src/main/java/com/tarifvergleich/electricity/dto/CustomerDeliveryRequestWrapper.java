@@ -17,4 +17,17 @@ public class CustomerDeliveryRequestWrapper {
     private CustomerBillingRequestDto billingAddress;
     private EnergyRateDto provider;
     
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class AdminEditCustomerDeliveryRelated{
+    	
+    	private Integer deliveryId;
+    	private Integer adminId;
+    	private CustomerDeliveryDto delivery;
+    	private CustomerConnectionRequestDto connection;
+    	private CustomerPaymentRequestDto paymentDetails;
+    }
+    
 }

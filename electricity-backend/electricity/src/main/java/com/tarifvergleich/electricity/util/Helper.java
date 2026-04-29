@@ -125,6 +125,16 @@ public class Helper {
 
 		return timeMap;
 	}
+	
+	public BigInteger toGermanTimestampWithDynamicTime(LocalDate date, int hour, int minute) {
+	    if (date == null) return null;
+
+	    long epochMillis = date.atTime(hour, minute, 0)
+	                           .atZone(ZoneId.of("Europe/Berlin"))
+	                           .toEpochSecond();
+
+	    return BigInteger.valueOf(epochMillis);
+	}
 
 	public Map<String, Object> getDeviceInfo(String userAgentString) {
 		Parser uaParser = new Parser();

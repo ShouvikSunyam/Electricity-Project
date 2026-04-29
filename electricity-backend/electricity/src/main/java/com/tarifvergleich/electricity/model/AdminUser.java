@@ -99,6 +99,10 @@ public class AdminUser {
 	@JsonIgnoreProperties("admin")
 	private List<CustomerServiceRequest> customerServiceRequest;
 	
+	@OneToMany(mappedBy = "admin", cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE}, orphanRemoval = true)
+	@JsonIgnoreProperties("admin")
+	private List<ListOfHolidays> holidays;
+	
 	@PrePersist
 	protected void onCreate() {
 	    this.createdOn = Helper.getCurrentTimeBerlin();
@@ -179,5 +183,12 @@ public class AdminUser {
 			customerServiceRequest = new LinkedList<CustomerServiceRequest>();
 		request.setAdmin(this);
 		customerServiceRequest.add(request);
+	}
+	
+	public void addHolidays(ListOfHolidays holiday) {
+		if(this.holidays == null)
+			holidays = new LinkedList<ListOfHolidays>();
+		holiday.setAdmin(this);
+		holidays.add(holiday);
 	}
 }

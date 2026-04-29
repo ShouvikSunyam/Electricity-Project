@@ -14,6 +14,8 @@ import com.tarifvergleich.electricity.dto.CustomerDeliveryDto;
 import com.tarifvergleich.electricity.dto.CustomerDto;
 import com.tarifvergleich.electricity.dto.CustomerServiceRequestDto;
 import com.tarifvergleich.electricity.dto.CustomerServicesDto;
+import com.tarifvergleich.electricity.dto.CustomerDeliveryRequestWrapper.AdminEditCustomerDeliveryRelated;
+import com.tarifvergleich.electricity.service.admin.AdminCustomerDeliveryManagementService;
 import com.tarifvergleich.electricity.service.admin.AdminCustomerManagementService;
 import com.tarifvergleich.electricity.service.admin.AdminServicePointManagementService;
 import com.tarifvergleich.electricity.service.customer.CustomerDetailService;
@@ -32,6 +34,7 @@ public class AdminCustomerManagementController {
 	private final AdminCustomerManagementService adminCustomerManagementService;
 	private final AdminServicePointManagementService servicePointManagementService;
 	private final CustomerDetailService customerDetailService;
+	private final AdminCustomerDeliveryManagementService adminCustomerDeliveryManagementService;
 
 	@Operation(summary = "Fetch customer", description = "Returns a list of customer with there details")
 	@PostMapping("/fetch-customer-details")
@@ -92,5 +95,11 @@ public class AdminCustomerManagementController {
 	@PostMapping("/update-attorny-status")
 	public ResponseEntity<?> updateAttornyStatus(@RequestBody CustomerAttornyDto attornyDto) {
 		return ResponseEntity.ok(adminCustomerManagementService.updateAttornyStatus(attornyDto));
+	}
+
+	@PostMapping("/update-customer-booking")
+	public ResponseEntity<?> updateCustomerBookingDetails(
+			@RequestBody AdminEditCustomerDeliveryRelated bookingDetailsDto) {
+		return ResponseEntity.ok(adminCustomerDeliveryManagementService.editDeliveryDetailsByAdmin(bookingDetailsDto));
 	}
 }

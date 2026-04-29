@@ -1,7 +1,11 @@
 package com.tarifvergleich.electricity.service.admin;
 
+import java.math.BigInteger;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -12,11 +16,14 @@ import org.springframework.stereotype.Service;
 
 import com.tarifvergleich.electricity.dto.CustomerServicesDto;
 import com.tarifvergleich.electricity.dto.CustomerServicesDto.CustomerListOfServiceForAdminResDto;
+import com.tarifvergleich.electricity.dto.ListOfHolidaysDto;
 import com.tarifvergleich.electricity.exception.InternalServerException;
 import com.tarifvergleich.electricity.model.AdminUser;
 import com.tarifvergleich.electricity.model.CustomerServices;
+import com.tarifvergleich.electricity.model.ListOfHolidays;
 import com.tarifvergleich.electricity.repository.AdminUserRepository;
 import com.tarifvergleich.electricity.repository.CustomerServicesRepository;
+import com.tarifvergleich.electricity.repository.ListOfHolidaysRepository;
 import com.tarifvergleich.electricity.util.Helper;
 
 import jakarta.transaction.Transactional;
@@ -28,6 +35,8 @@ public class AdminServicePointManagementService {
 
 	private final AdminUserRepository adminUserRepo;
 	private final CustomerServicesRepository customerServicesRepo;
+	private final Helper helper;
+	private final ListOfHolidaysRepository listOfHolidaysRepo;
 
 	@Transactional
 	public Map<String, Object> addCustomerServices(CustomerServicesDto servicesDto) {
@@ -127,4 +136,109 @@ public class AdminServicePointManagementService {
 
 		return Map.of("res", true, "data", servicesResponse);
 	}
+
+	@Transactional
+	public Map<String, Object> adminAddHolidays(ListOfHolidaysDto holidaysDto) {
+		if (holidaysDto.getAdminId() == null || holidaysDto.getAdminId() <= 0)
+			throw new InternalServerException("Admin id missing", HttpStatus.OK);
+
+		Map<String, Object> dateDetail = Helper.getLocalDateTimeFromBigInteger(Helper.getCurrentTimeBerlin());
+
+		Integer currentYear = (Integer) dateDetail.get("year");
+
+		if (holidaysDto.getYear() == null || holidaysDto.getYear() < currentYear)
+			throw new InternalServerException("Provide present or future dates", HttpStatus.OK);
+
+		if (holidaysDto.getStartDate() == null || holidaysDto.getEndDate() == null)
+			throw new InternalServerException("Provide valid starting and ending date", HttpStatus.OK);
+
+		if (holidaysDto.getHolidayType() == null || holidaysDto.getHolidayType().isEmpty()
+				|| (!holidaysDto.getHolidayType().equalsIgnoreCase("PUBLIC")
+						&& !holidaysDto.getHolidayType().equalsIgnoreCase("COMPANY")
+						&& !holidaysDto.getHolidayType().equalsIgnoreCase("OPTION")))
+			throw new InternalServerException("Holiday type missing", HttpStatus.OK);
+
+		LocalDate start = holidaysDto.getStartDate();
+		LocalDate end = holidaysDto.getEndDate();
+
+		if (start.isAfter(end)) {
+			throw new InternalServerException("Start date cannot be after end date", HttpStatus.OK);
+		}
+
+		if (holidaysDto.getName() == null || holidaysDto.getName().isEmpty())
+			throw new InternalServerException("Holiday name missing", HttpStatus.OK);
+
+		AdminUser admin = adminUserRepo.findById(holidaysDto.getAdminId())
+				.orElseThrow(() -> new InternalServerException("Admin not found with this credentials", HttpStatus.OK));
+
+		if (holidaysDto.getRangeId() != null && !holidaysDto.getRangeId().isEmpty()) {
+
+			List<ListOfHolidays> existingHolidays = listOfHolidaysRepo
+					.findAllByAdminAdminIdAndRangeIdOrderByIdAsc(holidaysDto.getAdminId(), holidaysDto.getRangeId());
+
+			if (existingHolidays == null || existingHolidays.isEmpty())
+				throw new InternalServerException("Existing data not found with this credentials", HttpStatus.OK);
+
+			Map<BigInteger, ListOfHolidays> holidayMap = existingHolidays.stream()
+					.collect(Collectors.toMap(ListOfHolidays::getStartDate, h -> h));
+
+			List<ListOfHolidays> toSave = new ArrayList<>();
+
+			BigInteger targetStart = helper.toGermanTimestampWithDynamicTime(start, 0, 0);
+			BigInteger targetEnd = helper.toGermanTimestampWithDynamicTime(end, 23, 59);
+
+			List<ListOfHolidays> toDelete = existingHolidays.stream().filter(
+					h -> h.getStartDate().compareTo(targetStart) < 0 || h.getStartDate().compareTo(targetEnd) > 0)
+					.collect(Collectors.toList());
+
+			if (!toDelete.isEmpty()) {
+				listOfHolidaysRepo.deleteAll(toDelete);
+			}
+
+			for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
+
+				BigInteger currentDayStart = helper.toGermanTimestampWithDynamicTime(date, 0, 0);
+				BigInteger currentDayEnd = helper.toGermanTimestampWithDynamicTime(date, 23, 59);
+
+				if (holidayMap.containsKey(currentDayStart)) {
+					ListOfHolidays existing = holidayMap.get(currentDayStart);
+					existing.setName(holidaysDto.getName());
+					existing.setHolidayType(holidaysDto.getHolidayType().toUpperCase());
+					existing.setYear(date.getYear());
+					existing.setEndDate(currentDayEnd);
+					toSave.add(existing);
+				} else {
+					ListOfHolidays newHoliday = ListOfHolidays.builder().name(holidaysDto.getName())
+							.startDate(currentDayStart).endDate(currentDayEnd).year(date.getYear())
+							.holidayType(holidaysDto.getHolidayType().toUpperCase()).rangeId(holidaysDto.getRangeId())
+							.admin(admin).build();
+					toSave.add(newHoliday);
+				}
+			}
+
+			listOfHolidaysRepo.saveAll(toSave);
+		}
+
+		else {
+			List<ListOfHolidays> toSave = new ArrayList<>();
+
+			String rangeId = Helper.getUniqueId();
+
+			for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
+
+				BigInteger currentDayStart = helper.toGermanTimestampWithDynamicTime(date, 0, 0);
+				BigInteger currentDayEnd = helper.toGermanTimestampWithDynamicTime(date, 23, 59);
+
+				ListOfHolidays newHoliday = ListOfHolidays.builder().name(holidaysDto.getName())
+						.startDate(currentDayStart).endDate(currentDayEnd).year(date.getYear())
+						.holidayType(holidaysDto.getHolidayType().toUpperCase()).rangeId(rangeId).admin(admin).build();
+				toSave.add(newHoliday);
+			}
+
+			listOfHolidaysRepo.saveAll(toSave);
+		}
+
+		return Map.of("res", true, "message", "Holidays added successfully");
+	}
+
 }

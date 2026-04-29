@@ -1,6 +1,7 @@
 package com.tarifvergleich.electricity.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,4 +16,5 @@ public interface CustomerDeliveryRepository extends JpaRepository<CustomerDelive
 	
 	Page<CustomerDelivery> findAllByAdminAdminId(Integer adminId, Pageable pageable);
 	List<CustomerDelivery> findAllByAdminAdminIdOrderByOrderPlacedOnDesc(Integer adminId);
+	Optional<CustomerDelivery> findByIdAndAdminAdminId(Integer id, Integer adminId);
 }
