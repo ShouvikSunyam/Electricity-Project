@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import com.tarifvergleich.electricity.dto.AdminCreateOrderEgonDto;
+import com.tarifvergleich.electricity.dto.AdminCreateOrderEgonDto.OrderListResponse;
 import com.tarifvergleich.electricity.dto.BaseProviderResponse;
 import com.tarifvergleich.electricity.dto.CheckIbanResponseDto;
 import com.tarifvergleich.electricity.dto.EnergyApiResponse;
@@ -79,10 +81,25 @@ public class EnergyService {
 					Map<String, Object> body = objectMapper.readValue(response.getBody(),
 							new TypeReference<Map<String, Object>>() {
 							});
-					body.put("message", (Object)"Incorrent iban id");
-					body.put("code", (Object)200);
+					body.put("message", (Object) "Incorrent iban id");
+					body.put("code", (Object) 200);
 					throw new EnergyApiUnavailableException("Invalid Iban id", body);
 				}).body(CheckIbanResponseDto.class);
+	}
+
+	public OrderListResponse placeOrde(AdminCreateOrderEgonDto requestPayload) {
+		if (requestPayload == null)
+			return null;
+
+		return energyApi.put().uri("/order-with-price").body(requestPayload).retrieve()
+				.onStatus(HttpStatusCode::isError, (request, response) -> {
+					Map<String, Object> body = objectMapper.readValue(response.getBody(),
+							new TypeReference<Map<String, Object>>() {
+							});
+					body.put("message", (Object) "Incorrent iban id");
+					body.put("code", (Object) 200);
+					throw new EnergyApiUnavailableException("Order cannot be placed", body);
+				}).body(OrderListResponse.class);
 	}
 
 }

@@ -1,5 +1,6 @@
 package com.tarifvergleich.electricity.service.customer;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Map;
@@ -30,6 +31,7 @@ import com.tarifvergleich.electricity.model.CustomerSelectedProvider;
 import com.tarifvergleich.electricity.repository.CustomerAddressRepository;
 import com.tarifvergleich.electricity.repository.CustomerDeliveryRepository;
 import com.tarifvergleich.electricity.repository.CustomerRepository;
+import com.tarifvergleich.electricity.repository.ListOfHolidaysRepository;
 import com.tarifvergleich.electricity.service.ElectricityComparisonService;
 import com.tarifvergleich.electricity.util.Helper;
 
@@ -44,6 +46,7 @@ public class CustomerBookingService {
 	private final CustomerAddressRepository customerAddressRepo;
 	private final CustomerResponseMapper customerResponseMapper;
 	private final CustomerDeliveryRepository customerDeliveryRepo;
+	private final ListOfHolidaysRepository listOfHolidaysRepo;
 	private final Helper helper;
 	private final ObjectMapper objectMapper;
 	private final ElectricityComparisonService electricityComparisonService;
@@ -165,8 +168,9 @@ public class CustomerBookingService {
 					.providerId(providerInfo.getProviderId()).providerSVGPath(providerInfo.getProviderSVGPath())
 					.providerName(providerInfo.getProviderName()).rateId(providerInfo.getRateId())
 					.rateName(providerInfo.getRateName()).totalPrice(providerInfo.getTotalPrice())
-					.totalPriceMonth(providerInfo.getTotalPriceMonth()).type(providerInfo.getType())
-					.raw(objectMapper.valueToTree(providerInfo)).build();
+					.consumption(providerInfo.getConsumption()).basePriceYear(providerInfo.getBasePriceYear())
+					.workPrice(providerInfo.getWorkPrice()).totalPriceMonth(providerInfo.getTotalPriceMonth())
+					.type(providerInfo.getType()).raw(objectMapper.valueToTree(providerInfo)).build();
 
 			CustomerDelivery delivery = CustomerDelivery.builder().title(deliveryDto.getTitle())
 					.firstName(deliveryDto.getFirstName()).lastName(deliveryDto.getLastName()).address(address)
@@ -340,8 +344,8 @@ public class CustomerBookingService {
 
 			account = paymentDetails.getAccountHolder();
 
-			if (account == null || account.getFirstName() == null || account.getLastName() == null || account.getFirstName().isEmpty()
-					|| account.getLastName().isEmpty())
+			if (account == null || account.getFirstName() == null || account.getLastName() == null
+					|| account.getFirstName().isEmpty() || account.getLastName().isEmpty())
 				throw new InternalServerException("Account holder details missing", HttpStatus.OK);
 		}
 
@@ -431,11 +435,17 @@ public class CustomerBookingService {
 		if (schedule.getTimeSlot() == null || schedule.getTimeSlot().isEmpty())
 			throw new InternalServerException("Time slot missing", HttpStatus.OK);
 
+		BigInteger startTime = helper.toGermanTimestampWithDynamicTime(schedule.getScheduleDate(), 0, 0);
+
+		if (listOfHolidaysRepo.existsByAdminAdminIdAndStartDate(schedule.getAdminId(), startTime))
+			throw new InternalServerException("It's a holiday", HttpStatus.OK);
+
 		CustomerDelivery delivery = customerDeliveryRepo.findById(schedule.getDeliveryId())
 				.orElseThrow(() -> new InternalServerException("Customer delivery details missing", HttpStatus.OK));
 
 		CustomerContactSchedule customerSchedule = CustomerContactSchedule.builder().dayOfWeek(schedule.getDayOfWeek())
 				.timeSlot(schedule.getTimeSlot()).description(schedule.getDescription()).customerDelivery(delivery)
+				.scheduleDate(startTime)
 				.build();
 		delivery.setCustomerSchedule(customerSchedule);
 

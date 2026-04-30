@@ -50,6 +50,14 @@ public class CustomerSelectedProvider {
 	@Column(name = "provider_name")
 	private String providerName;
 	
+	private Integer consumption;
+	
+	@Column(name = "work_price")
+	private Double workPrice;
+	
+	@Column(name = "base_price_year")
+	private Double basePriceYear;
+	
 	@Column(name = "rate_id")
 	private Long rateId;
 	

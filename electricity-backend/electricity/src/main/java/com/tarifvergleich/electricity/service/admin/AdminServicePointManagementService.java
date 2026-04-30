@@ -3,6 +3,7 @@ package com.tarifvergleich.electricity.service.admin;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import com.tarifvergleich.electricity.dto.CustomerServicesDto;
 import com.tarifvergleich.electricity.dto.CustomerServicesDto.CustomerListOfServiceForAdminResDto;
 import com.tarifvergleich.electricity.dto.ListOfHolidaysDto;
+import com.tarifvergleich.electricity.dto.ListOfHolidaysDto.ListOfHolidaysResponseDto;
 import com.tarifvergleich.electricity.exception.InternalServerException;
 import com.tarifvergleich.electricity.model.AdminUser;
 import com.tarifvergleich.electricity.model.CustomerServices;
@@ -145,8 +147,9 @@ public class AdminServicePointManagementService {
 		Map<String, Object> dateDetail = Helper.getLocalDateTimeFromBigInteger(Helper.getCurrentTimeBerlin());
 
 		Integer currentYear = (Integer) dateDetail.get("year");
+		Integer year = holidaysDto.getStartDate().getYear();
 
-		if (holidaysDto.getYear() == null || holidaysDto.getYear() < currentYear)
+		if (year < currentYear)
 			throw new InternalServerException("Provide present or future dates", HttpStatus.OK);
 
 		if (holidaysDto.getStartDate() == null || holidaysDto.getEndDate() == null)
@@ -171,6 +174,8 @@ public class AdminServicePointManagementService {
 		AdminUser admin = adminUserRepo.findById(holidaysDto.getAdminId())
 				.orElseThrow(() -> new InternalServerException("Admin not found with this credentials", HttpStatus.OK));
 
+		String rangeId = null;
+
 		if (holidaysDto.getRangeId() != null && !holidaysDto.getRangeId().isEmpty()) {
 
 			List<ListOfHolidays> existingHolidays = listOfHolidaysRepo
@@ -178,6 +183,8 @@ public class AdminServicePointManagementService {
 
 			if (existingHolidays == null || existingHolidays.isEmpty())
 				throw new InternalServerException("Existing data not found with this credentials", HttpStatus.OK);
+
+			rangeId = holidaysDto.getRangeId();
 
 			Map<BigInteger, ListOfHolidays> holidayMap = existingHolidays.stream()
 					.collect(Collectors.toMap(ListOfHolidays::getStartDate, h -> h));
@@ -222,7 +229,7 @@ public class AdminServicePointManagementService {
 		else {
 			List<ListOfHolidays> toSave = new ArrayList<>();
 
-			String rangeId = Helper.getUniqueId();
+			rangeId = Helper.getUniqueId();
 
 			for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
 
@@ -238,7 +245,25 @@ public class AdminServicePointManagementService {
 			listOfHolidaysRepo.saveAll(toSave);
 		}
 
-		return Map.of("res", true, "message", "Holidays added successfully");
+		return Map.of("res", true, "message", "Holidays added successfully", "rangeId", rangeId);
+	}
+
+	public Map<String, Object> adminGetHolidayList(Integer adminId, Integer year) {
+
+		if (adminId == null || adminId <= 0)
+			throw new InternalServerException("Admin id missing", HttpStatus.OK);
+
+		List<ListOfHolidays> holidays = listOfHolidaysRepo.findAllByAdminAdminIdAndYearOrderByStartDateAsc(adminId,
+				year);
+
+		if (holidays == null || holidays.isEmpty())
+			return Map.of("res", true, "data", List.of());
+
+		Map<String, List<ListOfHolidaysResponseDto>> holidayResponse = holidays.stream()
+				.map(ListOfHolidaysDto::mapAdminListOfHolidays)
+				.collect(Collectors.groupingBy(ListOfHolidaysDto::getMonthName, LinkedHashMap::new, Collectors.toList()));
+
+		return Map.of("res", true, "data", holidayResponse);
 	}
 
 }

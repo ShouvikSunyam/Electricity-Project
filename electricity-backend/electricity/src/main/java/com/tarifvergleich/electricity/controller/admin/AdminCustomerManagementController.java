@@ -102,4 +102,9 @@ public class AdminCustomerManagementController {
 			@RequestBody AdminEditCustomerDeliveryRelated bookingDetailsDto) {
 		return ResponseEntity.ok(adminCustomerDeliveryManagementService.editDeliveryDetailsByAdmin(bookingDetailsDto));
 	}
+
+	@PostMapping("/place-order")
+	public ResponseEntity<?> placeCustomerOrder(@RequestBody CustomerDeliveryDto deliveryDto) {
+		return ResponseEntity.ok(adminCustomerManagementService.placeNewOrderToEgon(deliveryDto));
+	}
 }

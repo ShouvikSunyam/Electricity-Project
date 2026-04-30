@@ -40,6 +40,8 @@ public class CustomerContactSchedule {
 	
 	private String description;
 	
+	private BigInteger scheduleDate;
+	
 	@OneToOne(mappedBy = "customerSchedule")
 	@JsonIgnore
 	private CustomerDelivery customerDelivery;

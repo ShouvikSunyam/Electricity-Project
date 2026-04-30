@@ -91,6 +91,13 @@ public class Helper {
 		return BigInteger.valueOf(zonedDateTime.toEpochSecond());
 	}
 
+	public LocalDate toGermalDateStamp(BigInteger dateAndTime) {
+		ZoneId zoneId = ZoneId.of("Europe/Berlin");
+		long timeStamp = dateAndTime.longValue();
+		Instant instant = Instant.ofEpochSecond(timeStamp);
+		return instant.atZone(zoneId).toLocalDate();
+	}
+
 	public static final BigInteger getCurrentTimeBerlin() {
 		ZonedDateTime nowInBerlin = ZonedDateTime.now(ZoneId.of("Europe/Berlin"));
 		return BigInteger.valueOf(nowInBerlin.toEpochSecond());
@@ -119,21 +126,20 @@ public class Helper {
 		timeMap.put("hour", ldt.getHour() % 12 + ldt.getHour() / 12);
 		timeMap.put("minute", Integer.valueOf(ldt.getMinute()) < 10 ? "0" + ldt.getMinute() : ldt.getMinute());
 		String amPm = ldt.format(DateTimeFormatter.ofPattern("a", java.util.Locale.ENGLISH));
-	    timeMap.put("amPm", amPm);
+		timeMap.put("amPm", amPm);
 		timeMap.put("second", ldt.getSecond());
 		timeMap.put("dayOfWeek", ldt.getDayOfWeek().name());
 
 		return timeMap;
 	}
-	
+
 	public BigInteger toGermanTimestampWithDynamicTime(LocalDate date, int hour, int minute) {
-	    if (date == null) return null;
+		if (date == null)
+			return null;
 
-	    long epochMillis = date.atTime(hour, minute, 0)
-	                           .atZone(ZoneId.of("Europe/Berlin"))
-	                           .toEpochSecond();
+		long epochSeconds = date.atTime(hour, minute, 0).atZone(ZoneId.of("Europe/Berlin")).toEpochSecond();
 
-	    return BigInteger.valueOf(epochMillis);
+		return BigInteger.valueOf(epochSeconds);
 	}
 
 	public Map<String, Object> getDeviceInfo(String userAgentString) {

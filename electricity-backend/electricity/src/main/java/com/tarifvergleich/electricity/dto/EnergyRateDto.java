@@ -21,6 +21,7 @@ public class EnergyRateDto {
     private String providerName;
     private String providerSVG;
     private String providerSVGPath;
+    private Integer consumption;
     
     // Pricing Data
     private double basePriceYear;

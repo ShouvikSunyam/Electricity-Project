@@ -24,4 +24,9 @@ public class AdminServicePointManagementController {
 	public ResponseEntity<?> addAndEditHolidays(@RequestBody ListOfHolidaysDto holidaysDto){
 		return ResponseEntity.ok(adminServicePointManagementService.adminAddHolidays(holidaysDto));
 	}
+	
+	@PostMapping("/fetch-holidays")
+	public ResponseEntity<?> fetchAllHolidays(@RequestBody ListOfHolidaysDto holidaysDto){
+		return ResponseEntity.ok(adminServicePointManagementService.adminGetHolidayList(holidaysDto.getAdminId(), holidaysDto.getYear()));
+	}
 }

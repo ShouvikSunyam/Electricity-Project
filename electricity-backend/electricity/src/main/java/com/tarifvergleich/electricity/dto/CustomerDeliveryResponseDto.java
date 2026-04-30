@@ -76,7 +76,7 @@ public class CustomerDeliveryResponseDto {
 		private String lastName;
 		private String mobile;
 		private String telephone;
-		private BigInteger deliveryDate;
+		private BigInteger dob;
 		private BigInteger orderPlacedOn;
 		private Boolean orderPlaced;
 
@@ -113,7 +113,7 @@ public class CustomerDeliveryResponseDto {
 				.uniqueDeliveryId(delivery.getUniqueDeliveryId())
 				.email(delivery.getCustomerId().getEmail()).title(delivery.getTitle())
 				.firstName(delivery.getFirstName()).lastName(delivery.getLastName()).mobile(delivery.getMobile())
-				.telephone(delivery.getTelephone()).deliveryDate(delivery.getDob())
+				.telephone(delivery.getTelephone()).dob(delivery.getDob())
 				.customerAddress(CustomerAddressRes.builder().zip(delivery.getAddress().getZip())
 						.city(delivery.getAddress().getCity()).street(delivery.getAddress().getStreet())
 						.houseNumber(delivery.getAddress().getHouseNumber()).build())

@@ -70,6 +70,9 @@ public class CustomerDelivery {
 	@Column(name = "unique_delivery_id")
 	private String uniqueDeliveryId;
 	
+	@Column(name = "order_no", unique = true)
+	private Long orderNo;
+	
 	@OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
 	@JoinColumn(name = "customer_billing_id")
 	private CustomerBillingAddress billingAddress;

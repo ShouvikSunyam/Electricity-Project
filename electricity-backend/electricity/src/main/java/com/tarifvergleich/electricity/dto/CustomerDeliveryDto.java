@@ -1,8 +1,10 @@
 package com.tarifvergleich.electricity.dto;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.tarifvergleich.electricity.model.CustomerAddress;
 import com.tarifvergleich.electricity.model.CustomerBillingAddress;
 import com.tarifvergleich.electricity.model.CustomerConnect;
@@ -19,7 +21,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CustomerDeliveryDto {
 
-	private Integer id;
+	private Integer deliveryId;
 	private String title;
 	private String firstName;
 	private String lastName;
@@ -43,5 +45,14 @@ public class CustomerDeliveryDto {
 	private Integer adminId;
 	private Integer page;
 	private Integer size;
+	
+	@JsonSetter("dob")
+	public void setDob(String dob) {
+	    if (dob == null || dob.isBlank()) {
+	        this.dob = null;
+	    } else {
+	        this.dob = LocalDate.parse(dob, DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+	    }
+	}
 	
 }
