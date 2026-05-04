@@ -19,6 +19,7 @@ import { FormsModule } from '@angular/forms';
 import { Inject, PLATFORM_ID } from '@angular/core';
 import { QRCodeComponent } from 'angularx-qrcode';
 import { isPlatformBrowser } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 
 const API_BASE = 'http://192.168.0.155:8080';
 interface Card {
@@ -55,6 +56,7 @@ export class Customer {
     private cdr: ChangeDetectorRef,
     private authService: AuthService,
     private eRef: ElementRef,
+    private route: ActivatedRoute,
     @Inject(PLATFORM_ID) private platformId: Object,
   ) {
     this.isBrowser = isPlatformBrowser(this.platformId);
@@ -108,6 +110,10 @@ export class Customer {
   isDesktop: boolean = true;
 
   setActiveTab(index: number) {
+    if (this.qrScanned && index !== 5) {
+      return;
+    }
+
     this.activeTab = index;
     this.currentStep = 1;
     this.serviceTab = 1;
@@ -163,7 +169,14 @@ export class Customer {
     this.authService.logout();
   }
 
+  qrScanned: boolean = false;
   ngOnInit(): void {
+    const data = this.route.snapshot.queryParamMap.get('data');
+
+    if (data) {
+      this.handleQRLogin(data);
+    }
+
     this.checkDevice();
     this.fetchAllRequests();
     this.fetchServiceCount();
@@ -172,6 +185,28 @@ export class Customer {
     this.fetchCategories('general');
 
     this.checkAttorneyStatus();
+  }
+
+  handleQRLogin(data: string) {
+    try {
+      const decoded = JSON.parse(atob(data));
+
+      if (decoded.flag !== 'CUSTOMER_ONLY') {
+        console.error('Access denied');
+        return;
+      }
+
+      localStorage.setItem('auth_user', JSON.stringify(decoded));
+
+      // optional flag for limited access
+      localStorage.setItem('qr_mode', 'true');
+      this.qrScanned = true;
+      this.activeTab = 5;
+      this.nextStep(2);
+      this.cdr.detectChanges();
+    } catch (e) {
+      console.error('Decode error', e);
+    }
   }
 
   checkDevice(): void {
@@ -934,6 +969,7 @@ export class Customer {
       },
     });
   }
+
   getSignatureFile(): File {
     const canvas = this.canvasRef.nativeElement;
 
@@ -1030,6 +1066,8 @@ export class Customer {
           this.placeAndDate = '';
           this.legalFirstName = '';
           this.legalLastName = '';
+          this.approvalStatus = 'PENDING';
+          this.recordIsPresent = true;
           this.signaturePad.clear();
           this.nextStep(3);
           this.cdr.detectChanges();
@@ -1040,6 +1078,24 @@ export class Customer {
         console.error('API Error:', err);
       },
     });
+  }
+
+  createQRData() {
+    const user = {
+      user_id: '32',
+      flag: 'CUSTOMER_ONLY',
+    };
+
+    const json = JSON.stringify(user);
+
+    // encode
+    const encoded = btoa(json);
+
+    // simple signature (VERY basic, just for temp)
+    const secret = 'my-secret-key';
+    const signature = btoa(encoded + secret);
+
+    return `http://192.168.0.131:4200/customer?data=${encoded}`;
   }
 
   /*── Power of Attorney Section End ──*/
@@ -1127,6 +1183,40 @@ export class Customer {
     this.documentTab = step;
   }
 
+  viewDocument() {
+    const pdfUrl = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
+    window.open(pdfUrl, '_blank');
+  }
+
+  downloadDocument() {
+    const customerId = this.authService.getUserId();
+
+    if (!customerId) return;
+
+    const payload = {
+      id: customerId,
+      adminId: 1,
+    };
+
+    this.isLoading = true;
+
+    this.http.post<any>(`${API_BASE}/customer/send-attachment-mail`, payload).subscribe({
+      next: ({ res, message }) => {
+        this.isLoading = false;
+
+        if (res) {
+          console.log('Success:', message);
+
+          this.nextStep(2);
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err) => {
+        this.isLoading = false;
+        console.error('API Error:', err);
+      },
+    });
+  }
   /*── Document Section End ──*/
 
   /* ════════════════════════════════════════════════════════════════════════════════════════════════*/

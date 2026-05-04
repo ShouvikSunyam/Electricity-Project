@@ -1396,7 +1396,11 @@
 .document-btn:hover {
   background-color: #0085e0;
 }
-
+.tab.disabled {
+  opacity: 0.5;
+  pointer-events: none; /* prevents click */
+  cursor: not-allowed;
+}
 /* responsive */
 @media (max-width: 768px) {
   .document-list {
@@ -1404,3 +1408,65 @@
   }
 }
 /* Document Archive End */
+
+
+/* responsive section */
+@media (max-width: 768px) {
+  .sidebar {
+    display: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-layout {
+    flex-direction: column;
+  }
+
+  .main-content {
+    width: 100% !important;
+    padding: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+
+  .customer-profile-box {
+    border-radius: 8px;
+  }
+
+  .tab-row {
+    padding: 15px 12px;
+    gap: 14px;
+  }
+
+  .tab-text {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .attorney-berich {
+    font-size: 14px;
+    padding: 8px;
+    text-align: center;
+  }
+
+  .success-box {
+    width: 100% !important;
+    flex-direction: column;
+  }
+
+  .failed-box {
+    width: 100% !important;
+  }
+
+  .success-row {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .btn-primary {
+    width: 100%;
+    text-align: center;
+  }
+}
+

@@ -87,7 +87,7 @@
   <!-- /sidebar -->
 
   <!-- ══════════ MAIN CONTENT ══════════ -->
-  <div class="main-content" style="min-width: 0;" *ngIf="customerData">
+  <div class="main-content" style="min-width: 0" *ngIf="customerData">
     <div class="progress-card">
       <div class="progress-header">Mein Konto</div>
 
@@ -121,11 +121,20 @@
 
       <div class="tabs-wrapper">
         <div class="tabs">
-          <button
+          <!-- <button
             class="tab"
             *ngFor="let tab of tabs; let i = index"
             [class.active]="activeTab === i"
             (click)="setActiveTab(i)"
+          >
+            {{ tab }}
+          </button> -->
+          <button
+            class="tab"
+            *ngFor="let tab of tabs; let i = index"
+            [class.active]="activeTab === i"
+            [class.disabled]="qrScanned && i !== 5"
+            (click)="!qrScanned || i === 5 ? setActiveTab(i) : null"
           >
             {{ tab }}
           </button>
@@ -904,7 +913,7 @@
           </div>
 
           <div class="qr-section" *ngIf="isBrowser">
-            <qrcode [qrdata]="'https://www.google.com'" [width]="120"> </qrcode>
+            <qrcode [qrdata]="createQRData()" [width]="120"> </qrcode>
           </div>
         </div>
 
@@ -1342,8 +1351,12 @@
 
               <!-- BUTTONS OUTSIDE -->
               <div class="document-actions">
-                <button class="document-btn">Vertragsdetails ansehen</button>
-                <button class="document-btn" (click)="nextStep(2)">Vertrag downloaden</button>
+                <button class="document-btn" (click)="viewDocument()">
+                  Vertragsdetails ansehen
+                </button>
+                <button class="document-btn" (click)="downloadDocument()">
+                  Vertrag downloaden
+                </button>
               </div>
             </div>
           </div>
@@ -1377,8 +1390,10 @@
 
               <!-- BUTTONS OUTSIDE -->
               <div class="document-actions">
-                <button class="document-btn">Vollmacht ansehen</button>
-                <button class="document-btn" (click)="nextStep(2)">Vollmacht downloaden</button>
+                <button class="document-btn" (click)="viewDocument()">Vollmacht ansehen</button>
+                <button class="document-btn" (click)="downloadDocument()">
+                  Vollmacht downloaden
+                </button>
               </div>
             </div>
           </div>
@@ -1412,8 +1427,12 @@
 
               <!-- BUTTONS OUTSIDE -->
               <div class="document-actions">
-                <button class="document-btn">Kündigungssdetails ansehen</button>
-                <button class="document-btn" (click)="nextStep(2)">Kündigung downloaden</button>
+                <button class="document-btn" (click)="viewDocument()">
+                  Kündigungssdetails ansehen
+                </button>
+                <button class="document-btn" (click)="downloadDocument()">
+                  Kündigung downloaden
+                </button>
               </div>
             </div>
           </div>
@@ -1451,8 +1470,12 @@
 
               <!-- BUTTONS OUTSIDE -->
               <div class="document-actions">
-                <button class="document-btn">Vertragsdetails ansehen</button>
-                <button class="document-btn" (click)="nextStep(2)">Vertrag downloaden</button>
+                <button class="document-btn" (click)="viewDocument()">
+                  Vertragsdetails ansehen
+                </button>
+                <button class="document-btn" (click)="downloadDocument()">
+                  Vertrag downloaden
+                </button>
               </div>
             </div>
           </div>
@@ -1486,8 +1509,10 @@
 
               <!-- BUTTONS OUTSIDE -->
               <div class="document-actions">
-                <button class="document-btn">{{ doc.viewBtn }}</button>
-                <button class="document-btn" (click)="nextStep(2)">{{ doc.downloadBtn }}</button>
+                <button class="document-btn" (click)="viewDocument()">{{ doc.viewBtn }}</button>
+                <button class="document-btn" (click)="downloadDocument()">
+                  {{ doc.downloadBtn }}
+                </button>
               </div>
             </div>
           </div>
