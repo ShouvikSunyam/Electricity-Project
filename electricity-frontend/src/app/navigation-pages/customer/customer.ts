@@ -80,6 +80,7 @@ export class Customer {
   currentStep: number = 1;
   /* ── Customer Type (PRIVATE/Business) ──────────────────────────────────────────────── */
   customerType: string = 'PRIVATE';
+  isNotificationEnabled: boolean = true;
 
   fieldErrors: Record<string, string> = {};
 
@@ -246,6 +247,7 @@ export class Customer {
           companyName: data.companyName || '',
           isVerified: data.isVerified || false,
           joinedOn: data.joinedOn || null,
+          isNotificationEnabled: data.isNotificationEnabled ?? true,
 
           address: {
             zip: data?.address?.zip || '',
@@ -257,9 +259,15 @@ export class Customer {
           deliveryDetails: data.deliveryDetails || [],
         };
 
+        this.isNotificationEnabled = this.customerData.isNotificationEnabled;
         this.customerType = this.customerData.userType;
         console.log('customerData:', this.customerData);
 
+        if (this.isNotificationEnabled) {
+          this.selection = 'yes';
+        } else {
+          this.selection = 'no';
+        }
         this.cdr.detectChanges();
         // this.isLoading = false;
       },
@@ -274,8 +282,56 @@ export class Customer {
 
   /*── Reminder Section Start ──*/
   selection: string = 'yes';
+  showReminderModal: boolean = false;
+
   selectOption(value: string): void {
-    this.selection = value;
+    if (value === 'no') {
+      this.showReminderModal = true;
+      return;
+    }
+
+    if (value === 'yes') {
+      this.selection = 'yes';
+      this.toggleNotification(true);
+    }
+  }
+
+  closeModal() {
+    this.showReminderModal = false;
+  }
+
+  toggleNotification(isNotificationEnabled: boolean = false): void {
+    const customerId = this.authService.getUserId() || 0;
+
+    const body = {
+      id: customerId,
+      adminId: 1,
+      isNotificationEnabled: isNotificationEnabled,
+    };
+
+    this.http.post<any>(`${API_BASE}/customer/toggle-customer-notification`, body).subscribe({
+      next: (res) => {
+        if (!res?.res) {
+          console.error('Invalid response');
+          return;
+        }
+
+        if (isNotificationEnabled === false) {
+          this.selection = 'no';
+        } else {
+          this.selection = 'yes';
+        }
+        this.isNotificationEnabled = isNotificationEnabled;
+        this.showReminderModal = false;
+
+        console.log(res.message);
+
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('API Error:', err);
+      },
+    });
   }
 
   contracts = [
@@ -315,7 +371,7 @@ export class Customer {
     },
   ];
 
-  
+  groupedContracts: any[] = [];
   private fetchDeliveryByAddress(): void {
     const customerId = this.authService.getUserId() || 0;
 
@@ -328,22 +384,157 @@ export class Customer {
       next: (res) => {
         if (!res?.res || !res?.data) {
           console.error('Invalid response');
-          // this.isLoading = false;
           return;
         }
 
-        const data = res.data;
+        const groupedData = res.data;
 
-        console.log('customerData delivery:', data);
+        let index = 1;
 
+        this.groupedContracts = Object.keys(groupedData).map((addressKey) => {
+          const deliveries = groupedData[addressKey];
+
+          return {
+            addressLabel: `Haushalt ${index++}`,
+            addressKey: addressKey,
+            contracts: deliveries.map((item: any) => this.mapToContract(item)),
+          };
+        });
+
+        console.log('Grouped Contracts:', this.groupedContracts);
         this.cdr.detectChanges();
-        // this.isLoading = false;
       },
       error: (err) => {
         console.error('API Error:', err);
-        // this.isLoading = false;
       },
     });
+  }
+
+  mapToContract(item: any) {
+    const provider = item.provider || {};
+    const connection = item.connection || {};
+    const address = item.customerAddress || {};
+
+    return {
+      logo: provider.providerSVG || 'assets/icons/default.png',
+
+      title: provider.rateName || 'N/A',
+
+      icon: this.getIconByBranch(provider.branch),
+
+      type: this.getType(provider.branch),
+
+      meter: connection.meterNumber || 'N/A',
+
+      name: `${item.firstName || ''} ${item.lastName || ''}`.trim() || 'N/A',
+
+      address: this.formatAddress(address),
+
+      contractNumber: item.uniqueDeliveryId || 'N/A',
+
+      duration: this.getDuration(provider),
+
+      startDate: this.formatDateReminder(item.orderPlacedOn),
+
+      renewal: this.getRenewalDate(item),
+
+      price: this.formatWorkPrice(provider),
+
+      basePrice: this.formatBasePrice(provider),
+
+      monthly: this.formatMonthly(provider),
+
+      cancelDate: this.getCancelDate(item.expiryOn),
+    };
+  }
+  // ===============================
+  //  TYPE & ICON
+  // ===============================
+  getType(branch: string | null): string {
+    if (branch === 'electric') return 'Strom | Hausstrom';
+    if (branch === 'gas') return 'Gas';
+    return 'N/A';
+  }
+
+  getIconByBranch(branch: string | null): string {
+    if (branch === 'electric') {
+      return 'assets/icons/65bd2fa8-bd0e-497e-a781-a3c434fe6176_Stromvergleich.png';
+    }
+    if (branch === 'gas') {
+      return 'assets/icons/1a9ebeaf-78b8-48a3-9514-94f57aa1de2c_Gasvergleich.png';
+    }
+    return 'assets/icons/default.png';
+  }
+
+  // ===============================
+  //  ADDRESS FORMAT
+  // ===============================
+  formatAddress(addr: any): string {
+    if (!addr) return 'N/A';
+
+    const street = addr.street || '';
+    const house = addr.houseNumber || '';
+    const zip = addr.zip || '';
+    const city = addr.city || '';
+
+    const result = `${street} ${house}, ${zip} ${city}`.trim();
+
+    return result || 'N/A';
+  }
+
+  // ===============================
+  //  DATE FORMAT (timestamp → German)
+  // ===============================
+  formatDateReminder(timestamp: number | null): string {
+    if (!timestamp) return 'N/A';
+
+    const date = new Date(timestamp * 1000);
+    return date.toLocaleDateString('de-DE');
+  }
+
+  // ===============================
+  //  DURATION (not available → fallback)
+  // ===============================
+  getDuration(provider: any): string {
+    if (provider?.optTerm) {
+      return provider.optTerm + ' Monate';
+    }
+    return 'N/A';
+  }
+
+  // ===============================
+  //  RENEWAL (NOT IN API)
+  // ===============================
+  getRenewalDate(item: any): string {
+    return 'N/A';
+  }
+
+  // ===============================
+  //  CANCEL DATE (NOT IN API)
+  // ===============================
+  getCancelDate(timestamp: number | null): string {
+    if (!timestamp) return 'N/A';
+
+    const date = new Date(timestamp * 1000);
+    return date.toLocaleDateString('de-DE');
+  }
+
+  // ===============================
+  // PRICE FORMAT
+  // ===============================
+  formatWorkPrice(provider: any): string {
+    if (!provider?.workPrice) return 'N/A';
+    return `${provider.workPrice} Ct./kWh`;
+  }
+
+  formatBasePrice(provider: any): string {
+    if (!provider?.basePriceMonth) return 'N/A';
+    return `${provider.basePriceMonth} €/Monat`;
+  }
+
+  formatMonthly(provider: any): string {
+    if (!provider?.totalPriceMonth) return 'N/A';
+    return `${Number(provider.totalPriceMonth).toFixed(2)} €`;
   }
 
   /*── Reminder Section End ──*/

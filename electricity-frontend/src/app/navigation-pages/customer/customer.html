@@ -197,69 +197,93 @@
       </div>
 
       <br />
-      <div style="border-radius: 8px; border: 1px solid #00a651">
-        <div
-          class="attorney-berich-green"
-          style="align-items: start; justify-content: start; padding-left: 20px"
-        >
-          Ihre Verträge und Kündigungsfristen - Haushalt 1
-        </div>
-
-        <div class="tab-row">
-          <div class="contract-card" *ngFor="let contract of contracts">
-            <!-- LEFT -->
-            <div class="card-left">
-              <img [src]="contract.logo" class="company-logo" />
-              <div style="padding-bottom: 10px">
-                <strong>{{ contract.title }}</strong>
-              </div>
-              <div class="badge">
-                <img src="{{ contract.icon }}" alt="icon" class="badge-icon" />
-                {{ contract.type }}
-              </div>
-
-              <div class="address">
-                <p><strong>Zählernummer:</strong> {{ contract.meter }}</p>
-                <p><strong>Adresse:</strong> {{ contract.name }}</p>
-                <p>{{ contract.address }}</p>
-              </div>
+      <div *ngIf="isNotificationEnabled">
+        <div *ngFor="let group of groupedContracts">
+          <!-- ADDRESS HEADER -->
+          <div style="border-radius: 0 0 8px 8px; border: 1px solid #00a651; margin-bottom: 20px">
+            <div
+              class="attorney-berich-green"
+              style="align-items: start; justify-content: start; padding-left: 20px"
+            >
+              Ihre Verträge und Kündigungsfristen - {{ group.addressLabel }}
             </div>
 
-            <!-- MIDDLE -->
-            <div class="card-middle">
-              <p>
-                Vertragsnummer: <strong>{{ contract.contractNumber }}</strong>
-              </p>
-              <p>
-                Mindestvertragslaufzeit: <strong>{{ contract.duration }}</strong>
-              </p>
-              <p>
-                Vertragsbeginn: <strong>{{ contract.startDate }}</strong>
-              </p>
-              <p>
-                Automatische Verlängerung: <strong>{{ contract.renewal }}</strong>
-              </p>
-              <p>
-                Arbeitspreis: <strong>{{ contract.price }}</strong>
-              </p>
-              <p>
-                Grundpreis: <strong>{{ contract.basePrice }}</strong>
-              </p>
-              <p>
-                Abschlag geschätzt pro Monat: <strong>{{ contract.monthly }}</strong>
-              </p>
-            </div>
+            <!-- CONTRACTS -->
+            <div class="tab-row">
+              <div class="contract-card" *ngFor="let contract of group.contracts">
+                <!-- LEFT -->
+                <div class="card-left">
+                  <img [src]="contract.logo" class="company-logo" />
 
-            <!-- RIGHT (Buttons Column) -->
-            <div class="card-actions">
-              <button class="cancel-btn">Kündigungsfrist zum {{ contract.cancelDate }}</button>
+                  <div style="padding-bottom: 10px; font-size: 14px">
+                    <strong>{{ contract.title }}</strong>
+                  </div>
 
-              <button class="compare-btn">Vertrag neu vergleichen</button>
+                  <div class="badge" style="font-size: 14px">
+                    <img [src]="contract.icon" class="badge-icon" />
+                    {{ contract.type }}
+                  </div>
+
+                  <div class="address">
+                    <p><strong>Zählernummer:</strong> {{ contract.meter }}</p>
+                    <p><strong>Adresse:</strong> {{ contract.name }}</p>
+                    <p>{{ contract.address }}</p>
+                  </div>
+                </div>
+
+                <!-- MIDDLE -->
+                <div class="card-middle" style="font-size: 13px">
+                  <p>
+                    Vertragsnummer: <strong>{{ contract.contractNumber }}</strong>
+                  </p>
+                  <p>
+                    Mindestvertragslaufzeit: <strong>{{ contract.duration }}</strong>
+                  </p>
+                  <p>
+                    Vertragsbeginn: <strong>{{ contract.startDate }}</strong>
+                  </p>
+                  <p>
+                    Automatische Verlängerung: <strong>{{ contract.renewal }}</strong>
+                  </p>
+                  <p>
+                    Arbeitspreis: <strong>{{ contract.price }}</strong>
+                  </p>
+                  <p>
+                    Grundpreis: <strong>{{ contract.basePrice }}</strong>
+                  </p>
+                  <p>
+                    Abschlag pro Monat: <strong>{{ contract.monthly }}</strong>
+                  </p>
+                </div>
+
+                <!-- RIGHT -->
+                <div class="card-actions">
+                  <button class="cancel-btn">Kündigungsfrist zum {{ contract.cancelDate }}</button>
+
+                  <button class="compare-btn">Vertrag neu vergleichen</button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+
+    <!--Reminder Overlay -->
+    <div class="modal-overlay" *ngIf="showReminderModal">
+      <div class="modal-box">
+        <h3>E-Mail-Erinnerungen deaktivieren</h3>
+
+        <p>Möchten Sie die Erinnerungsbenachrichtigung per E-Mail wirklich deaktivieren?</p>
+
+        <div class="modal-actions">
+          <button class="btn cancel" (click)="closeModal()">Abbrechen</button>
+
+          <button class="btn confirm" (click)="toggleNotification(false)">Ja, deaktivieren</button>
+        </div>
+      </div>
+    </div>
+    <!--══════════ Reminder Section End ══════════-->
 
     <!--══════════ Service Request Section Start (Tab - 4) ══════════-->
 

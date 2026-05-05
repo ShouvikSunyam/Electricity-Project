@@ -292,7 +292,7 @@ export class SelectProvider implements OnInit {
         this.isStreetLoading = true;
         this.addressForm.get('street')?.enable();
 
-        this.addressService.getStreetsByCity(saved.zip, matchedCity.city_id).subscribe((streets) => {
+        this.addressService.getStreetsByCity(saved.zip, matchedCity.city).subscribe((streets) => {
           this.streetOptions = streets;
           this.filteredStreetOptions = [...streets];
 
@@ -489,7 +489,7 @@ export class SelectProvider implements OnInit {
         debounceTime(500),
         switchMap((zip) => {
           const isValidZip = /^\d{5}$/.test(zip);
-          if (this.isRestoring) return of([]);
+          // if (this.isRestoring) return of([]);
           this.resetCity();
           this.resetStreet();
           this.resetHouseNumber();
@@ -544,8 +544,12 @@ export class SelectProvider implements OnInit {
         this.isStreetLoading = true;
 
         this.addressForm.get('street')?.enable();
+        const selectedCity = this.cityOptions.find((c) => c.city_id === placeId);
+        if (!selectedCity) return;
 
-        this.addressService.getStreetsByCity(zip, city).subscribe((streets) => {
+        this.citySearch = selectedCity.city;
+
+        this.addressService.getStreetsByCity(zip, selectedCity.city).subscribe((streets) => {
           this.ngZone.run(() => {
             this.streetOptions = streets;
 
@@ -581,9 +585,10 @@ export class SelectProvider implements OnInit {
   private resetCity() {
     this.cityOptions = [];
     this.filteredCityOptions = [];
+
     this.citySearch = '';
-    this.showCityDropdown = false;
     this.lastValidCity = null;
+    this.showCityDropdown = false;
 
     const control = this.addressForm.get('city');
     control?.reset(null, { emitEvent: false });
@@ -594,8 +599,8 @@ export class SelectProvider implements OnInit {
     this.streetOptions = [];
     this.filteredStreetOptions = [];
     this.streetSearch = '';
+    this.lastValidStreet = null;
     this.showDropdown = false;
-    this.lastValidStreet = '';
 
     const control = this.addressForm.get('street');
     control?.reset(null, { emitEvent: false });
@@ -738,40 +743,45 @@ export class SelectProvider implements OnInit {
   }
 
   openPage(selectedRate: Rate): void {
-    const customerId = this.authService.getUserId() || 0;
+    this.authService.setSelectedProvider(selectedRate);
+    this.authService.setAllProviders(this.allRates);
 
-    const body = {
-      zip: this.zip,
-      city: this.city,
-      street: this.street,
-      houseNumber: this.houseNumber,
-      deliveryType: this.branch == 'electric' ? 'electricity' : this.branch,
-      customerId: Number(customerId),
-      adminId: 1,
-    };
+    this.router.navigate(['register'], { relativeTo: this.route });
+    this.cdr.detectChanges();
+    // const customerId = this.authService.getUserId() || 0;
 
-    this.http
-      .post<RatesResponse>('http://192.168.0.155:8080/customer/check-booking', body)
-      .subscribe({
-        next: (res) => {
-          if (res?.res === true) {
-            this.authService.setSelectedProvider(selectedRate);
-            this.router.navigate(['register'], { relativeTo: this.route });
-          } else {
-            alert('Für diese Adresse besteht bereits ein aktiver Stromvertrag.');
-          }
+    // const body = {
+    //   zip: this.zip,
+    //   city: this.city,
+    //   street: this.street,
+    //   houseNumber: this.houseNumber,
+    //   deliveryType: this.branch == 'electric' ? 'electricity' : this.branch,
+    //   customerId: Number(customerId),
+    //   adminId: 1,
+    // };
 
-          this.cdr.detectChanges();
-        },
+    // this.http
+    //   .post<RatesResponse>('http://192.168.0.155:8080/customer/check-booking', body)
+    //   .subscribe({
+    //     next: (res) => {
+    //       if (res?.res === true) {
+    //         this.authService.setSelectedProvider(selectedRate);
+    //         this.router.navigate(['register'], { relativeTo: this.route });
+    //       } else {
+    //         alert('Für diese Adresse besteht bereits ein aktiver Stromvertrag.');
+    //       }
 
-        error: (err) => {
-          console.error('API Error:', err);
-          this.isLoading = false;
-          this.hasLoadedRates = true;
+    //       this.cdr.detectChanges();
+    //     },
 
-          // alert('Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.');
-        },
-      });
+    //     error: (err) => {
+    //       console.error('API Error:', err);
+    //       this.isLoading = false;
+    //       this.hasLoadedRates = true;
+
+    //       // alert('Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.');
+    //     },
+    //   });
   }
   toggleDropdown(): void {
     this.isDropdownOpen = !this.isDropdownOpen;
@@ -875,6 +885,7 @@ export class SelectProvider implements OnInit {
 
   closeModal() {
     this.isModalOpen = false;
+    this.showEditSection = false;
   }
 
   apply() {
@@ -884,6 +895,7 @@ export class SelectProvider implements OnInit {
 
   toggleEditSection() {
     this.showEditSection = !this.showEditSection;
+    this.activeTab = 'price';
   }
 
   activeTab: 'price' | 'abschlag' = 'price';

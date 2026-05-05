@@ -14,7 +14,7 @@ import { AuthService } from '../../services/auth.service';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 
-const API_BASE = 'http://localhost:8080';
+const API_BASE = 'http://192.168.0.155:8080';
 
 interface CustomerConnection {
   isMovingIn?: boolean | null;
@@ -106,7 +106,7 @@ export class ConnectionData implements OnInit, OnDestroy {
     4: '/electricity-comparision/payment-method', // replace with actual path
     5: '/electricity-comparision/checkout', // replace with actual path
   };
-
+  providersList: string[] = [];
   constructor(
     private router: Router,
     private route: ActivatedRoute,
@@ -125,6 +125,8 @@ export class ConnectionData implements OnInit, OnDestroy {
           this.initForm();
         }
       });
+    this.providersList = this.authService.getAllProviders();
+
   }
 
   ngOnDestroy(): void {

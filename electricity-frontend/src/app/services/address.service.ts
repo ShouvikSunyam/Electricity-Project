@@ -48,7 +48,7 @@ export class AddressService {
   }
 
   getCitiesByZip(zip: string): Observable<{ city: string; city_id: string }[]> {
-    const url = `/api/cities`;
+    const url = `/api/cities-egon`;
 
     return this.http.post<CityResponse>(this.baseUrl + url, { zip }).pipe(
       map((response) => {
@@ -68,7 +68,7 @@ export class AddressService {
   }
 
   getStreetsByCity(zip: string, city: string): Observable<{ street: string; street_id: string }[]> {
-    const url = `/api/streets-by-zip`;
+    const url = `/api/streets-by-city-zip`;
 
     return this.http.post<StreetResponse>(this.baseUrl + url, { zip, city }).pipe(
       map((res) => {

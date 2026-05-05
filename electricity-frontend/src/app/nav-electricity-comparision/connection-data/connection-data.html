@@ -234,14 +234,11 @@
               <div class="field-wraper select-wraper">
                 <select name="currentProvider" [(ngModel)]="currentProvider">
                   <option value="" disabled selected>Ihr derzeitiger Stromanbieter</option>
-                  <option value="Stadtwerke München">Stadtwerke München</option>
-                  <option value="E.ON">E.ON</option>
-                  <option value="RWE">RWE</option>
-                  <option value="Vattenfall">Vattenfall</option>
-                  <option value="EnBW">EnBW</option>
-                  <option value="Innogy">Innogy</option>
-                  <option value="Yello Strom">Yello Strom</option>
-                  <option value="Sonstiger Anbieter">Sonstiger Anbieter</option>
+
+                  <!-- Dynamic providers -->
+                  <option *ngFor="let provider of providersList" [value]="provider">
+                    {{ provider }}
+                  </option>
                 </select>
                 <svg
                   class="select-chevron"

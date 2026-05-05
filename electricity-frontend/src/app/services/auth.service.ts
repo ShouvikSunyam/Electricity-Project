@@ -28,6 +28,7 @@ export interface AuthUser {
 const AUTH_STORAGE_KEY = 'auth_user';
 const ADDRESS_KEY = 'address_data';
 const PROVIDER_STORAGE_KEY = 'selected_provider';
+const ALL_PROVIDERS_KEY = 'all_providers_list';
 
 @Injectable({
   providedIn: 'root',
@@ -157,6 +158,7 @@ export class AuthService {
       this.clearStorage();
       this.clearAddress();
       this.clearSelectedProvider();
+      this.clearAllProviders();
       this.currentUser.set(null);
       this.router.navigate(['/'], { relativeTo: this.route });
     } catch (error) {
@@ -387,6 +389,40 @@ export class AuthService {
   }
 
   ///---- Select Provider ----///
+  setAllProviders(providers: any[]): void {
+    if (!this.isBrowser()) return;
+
+    try {
+      const names = providers.map((p) => p.providerName);
+
+      const uniqueNames = [...new Set(names)];
+
+      localStorage.setItem(ALL_PROVIDERS_KEY, JSON.stringify(uniqueNames));
+    } catch (error) {
+      console.error('Error saving providers list:', error);
+    }
+  }
+  getAllProviders(): any[] {
+    if (!this.isBrowser()) return [];
+
+    try {
+      const data = localStorage.getItem(ALL_PROVIDERS_KEY);
+      return data ? JSON.parse(data) : [];
+    } catch (error) {
+      console.error('Error getting providers list:', error);
+      return [];
+    }
+  }
+  clearAllProviders(): void {
+    if (!this.isBrowser()) return;
+
+    try {
+      localStorage.removeItem(ALL_PROVIDERS_KEY);
+    } catch (error) {
+      console.error('Error clearing providers list:', error);
+    }
+  }
+
   setSelectedProvider(provider: any): void {
     if (!this.isBrowser()) return;
 
@@ -421,6 +457,7 @@ export class AuthService {
   clearCheckoutFlowData(): void {
     this.clearDeliveryId();
     this.clearSelectedProvider();
+    this.clearAllProviders();
   }
 
   private customerData$ = new BehaviorSubject<any | null>(null);
@@ -441,7 +478,7 @@ export class AuthService {
     const body = { id: Number(customerId) };
 
     this.http
-      .post<any>('http://localhost:8080/customer/fetch-customer-detail', body)
+      .post<any>('http://192.168.0.155:8080/customer/fetch-customer-detail', body)
       .subscribe({
         next: (res) => {
           console.log('API RESPONSE:', res);

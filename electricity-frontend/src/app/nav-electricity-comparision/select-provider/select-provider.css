@@ -848,7 +848,7 @@ a {
 .modal-content {
   font-family: Arial, sans-serif;
   padding: 20px 24px;
-  width: 520px;
+  width: 450px;
   max-height: 85vh;
   overflow-y: auto;
   background: #f7f7f7;
@@ -1032,7 +1032,7 @@ a {
   flex: 1;
   padding: 10px;
   text-align: center;
-  background: #fff;
+  background: transparent;
   cursor: pointer;
   font-size: 13px;
 }
@@ -1040,6 +1040,8 @@ a {
 .toggle-btn.active {
   background: #e6f0fb;
   border: 1px solid #0085e0;
+  /* border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px; */
 }
 .edit-tabs {
   display: flex;

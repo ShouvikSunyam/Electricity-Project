@@ -22,7 +22,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
     ReactiveFormsModule,
     MatAutocompleteModule,
     Registration,
-    MatFormFieldModule
+    MatFormFieldModule,
   ],
   templateUrl: './gas.html',
   styleUrl: './gas.css',
@@ -78,7 +78,7 @@ export class Gas implements OnInit {
   trackByStreet(index: number, item: any) {
     return item.street;
   }
-  
+
   // private handlePostalCodeChanges() {
   //   this.addressForm
   //     .get('postalCode')
@@ -163,7 +163,7 @@ export class Gas implements OnInit {
       });
   }
 
-   private handleCityChanges() {
+  private handleCityChanges() {
     this.addressForm
       .get('city')
       ?.valueChanges.pipe(debounceTime(300))
@@ -175,8 +175,10 @@ export class Gas implements OnInit {
         this.isStreetLoading = true;
 
         this.addressForm.get('street')?.enable();
+        const zip = this.addressForm.get('postalCode')?.value;
+        const city = this.cityOptions.find((c) => c.city_id === placeId)?.city || '';
 
-        this.addressService.getStreetsByCity(placeId).subscribe((streets) => {
+        this.addressService.getStreetsByCity(zip, city).subscribe((streets) => {
           this.ngZone.run(() => {
             this.streetOptions = streets;
             this.streetDropdownKey++;

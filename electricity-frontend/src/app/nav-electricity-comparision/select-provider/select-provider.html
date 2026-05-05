@@ -22,11 +22,6 @@
             <strong>Verbrauch / Jahr:</strong> {{ consum | number: '1.0-0' }} kWh
           </p>
         </ng-container>
-        <!-- <ng-template #noAddress>
-          <p class="no-address-msg">
-            Bitte wählen Sie zuerst eine Adresse aus, um den Vergleich zu starten.
-          </p>
-        </ng-template> -->
         <button class="btn-suche" *ngIf="hasAddress && !isEditMode" (click)="searchMode()">
           Suche ändern
         </button>
@@ -1092,7 +1087,10 @@
               </div>
             </div>
 
-            <p class="desc-small">Falls Ihre aktuellen Kosten von unseren Daten abweichen...</p>
+            <p class="desc-small">
+              Falls Ihre aktuellen Kosten von unseren Daten abweichen, können Sie diese hier
+              anpassen. So können wir Ihre Ersparnis genau berechnen.
+            </p>
 
             <div class="price-row">
               <div>
@@ -1165,29 +1163,28 @@
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div *ngIf="activeTab === 'abschlag'">
-              <div class="form-group" style="margin-bottom: 20px">
-                <div class="field-wrap">
-                  <span class="field-label">Abschlag in €/Monat</span>
-                  <input type="text" value="84.65" />
+              <div *ngIf="activeTab === 'abschlag'">
+                <div class="form-group" style="margin-bottom: 20px">
+                  <div class="field-wrap">
+                    <span class="field-label">Abschlag in €/Monat</span>
+                    <input type="text" value="84.65" />
+                  </div>
+                </div>
+                <div class="section">
+                  <label>Anzahl Abschläge pro Jahr</label>
+                  <div class="toggle">
+                    <div class="toggle-btn">12 Abschläge</div>
+                    <div class="toggle-btn">11 Abschläge</div>
+                    <div class="toggle-btn active">10 Abschläge</div>
+                  </div>
+                </div>
+                <div class="sub">
+                  Bitte beachten Sie: Da es zu Rück- oder Nachzahlungen kommen kann, spiegelt der
+                  Abschlag ggf. nicht Ihre tatsächlichen Kosten wider.
                 </div>
               </div>
-              <div class="section">
-                <label>Anzahl Abschläge pro Jahr</label>
-                <div class="toggle">
-                  <div class="toggle-btn">12 Abschläge</div>
-                  <div class="toggle-btn">11 Abschläge</div>
-                  <div class="toggle-btn active">10 Abschläge</div>
-                </div>
-              </div>
-              <div class="sub">
-                Bitte beachten Sie: Da es zu Rück- oder Nachzahlungen kommen kann, spiegelt der
-                Abschlag ggf. nicht Ihre tatsächlichen Kosten wider.
-              </div>
             </div>
-
             <div class="actions">
               <button class="submit-btn">übernehmen</button>
             </div>
