@@ -15,15 +15,19 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import com.tarifvergleich.electricity.dto.CustomerRequestCounsellingDto;
+import com.tarifvergleich.electricity.dto.CustomerRequestCounsellingDto.CustomerRequestCousellingResponseForAdmin;
 import com.tarifvergleich.electricity.dto.CustomerServicesDto;
 import com.tarifvergleich.electricity.dto.CustomerServicesDto.CustomerListOfServiceForAdminResDto;
 import com.tarifvergleich.electricity.dto.ListOfHolidaysDto;
 import com.tarifvergleich.electricity.dto.ListOfHolidaysDto.ListOfHolidaysResponseDto;
 import com.tarifvergleich.electricity.exception.InternalServerException;
 import com.tarifvergleich.electricity.model.AdminUser;
+import com.tarifvergleich.electricity.model.CustomerRequestCounselling;
 import com.tarifvergleich.electricity.model.CustomerServices;
 import com.tarifvergleich.electricity.model.ListOfHolidays;
 import com.tarifvergleich.electricity.repository.AdminUserRepository;
+import com.tarifvergleich.electricity.repository.CustomerRequestCounsellingRepository;
 import com.tarifvergleich.electricity.repository.CustomerServicesRepository;
 import com.tarifvergleich.electricity.repository.ListOfHolidaysRepository;
 import com.tarifvergleich.electricity.util.Helper;
@@ -39,6 +43,7 @@ public class AdminServicePointManagementService {
 	private final CustomerServicesRepository customerServicesRepo;
 	private final Helper helper;
 	private final ListOfHolidaysRepository listOfHolidaysRepo;
+	private final CustomerRequestCounsellingRepository customerRequestCounsellingRepo;
 
 	@Transactional
 	public Map<String, Object> addCustomerServices(CustomerServicesDto servicesDto) {
@@ -294,6 +299,74 @@ public class AdminServicePointManagementService {
 		listOfHolidaysRepo.deleteByIdAndAdminAdminId(holidaysDto.getHolidayId(), holidaysDto.getAdminId());
 
 		return Map.of("res", true, "message", "Holiday removed successfully");
+	}
+
+	public Map<String, Object> fetchCounsellingrequets(CustomerRequestCounsellingDto requestDto) {
+
+		if (requestDto.getAdminId() == null || requestDto.getAdminId() <= 0)
+			throw new InternalServerException("Admin id missing", HttpStatus.OK);
+
+		Long totalConcluded = customerRequestCounsellingRepo.countAllByAdminAdminIdAndConcluded(requestDto.getAdminId(),
+				true);
+		Long totalUnconcluded = customerRequestCounsellingRepo
+				.countAllByAdminAdminIdAndConcluded(requestDto.getAdminId(), false);
+		Long totalRequests = customerRequestCounsellingRepo.count();
+
+		if (requestDto.getPage() != null && requestDto.getPage() > 0) {
+			if (requestDto.getSize() == null || requestDto.getSize() <= 0)
+				requestDto.setSize(10);
+
+			Pageable pageable = PageRequest.of(requestDto.getPage() - 1, requestDto.getSize(),
+					Sort.by("createdOn").descending());
+			Page<CustomerRequestCounselling> counsellingRequests = customerRequestCounsellingRepo
+					.findAllByAdminAdminIdAndOptionalConclude(requestDto.getAdminId(), requestDto.getConcluded(), pageable);
+
+			Page<CustomerRequestCousellingResponseForAdmin> mappedRequest = counsellingRequests
+					.map(CustomerRequestCounsellingDto::mapCustomerRequestCounsellingResponseForAdmin);
+
+			return Map.of("res", true, "data", mappedRequest.getContent(), "page",
+					mappedRequest.getPageable().getPageNumber() + 1, "totalPage", mappedRequest.getTotalPages(),
+					"totalRecords", totalRequests, "totalConsluded", totalConcluded, "totalUnconcluded",
+					totalUnconcluded);
+
+		}
+
+		List<CustomerRequestCounselling> counsellingRequests = customerRequestCounsellingRepo
+				.findAllByAdminAdminIdAndOptionalConcludedOrderByCreatedOnDesc(requestDto.getAdminId(), requestDto.getConcluded());
+
+		List<CustomerRequestCousellingResponseForAdmin> mappedRequest = counsellingRequests.stream()
+				.map(CustomerRequestCounsellingDto::mapCustomerRequestCounsellingResponseForAdmin).toList();
+
+		return Map.of("res", true, "data", mappedRequest, "totalRecords", totalRequests, "totalConsluded",
+				totalConcluded, "totalUnconcluded", totalUnconcluded);
+	}
+
+	@Transactional
+	public Map<String, Object> toggleCustomerRequestCounsellingConcluded(Integer adminId, Integer counsellingId,
+			Boolean setConclusion) {
+
+		if (adminId == null || adminId <= 0)
+			throw new InternalServerException("Admin id missing", HttpStatus.OK);
+
+		if (counsellingId == null || counsellingId <= 0)
+			throw new InternalServerException("Counselling id missing", HttpStatus.OK);
+
+		CustomerRequestCounselling counsellingRequest = customerRequestCounsellingRepo
+				.findByIdAndAdminAdminId(counsellingId, adminId).orElseThrow(
+						() -> new InternalServerException("Request not found with this credential", HttpStatus.OK));
+
+		if (setConclusion == null)
+			setConclusion = !counsellingRequest.getConcluded();
+		else if (setConclusion.equals(counsellingRequest.getConcluded()))
+			return Map.of("res", true, "message", "Request status updated successfully");
+
+		Integer result = customerRequestCounsellingRepo.updateConcludedByAdminAdminIdAndId(counsellingId, adminId,
+				setConclusion);
+
+		if (result == null || result <= 0)
+			throw new InternalServerException("Internal Server issue", HttpStatus.OK);
+
+		return Map.of("res", true, "message", "Request status updated successfully");
 	}
 
 }

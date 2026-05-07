@@ -18,6 +18,7 @@ import com.tarifvergleich.electricity.dto.CustomerAddressDto;
 import com.tarifvergleich.electricity.dto.CustomerAttornyDto;
 import com.tarifvergleich.electricity.dto.CustomerConnectWrapper;
 import com.tarifvergleich.electricity.dto.CustomerContactScheduleRequestDto;
+import com.tarifvergleich.electricity.dto.CustomerDeliveryDto;
 import com.tarifvergleich.electricity.dto.CustomerDeliveryRequestWrapper;
 import com.tarifvergleich.electricity.dto.CustomerDto;
 import com.tarifvergleich.electricity.dto.CustomerPaymentRequestDto;
@@ -157,11 +158,17 @@ public class CustomerController {
 		return ResponseEntity.ok(
 				customerDetailService.fetchAllCustomerDeliveriesByGroup(customerDto.getAdminId(), customerDto.getId()));
 	}
-	
+
 	@PostMapping("/toggle-customer-notification")
 	public ResponseEntity<?> toggleCustomerNotification(@RequestBody CustomerDto customerDto) {
 		return ResponseEntity.ok(customerDetailService.toggleNotificationOfCustomer(customerDto.getAdminId(),
 				customerDto.getId(), customerDto.getIsNotificationEnabled()));
+	}
+
+	@PostMapping("/toggle-delivery-notification")
+	public ResponseEntity<?> toggleDeliveryNotification(@RequestBody CustomerDeliveryDto deliveryDto) {
+		return ResponseEntity.ok(customerDetailService.toggleEachDeliveryNotifcation(deliveryDto.getCustomerId(),
+				deliveryDto.getDeliveryId()));
 	}
 
 }

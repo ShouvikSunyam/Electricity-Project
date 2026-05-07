@@ -213,7 +213,8 @@ public class EmailTemplate {
 				+ "<center style=\"color:#ffffff;font-family:sans-serif;font-size:16px;font-weight:bold;\">Confirm Consent</center>"
 				+ "</v:roundrect>" + "<![endif]-->" + "<a href=\"" + confirmationUrl
 				+ "\" style=\"background-color:#2e7d32; border-radius:5px; color:#ffffff; display:inline-block; font-family:sans-serif; font-size:16px; font-weight:bold; line-height:50px; text-align:center; text-decoration:none; width:200px; -webkit-text-size-adjust:none; mso-hide:all;\">Confirm Consent</a>"
-				+ "</div>"
+				+ "<p style='font-style: italic; color: #e53935; font-size: 0.85em; margin-top: 15px;'>"
+				+ "Note: This is a test template. More enhancements will be pushed soon." + "</p>" + "</div>"
 				+ "<p style='font-size: 0.9em; color: #666;'>If the button above does not work, please copy and paste the following link into your browser:</p>"
 				+ "<p style='font-size: 0.8em; word-break: break-all;'><a href=\"" + confirmationUrl + "\">"
 				+ confirmationUrl + "</a></p>" + "<br>" + "<p>Best Regards,<br><strong>Tarifvergleich Team</strong></p>"

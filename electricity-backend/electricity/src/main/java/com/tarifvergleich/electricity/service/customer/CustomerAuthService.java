@@ -535,4 +535,23 @@ public class CustomerAuthService {
 
 		return Map.of("res", false, "newOtp", false, "message", "Invalid otp");
 	}
+	
+//	public Map<String, Object> sendMail(Integer id){
+//		Customer customer = customerRepo.findById(id).orElse(null);
+//		
+//		String encodedId = Base64.getEncoder()
+//				.encodeToString(customer.getCustomerId().toString().getBytes());
+//
+//		String mailBody = emailTemplate.createCustomerConsentEmailBody(customer.getSalutation(),
+//				customer.getLastName(), encodedId);
+//		
+////		ServiceResponseEmailEvent mailRes = new ServiceResponseEmailEvent(customer.getEmail(),
+////				"Action Required: Confirm your Energy Selection", mailBody);
+////
+////		eventPublisher.publishEvent(mailRes);
+//		
+//		mailService.sendMail(customer.getEmail(), "Something", mailBody);
+//		
+//		return Map.of("res", true);
+//	}
 }

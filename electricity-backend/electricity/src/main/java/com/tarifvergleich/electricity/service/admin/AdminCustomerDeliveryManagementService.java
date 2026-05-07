@@ -238,15 +238,14 @@ public class AdminCustomerDeliveryManagementService {
 			throw new InternalServerException("Customer id missing", HttpStatus.OK);
 
 		Integer customerId = deliveryDetails.getCustomerId();
-		Integer adminId = deliveryDetails.getAdminId();
 		CustomerDeliveryDto newDeliveryDetails = deliveryDetails.getDelivery();
 		CustomerBillingRequestDto billingAddress = deliveryDetails.getBillingAddress();
 		CustomerConnectionRequestDto newCustomerConnection = deliveryDetails.getConnection();
 		CustomerPaymentRequestDto newCustomerPayment = deliveryDetails.getPaymentDetails();
 		EnergyRateDto newCustomerSelectedProvider = deliveryDetails.getProvider();
 
-		Map<String, Object> deliveryResponse = customerBookingService.saveDelivery(customerId, adminId,
-				newDeliveryDetails, billingAddress, newCustomerSelectedProvider);
+		Map<String, Object> deliveryResponse = customerBookingService.saveDelivery(customerId, null, newDeliveryDetails,
+				billingAddress, newCustomerSelectedProvider);
 
 		if (!deliveryResponse.containsKey("deliveryId") || !(Boolean) deliveryResponse.get("res"))
 			throw new RuntimeException();

@@ -36,7 +36,7 @@ public class CustomerCronTask {
 
 			Customer customer = delivery.getCustomerId();
 
-			if (customer.getIsNotificationEnabled()) {
+			if (customer.getIsNotificationEnabled() && delivery.getNotificationEnabled()) {
 
 				Map<String, Object> dateTimeMap = Helper.getLocalDateTimeFromBigInteger(delivery.getExpiryOn());
 

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tarifvergleich.electricity.dto.CustomerRequestCounsellingDto;
 import com.tarifvergleich.electricity.dto.ListOfHolidaysDto;
 import com.tarifvergleich.electricity.service.admin.AdminServicePointManagementService;
 
@@ -34,5 +35,17 @@ public class AdminServicePointManagementController {
 	@PostMapping("/delete-holiday")
 	public ResponseEntity<?> deleteHoliday(@RequestBody ListOfHolidaysDto holidaysDto) {
 		return ResponseEntity.ok(adminServicePointManagementService.adminDeleteHolidays(holidaysDto));
+	}
+
+	@PostMapping("/fetch-counselling-request")
+	public ResponseEntity<?> fetchCounsellingrequest(@RequestBody CustomerRequestCounsellingDto counsellingRequestDto) {
+		return ResponseEntity.ok(adminServicePointManagementService.fetchCounsellingrequets(counsellingRequestDto));
+	}
+
+	@PostMapping("/toggle-counselling-request")
+	public ResponseEntity<?> toggleCounsellingRequestConcluded(
+			@RequestBody CustomerRequestCounsellingDto counsellingDto) {
+		return ResponseEntity.ok(adminServicePointManagementService.toggleCustomerRequestCounsellingConcluded(
+				counsellingDto.getAdminId(), counsellingDto.getCounsellingId(), counsellingDto.getConcluded()));
 	}
 }

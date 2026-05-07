@@ -94,5 +94,10 @@ public class CustomerAuthController {
 	public ResponseEntity<?> resendChangePasswordOtp(@RequestBody CustomerDto customerDto) {
 		return ResponseEntity.ok(customerAuthService.resendOtp(customerDto.getId(), false, true));
 	}
+	
+//	@PostMapping("/try-mail")
+//	public ResponseEntity<?> sendTryMail(@RequestBody CustomerDto dto){
+//		return ResponseEntity.ok(customerAuthService.sendMail(dto.getId()));
+//	}
 
 }

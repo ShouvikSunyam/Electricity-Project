@@ -79,6 +79,9 @@ public class CustomerDelivery {
 	@Column(name = "order_no", unique = true)
 	private Long orderNo;
 	
+	@Column(name = "notification_enabled")
+	private Boolean notificationEnabled;
+	
 	@Column(name = "expiry_on")
 	private BigInteger expiryOn;
 	
@@ -137,6 +140,7 @@ public class CustomerDelivery {
 		uniqueDeliveryId = "D" + Helper.getUniqueIdForCustomerId();
 		isExpired = false;
 		isCancelled = false;
+		notificationEnabled = true;
 	}
 	
 	public void setUserAdmin(AdminUser admin) {

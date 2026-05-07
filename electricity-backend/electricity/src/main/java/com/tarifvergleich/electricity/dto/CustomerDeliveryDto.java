@@ -45,6 +45,7 @@ public class CustomerDeliveryDto {
 	private CustomerPayment customerPayment;
 	
 	private Integer adminId;
+	private Integer customerId;
 	private Integer page;
 	private Integer size;
 	

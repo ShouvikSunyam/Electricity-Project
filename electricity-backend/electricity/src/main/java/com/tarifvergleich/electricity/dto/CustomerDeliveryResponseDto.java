@@ -82,6 +82,7 @@ public class CustomerDeliveryResponseDto {
 		private BigInteger orderPlacedOn;
 		private Boolean orderPlaced;
 		private BigInteger expiryOn;
+		private Boolean notificationEnabled;
 
 		private CustomerAddressRes customerAddress;
 		private CustomerBillingAddressRes billingAddress;
@@ -128,6 +129,7 @@ public class CustomerDeliveryResponseDto {
 						.isDifferent(delivery.getBillingAddress().getIsDifferent()).build())
 				.orderPlaced(delivery.getOrderPlaced())
 				.orderPlacedOn(delivery.getOrderPlacedOn())
+				.notificationEnabled(delivery.getNotificationEnabled())
 				.provider(EnergyRateDto.getProviderResponse(delivery.getCustomerProvider()))
 				.connection(CustomerConnectionRequestDto.getConnectionResponse(delivery.getCustomerConnection()))
 				.payment(CustomerPaymentRequestDto.getCustomerPaymentResponse(delivery.getCustomerPayment()))

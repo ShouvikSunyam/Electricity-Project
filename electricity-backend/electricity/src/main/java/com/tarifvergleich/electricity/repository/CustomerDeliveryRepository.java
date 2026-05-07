@@ -22,6 +22,8 @@ public interface CustomerDeliveryRepository extends JpaRepository<CustomerDelive
 
 	Optional<CustomerDelivery> findByIdAndAdminAdminId(Integer id, Integer adminId);
 
+	Optional<CustomerDelivery> findByIdAndCustomerIdCustomerId(Integer id, Integer customerId);
+
 	List<CustomerDelivery> findAllByAdminAdminIdAndCustomerIdCustomerIdAndOrderPlacedOrderByOrderPlacedOnDesc(
 			Integer adminId, Integer customerId, Boolean orderPlaced);
 

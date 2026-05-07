@@ -1,4 +1,4 @@
-package com.tarifvergleich.electricity.service;
+package com.tarifvergleich.electricity.service.customer;
 
 import java.math.BigInteger;
 import java.time.DayOfWeek;
@@ -21,6 +21,7 @@ import com.tarifvergleich.electricity.repository.AdminUserRepository;
 import com.tarifvergleich.electricity.repository.CustomerRepository;
 import com.tarifvergleich.electricity.repository.CustomerRequestCounsellingRepository;
 import com.tarifvergleich.electricity.repository.ListOfHolidaysRepository;
+import com.tarifvergleich.electricity.service.MailService;
 import com.tarifvergleich.electricity.util.EmailTemplate;
 import com.tarifvergleich.electricity.util.Helper;
 
@@ -29,7 +30,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class GeneralService {
+public class CustomerGeneralService {
 
 	private final CustomerRequestCounsellingRepository customerRequestCounsellingRepo;
 	private final ListOfHolidaysRepository listOfHolidaysRepo;

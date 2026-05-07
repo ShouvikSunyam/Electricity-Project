@@ -106,10 +106,10 @@ public class CustomerBookingService {
 
 		if (deliveryDto.getDob() == null)
 			throw new InternalServerException("DOB missing", HttpStatus.OK);
-		
-		if(deliveryDto.getPersons() == null || deliveryDto.getPersons() <= 0)
+
+		if (deliveryDto.getPersons() == null || deliveryDto.getPersons() <= 0)
 			throw new InternalServerException("Total number of person missing", HttpStatus.OK);
-		if(deliveryDto.getConsumption() == null || deliveryDto.getConsumption() <= 0)
+		if (deliveryDto.getConsumption() == null || deliveryDto.getConsumption() <= 0)
 			throw new InternalServerException("Consumption missing", HttpStatus.OK);
 
 		if (deliveryDto.getDeliveryType() == null || deliveryDto.getDeliveryType().isEmpty()
@@ -196,8 +196,7 @@ public class CustomerBookingService {
 					.mobile(deliveryDto.getMobile()).telephone(deliveryDto.getTelephone())
 					.deliveryType(deliveryDto.getDeliveryType().toUpperCase()).customerProvider(selectedProvider)
 					.expiryOn(helper.toGermamUnixTimestamp(providerInfo.getTermBeforeNewMaxDate()))
-					.numberOfPerson(deliveryDto.getPersons())
-					.totalConsumption(deliveryDto.getConsumption())
+					.numberOfPerson(deliveryDto.getPersons()).totalConsumption(deliveryDto.getConsumption())
 					.dob(helper.toGermamUnixTimestamp(deliveryDto.getDob())).build();
 
 			delivery.setUserAdmin(customer.getAdmin());
@@ -275,7 +274,7 @@ public class CustomerBookingService {
 		CustomerDelivery delivery = customerDeliveryRepo.findById(deliveryId)
 				.orElseThrow(() -> new InternalServerException("Delivery record not found", HttpStatus.OK));
 
-		if (delivery.getCustomerId().getCustomerId() != customerId)
+		if (!delivery.getCustomerId().getCustomerId().equals(customerId))
 			throw new InternalServerException("Customer not found", HttpStatus.OK);
 
 		if (delivery.getCustomerConnection() == null) {
@@ -501,7 +500,7 @@ public class CustomerBookingService {
 
 	public Map<String, Object> sendUnsignedDocumentByEmail(Integer adminId, Integer customerId) {
 
-		if (adminId == null || customerId <= 0)
+		if (adminId == null || adminId <= 0)
 			throw new InternalServerException("Admin id missing", HttpStatus.OK);
 		if (customerId == null || customerId <= 0)
 			throw new InternalServerException("Customer id missing", HttpStatus.OK);
@@ -516,7 +515,7 @@ public class CustomerBookingService {
 		String relativePath = "customer-unsigned-documents/file-sample_150kB.pdf";
 
 		String absolutePath = fileServiceCustomer.getAbsolutePath(relativePath);
-		
+
 		mailService.sendMailWithAttachment(to, subject, body, absolutePath);
 
 		return Map.of("res", true, "message", "Mail sended successfully");

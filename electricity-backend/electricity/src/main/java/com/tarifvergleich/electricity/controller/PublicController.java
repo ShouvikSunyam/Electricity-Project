@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tarifvergleich.electricity.dto.CustomerRequestCounsellingDto;
-import com.tarifvergleich.electricity.service.GeneralService;
+import com.tarifvergleich.electricity.service.customer.CustomerGeneralService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -18,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api")
 public class PublicController {
 
-	private final GeneralService generalService;
+	private final CustomerGeneralService generalService;
 	
 	@PostMapping("/check-holiday")
 	public ResponseEntity<?> checkDate(@RequestBody CustomerRequestCounsellingDto counsellingReqDto){

@@ -45,6 +45,9 @@ public class CustomerRequestCounselling {
 
 	@Column(name = "schedule_date")
 	private BigInteger scheduleDate;
+	
+	@Column(name = "concluded")
+	private Boolean concluded;
 
 	@ManyToOne
 	@JoinColumn(name = "customer_id")
@@ -60,6 +63,7 @@ public class CustomerRequestCounselling {
 	@PrePersist
 	protected void onCreate() {
 		createdOn = Helper.getCurrentTimeBerlin();
+		concluded = false;
 	}
 
 }

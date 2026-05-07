@@ -133,6 +133,18 @@ public class AdminCustomerManagementService {
 		if (deliveryReq.getAdminId() == null || deliveryReq.getAdminId() <= 0)
 			throw new InternalServerException("Admin id missing", HttpStatus.OK);
 
+		if (deliveryReq.getDeliveryId() != null && deliveryReq.getDeliveryId() > 0) {
+
+			CustomerDelivery delivery = customerDeliveryRepo.findById(deliveryReq.getDeliveryId()).orElseThrow(
+					() -> new InternalServerException("Resource not found with this credential", HttpStatus.OK));
+
+			CustomerDeliveryResponseAll customerDeliveryResponse = CustomerDeliveryResponseDto
+					.getDeliveryResponse(delivery);
+
+			return Map.of("res", true, "data", customerDeliveryResponse);
+
+		}
+
 		if (deliveryReq.getPage() != null) {
 
 			if (deliveryReq.getSize() == null)
@@ -478,8 +490,4 @@ public class AdminCustomerManagementService {
 		return Map.of("res", true, "message", "Note added successfully");
 	}
 
-	@Transactional
-	public Map<String, Object> createCustomerDelivery() {
-		return Map.of();
-	}
 }

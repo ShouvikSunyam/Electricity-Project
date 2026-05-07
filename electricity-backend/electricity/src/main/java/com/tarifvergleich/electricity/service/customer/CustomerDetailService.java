@@ -205,8 +205,8 @@ public class CustomerDetailService {
 					return deliver.getCustomerAddress().getZip() + " " + deliver.getCustomerAddress().getCity() + " "
 							+ deliver.getCustomerAddress().getStreet() + deliver.getCustomerAddress().getHouseNumber();
 				}));
-		
-		if(deliveryResponse == null)
+
+		if (deliveryResponse == null)
 			deliveryResponse = new LinkedHashMap<String, List<CustomerDeliveryResponseAll>>();
 
 		return Map.of("res", true, "data", deliveryResponse);
@@ -513,25 +513,43 @@ public class CustomerDetailService {
 
 		return Map.of("res", false, "message", "Active booking exits with this address");
 	}
-	
+
 	@Transactional
-	public Map<String, Object> toggleNotificationOfCustomer(Integer adminId, Integer customerId, Boolean isNotificationEnabled) {
+	public Map<String, Object> toggleNotificationOfCustomer(Integer adminId, Integer customerId,
+			Boolean isNotificationEnabled) {
 
 		if (adminId == null || adminId <= 0)
 			throw new InternalServerException("Admin id missing", HttpStatus.OK);
 		if (customerId == null || customerId <= 0)
 			throw new InternalServerException("Customer id missing", HttpStatus.OK);
-		if(isNotificationEnabled == null)
+		if (isNotificationEnabled == null)
 			throw new InternalServerException("Notification value missing", HttpStatus.OK);
 
 		Customer customer = customerRepo.findByCustomerIdAndAdminAdminId(customerId, adminId).orElseThrow(
 				() -> new InternalServerException("Customer not found wiyth this credential", HttpStatus.OK));
-		
+
 		customer.setIsNotificationEnabled(isNotificationEnabled);
-		
+
 		customerRepo.save(customer);
 
 		return Map.of("res", true, "message", "Customer notification updated");
+	}
+
+	@Transactional
+	public Map<String, Object> toggleEachDeliveryNotifcation(Integer customerId, Integer deliveryId) {
+
+		if (customerId == null || customerId <= 0)
+			throw new InternalServerException("Customer id missing", HttpStatus.OK);
+
+		CustomerDelivery delivery = customerDeliveryRepo.findByIdAndCustomerIdCustomerId(deliveryId, customerId)
+				.orElseThrow(
+						() -> new InternalServerException("Delivery not found with this credential", HttpStatus.OK));
+
+		delivery.setNotificationEnabled(!delivery.getNotificationEnabled());
+
+		customerDeliveryRepo.save(delivery);
+
+		return Map.of("res", true, "message", "Notifcation updated successfully");
 	}
 
 }
