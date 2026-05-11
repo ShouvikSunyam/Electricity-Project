@@ -114,5 +114,7 @@ public class EnergyService {
 					throw new EnergyApiUnavailableException("Invalid orderNo", body);
 				}).body(EgonDocumentDto.class);
 	}
+	
+	
 
 }

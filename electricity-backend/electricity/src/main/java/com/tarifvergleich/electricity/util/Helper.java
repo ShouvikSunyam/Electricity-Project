@@ -1,5 +1,6 @@
 package com.tarifvergleich.electricity.util;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.time.Instant;
@@ -10,12 +11,17 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.tarifvergleich.electricity.exception.InternalServerException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import ua_parser.Client;
@@ -197,25 +203,34 @@ public class Helper {
 
 		return totalDuration;
 	}
-	
+
 	public LocalDate flexibleDateParser(String dateStr) {
 
-		List<String> patterns = Arrays.asList(
-	        "yyyy-MM-dd",   // 2026-05-08
-	        "dd.MM.yyyy",   // 08.05.2026
-	        "MM/dd/yyyy",   // 05/08/2026
-	        "dd-MM-yyyy",   // 08-05-2026
-	        "yyyy/MM/dd"    // 2026/05/08
-	    );
+		List<String> patterns = Arrays.asList("yyyy-MM-dd", // 2026-05-08
+				"dd.MM.yyyy", // 08.05.2026
+				"MM/dd/yyyy", // 05/08/2026
+				"dd-MM-yyyy", // 08-05-2026
+				"yyyy/MM/dd" // 2026/05/08
+		);
 
-	    for (String pattern : patterns) {
-	        try {
-	            return LocalDate.parse(dateStr, DateTimeFormatter.ofPattern(pattern));
-	        } catch (DateTimeParseException e) {
-	            continue; 
-	        }
-	    }
+		for (String pattern : patterns) {
+			try {
+				return LocalDate.parse(dateStr, DateTimeFormatter.ofPattern(pattern));
+			} catch (DateTimeParseException e) {
+				continue;
+			}
+		}
 
-	    throw new IllegalArgumentException("Unknown date format: " + dateStr);
+		throw new IllegalArgumentException("Unknown date format: " + dateStr);
+	}
+
+	public String convertToBase64(MultipartFile file) {
+		try {
+			byte[] contentByte = file.getBytes();
+			return Base64.getEncoder().encodeToString(contentByte);
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new InternalServerException("Error encoding the file", HttpStatus.OK);
+		}
 	}
 }

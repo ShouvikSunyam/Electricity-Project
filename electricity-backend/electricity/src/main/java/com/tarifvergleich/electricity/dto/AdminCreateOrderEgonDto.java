@@ -36,7 +36,7 @@ public record AdminCreateOrderEgonDto(EgonAddressDto delivery, EgonAddressDto bi
 		EgonContactPersonDto contactPerson = new EgonContactPersonDto(delivery.getSalutation(), delivery.getFirstName(),
 				delivery.getLastName(), helper.toGermalDateStamp(delivery.getDob()));
 
-		EgonContactDetailsDto contact = new EgonContactDetailsDto("49", delivery.getMobile(),
+		EgonContactDetailsDto contact = new EgonContactDetailsDto("49", delivery.getMobile().replace("+", ""),
 				delivery.getCustomerId().getEmail());
 
 		Object payment;
@@ -47,8 +47,8 @@ public record AdminCreateOrderEgonDto(EgonAddressDto delivery, EgonAddressDto bi
 			payment = new EgonPaymentDebitDto("debit");
 
 		EgonProductDto product = new EgonProductDto(provider.getRateId(),
-				helper.toGermalDateStamp(Helper.getCurrentTimeBerlin()), delivery.getTotalConsumption(), provider.getType(),
-				provider.getBranch(), deliveryType,
+				helper.toGermalDateStamp(Helper.getCurrentTimeBerlin()), delivery.getTotalConsumption(),
+				provider.getType(), provider.getBranch(), deliveryType,
 				customerConnection.getIsMovingIn() ? helper.toGermalDateStamp(customerConnection.getMoveInDate())
 						: helper.toGermalDateStamp(customerConnection.getDesiredDelivery()),
 				0, customerConnection.getMeterNumber(), customerConnection.getMarketLocationId(),
@@ -61,8 +61,8 @@ public record AdminCreateOrderEgonDto(EgonAddressDto delivery, EgonAddressDto bi
 	}
 
 	@JsonIgnoreProperties(ignoreUnknown = true)
-	public static record OrderResponseDto(String orderNo, boolean docInboxRequired, String providerName, String rateName,
-			String orderType, String customerType) {
+	public static record OrderResponseDto(String orderNo, boolean docInboxRequired, String providerName,
+			String rateName, String orderType, String customerType) {
 	}
 
 }

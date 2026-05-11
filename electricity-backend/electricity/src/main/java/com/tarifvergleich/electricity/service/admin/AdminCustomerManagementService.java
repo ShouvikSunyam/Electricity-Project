@@ -198,7 +198,7 @@ public class AdminCustomerManagementService {
 
 			return Map.of("res", true, "data", energyComparisonResp.getContent(), "page",
 					energyComparisonResp.getPageable().getPageNumber() + 1, "totalPage",
-					energyComparisonResp.getTotalPages());
+					energyComparisonResp.getTotalPages(), "totalRecords", energyComparisonResp.getTotalElements());
 		}
 
 		List<CustomerComparingEnergy> energyComparisons = customerComparingEnergyRepo
@@ -206,7 +206,7 @@ public class AdminCustomerManagementService {
 		List<CustomerComparingEnergyDto> energyComparisonResp = energyComparisons.stream()
 				.map(CustomerComparingEnergyDto::customerComparisonResponse).toList();
 
-		return Map.of("res", true, "data", energyComparisonResp);
+		return Map.of("res", true, "data", energyComparisonResp, "totalRecords", energyComparisonResp.size());
 	}
 
 	@Transactional
@@ -459,6 +459,27 @@ public class AdminCustomerManagementService {
 		customerRepo.save(customer);
 
 		return Map.of("res", true, "message", "Note added successfully");
+	}
+
+	@Transactional
+	public Map<String, Object> addLexofficeNumberForCustomer(CustomerDto customerDto) {
+
+		if (customerDto.getAdminId() == null || customerDto.getAdminId() <= 0)
+			throw new InternalServerException("Admin id missing", HttpStatus.OK);
+		if (customerDto.getId() == null || customerDto.getId() <= 0)
+			throw new InternalServerException("Customer id missing", HttpStatus.OK);
+		if (customerDto.getLexofficeNumber() == null || customerDto.getLexofficeNumber().isEmpty())
+			throw new InternalServerException("Lexoffice number missing", HttpStatus.OK);
+
+		Customer customer = customerRepo.findByCustomerIdAndAdminAdminId(customerDto.getId(), customerDto.getAdminId())
+				.orElseThrow(
+						() -> new InternalServerException("Customer not found with this credential", HttpStatus.OK));
+
+		customer.setLexofficeNumber(customerDto.getLexofficeNumber());
+
+		customerRepo.save(customer);
+
+		return Map.of("res", true, "mesage", "lexoffice_Number added successfully");
 	}
 
 }

@@ -120,6 +120,12 @@ public class CustomerDetailService {
 				throw new InternalServerException("House number missing", HttpStatus.OK);
 		}
 
+		CustomerAttorny checkExisting = customerAttornyRepo.findByCustomerCustomerIdAndAdminAdminIdAndIsRevoked(
+				attornyDto.getCustomerId(), attornyDto.getAdminId(), false).orElse(null);
+
+		if (checkExisting != null)
+			throw new InternalServerException("Attorny already submitted, duplicate not allowed", HttpStatus.OK);
+
 		AdminUser admin = adminUserRepo.findById(attornyDto.getAdminId())
 				.orElseThrow(() -> new InternalServerException("Admin not found with this credential", HttpStatus.OK));
 		Customer customer = customerRepo.findById(attornyDto.getCustomerId()).orElseThrow(

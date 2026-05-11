@@ -47,6 +47,7 @@ public class CustomerDto {
 	private String city;
 	private String street;
 	private String houseNumber;
+	private String lexofficeNumber;
 
 	private Integer page;
 	private Integer size;
@@ -96,6 +97,10 @@ public class CustomerDto {
 		private String uniqueCustomerId;
 		@Schema(description = "Account status (active/inactive)", example = "true")
 		private Boolean status;
+		
+		@Schema(description = "Customer lexoffice number")
+		private String lexofficeNumber;
+		
 		@Schema(description = "List of notes added to the customer by admin")
 		private List<CustomerNoteResponseDto> notes;
 		@Schema(description = "List of power of attorney documents linked to this customer")
@@ -124,6 +129,7 @@ public class CustomerDto {
 		private Boolean status;
 		private Boolean isNotificationEnabled;
 		private List<CustomerDeliveryResponseDto> deliveryDetails;
+		private String lexofficeNumber;
 	}
 
 	@Data
@@ -165,6 +171,7 @@ public class CustomerDto {
 						.street(customer.getStreet()).houseNumber(customer.getHouseNumber()).build())
 				.deliveryDetails(
 						customer.getCustomerDelivery().stream().map(CustomerDeliveryResponseDto::mapResponse).toList())
+				.lexofficeNumber(customer.getLexofficeNumber())
 				.build();
 	}
 
@@ -175,6 +182,7 @@ public class CustomerDto {
 				.firstName(customer.getFirstName()).lastName(customer.getLastName())
 				.salutation(customer.getSalutation()).title(customer.getTitle()).userType(customer.getUserType())
 				.companyName(customer.getCompanyName()).mobileNumber(customer.getMobileNumber())
+				.lexofficeNumber(customer.getLexofficeNumber())
 				.status(customer.getStatus()).isVerified(customer.getIsVerified()).verifiedOn(customer.getVerifiedOn())
 				.joinedOn(customer.getJoinedOn()).isAcknowledged(customer.getIsAcknowledged())
 				.uniqueCustomerId(customer.getCustomerUniqueId())

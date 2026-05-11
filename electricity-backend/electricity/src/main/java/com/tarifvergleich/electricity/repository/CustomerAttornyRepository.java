@@ -15,5 +15,7 @@ public interface CustomerAttornyRepository extends JpaRepository<CustomerAttorny
 			Boolean isRevoked);
 	
 	Optional<CustomerAttorny> findByIdAndAdminAdminId(Integer id, Integer adminId);
+	
+	Optional<CustomerAttorny> findByCustomerCustomerIdAndAdminAdminIdAndIsRevoked(Integer customerId, Integer adminId, Boolean isRevoked);
 
 }

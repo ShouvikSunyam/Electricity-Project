@@ -124,7 +124,7 @@ public class CustomerDelivery {
 	@JoinColumn(name = "customer_selected_provider_id")
 	private CustomerSelectedProvider customerProvider;
 	
-	@OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+	@OneToOne
 	@JoinColumn(name = "customer_booking_document_id")
 	private CustomerBookingDocument customerBookingDocument;
 	

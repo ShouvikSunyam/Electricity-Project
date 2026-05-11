@@ -41,8 +41,6 @@ public class CustomerOrder {
 	@Column(name = "admin_placed_order")
 	private Boolean adminPlacedOrder;
 	
-	@Column(name = "admin_order_placed_on")
-	private BigInteger adminOrderPlacedOn;
 
 	@Column(name = "order_id", unique = true)
 	private Long orderId;
@@ -53,11 +51,23 @@ public class CustomerOrder {
 	@Column(name = "created_on")
 	private BigInteger createdOn;
 	
+	@Column(name = "is_expired")
+	private Boolean isExpired;
+	
 	@Column(name = "expiry_on")
 	private BigInteger expiryOn;
 	
+	@Column(name = "operation_period")
+	private BigInteger operationPeriod;
+	
 	@Column(name = "last_date_of_cancellation")
 	private BigInteger lastDateOfCancellation;
+	
+	@Column(name = "is_cancelled")
+	private Boolean isCancelled;
+	
+	@Column(name = "cancelled_on")
+	private Boolean cancelledOn;
 
 	@OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
 	@JoinColumn(name = "customer_delivery_id")
@@ -83,6 +93,8 @@ public class CustomerOrder {
 		createdOn = Helper.getCurrentTimeBerlin();
 		adminPlacedOrder = false;
 		orderStatus = 0;
+		isCancelled = false;
+		isExpired = false;
 	}
 
 }

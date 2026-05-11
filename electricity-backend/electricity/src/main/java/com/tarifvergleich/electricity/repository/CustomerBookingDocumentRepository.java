@@ -12,4 +12,6 @@ public interface CustomerBookingDocumentRepository extends JpaRepository<Custome
 
 	Optional<CustomerBookingDocument> findByCustomerDeliveryIdAndAdminAdminId(Integer customerDeliveryId,
 			Integer adminId);
+
+	Optional<CustomerBookingDocument> findByCustomerOrderIdAndAdminAdminId(Integer customerOrderId, Integer adminId);
 }

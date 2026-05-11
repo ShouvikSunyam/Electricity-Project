@@ -98,6 +98,9 @@ public class Customer {
 
 	@Column(name = "customer_unique_id")
 	private String customerUniqueId;
+	
+	@Column(name = "lexoffice_number")
+	private String lexofficeNumber;
 
 	// This field is used for blocking and unblocking
 	private Boolean status;

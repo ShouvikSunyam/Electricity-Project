@@ -1,13 +1,19 @@
 package com.tarifvergleich.electricity.service.admin;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tarifvergleich.electricity.dto.AdminCreateOrderEgonDto;
@@ -55,6 +61,8 @@ public class AdminCustomerDeliveryManagementService {
 	private final EnergyService energyService;
 	private final FileServiceCustomer fileServiceCustomer;
 	private final CustomerOrderRepository customerOrderRepo;
+	private final AsyncServiceAdmin asyncServiceAdmin;
+	private final CustomerBookingDocumentRepository customerBookingDocumentRepo;
 
 	@Transactional
 	public Map<String, Object> editDeliveryDetailsByAdmin(AdminEditCustomerDeliveryRelated deliveryDetails) {
@@ -230,11 +238,6 @@ public class AdminCustomerDeliveryManagementService {
 			if (editCustomerSelectedProvider.getTotalPriceMonth() > 0)
 				provider.setTotalPriceMonth(editCustomerSelectedProvider.getTotalPriceMonth());
 
-			if (editCustomerSelectedProvider.getTermBeforeNewMaxDate() != null && editCustomerSelectedProvider
-					.getTermBeforeNewMaxDate().isBefore(helper.toGermalDateStamp(Helper.getCurrentTimeBerlin())))
-				customerDelivery.setExpiryOn(
-						helper.toGermamUnixTimestamp(editCustomerSelectedProvider.getTermBeforeNewMaxDate()));
-
 			provider.setRaw(objectMapper.valueToTree(editCustomerSelectedProvider));
 
 			customerDelivery.setCustomerProvider(provider);
@@ -299,7 +302,7 @@ public class AdminCustomerDeliveryManagementService {
 		if (customerOrderDto.getAdminId() == null || customerOrderDto.getAdminId() <= 0)
 			throw new InternalServerException("Admin id missing", HttpStatus.OK);
 		if (customerOrderDto.getCustomerOrderId() == null || customerOrderDto.getCustomerOrderId() <= 0)
-			throw new InternalServerException("Delivery id missing", HttpStatus.OK);
+			throw new InternalServerException("Customer order id missing", HttpStatus.OK);
 
 		CustomerOrder order = customerOrderRepo
 				.findByIdAndAdminAdminId(customerOrderDto.getCustomerOrderId(), customerOrderDto.getAdminId())
@@ -311,6 +314,7 @@ public class AdminCustomerDeliveryManagementService {
 		CustomerSelectedProvider provider = delivery.getCustomerProvider();
 
 		LocalDate expiry;
+		BigInteger totalTerm;
 
 		try {
 			expiry = helper.flexibleDateParser(provider.getRaw().get("optTerm").asText())
@@ -321,40 +325,79 @@ public class AdminCustomerDeliveryManagementService {
 					.minusDays(1).toLocalDate();
 		}
 
-		delivery.setExpiryOn(helper.toGermamUnixTimestamp(expiry));
+		totalTerm = BigInteger.valueOf(ChronoUnit.SECONDS.between(expiry.atStartOfDay(ZoneId.of("Europe/Berlin")),
+				ZonedDateTime.now(ZoneId.of("Europe/Berlin"))));
 
+		BigInteger cancelTime = BigInteger.valueOf(0);
+		if (provider.getRaw().get("cancel") != null && provider.getRaw().get("cancelType") != null) {
+			Integer cancel = Integer.parseInt(provider.getRaw().get("cancel").asText());
+			Integer cancelType = Integer.parseInt(provider.getRaw().get("cancelType").asText());
+			BigInteger expiryBigInt = helper.toGermamUnixTimestamp(expiry);
+
+			System.err.println("hello world");
+			if (cancelType.equals(0))
+				cancelTime = expiryBigInt.subtract(helper.getSecondValueOfDuration(0, 0, 0, 0, 0, 0));
+			else if (cancelType.equals(1))
+				cancelTime = expiryBigInt.subtract(helper.getSecondValueOfDuration(0, 0, cancel, 0, 0, 0));
+			else if (cancelType.equals(2))
+				cancelTime = expiryBigInt.subtract(helper.getSecondValueOfDuration(0, 0, cancel * 7, 0, 0, 0));
+			else if (cancelType.equals(3))
+				cancelTime = expiryBigInt.subtract(helper.getSecondValueOfDuration(0, cancel, 0, 0, 0, 0));
+		}
+
+		/* Map egon place order payload */
 		AdminCreateOrderEgonDto placeOrderRequest = AdminCreateOrderEgonDto.mapToEgonRequest(delivery, "new");
-
 		OrderListResponse placeOrderResponse = energyService.placeOrder(placeOrderRequest);
 
 		Long orderNo = Long.parseLong(placeOrderResponse.orders().getFirst().orderNo());
 
+		order.setAdminPlacedOrderOn(Helper.getCurrentTimeBerlin());
+		order.setAdminPlacedOrder(true);
+		order.setExpiryOn(helper.toGermamUnixTimestamp(expiry));
+		order.setLastDateOfCancellation(cancelTime);
+		order.setOrderId(orderNo);
+		order.setOperationPeriod(totalTerm);
+
 		delivery.setOrderNo(orderNo);
 		delivery.setOrderPlacedInEgon(true);
-		
-		customerDeliveryRepo.save(delivery);
+		delivery.setExpiryOn(helper.toGermamUnixTimestamp(expiry));
+		delivery.setLastDateOfCancellation(cancelTime);
+
+		order.setDelivery(delivery);
+
+		customerOrderRepo.save(order);
+
+		customerOrderDto.setOrderId(orderNo);
+
+		TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+			@Override
+			public void afterCommit() {
+				asyncServiceAdmin.downloadUnsignedPdf(customerOrderDto);
+			}
+		});
 
 		return Map.of("res", true, "message", "Order placed successfully", "Order no", orderNo);
 	}
 
 	@Transactional
-	public Map<String, Object> downloadUnsignedPdf(CustomerDeliveryDto deliveryDto) {
-		if (deliveryDto.getAdminId() == null || deliveryDto.getAdminId() <= 0)
+	public Map<String, Object> downloadUnsignedPdf(CustomerOrderDto customerOrderDto) {
+		if (customerOrderDto.getAdminId() == null || customerOrderDto.getAdminId() <= 0)
 			throw new InternalServerException("Admin id missing", HttpStatus.OK);
-		if (deliveryDto.getDeliveryId() == null || deliveryDto.getDeliveryId() <= 0)
-			throw new InternalServerException("Delivery id missing", HttpStatus.OK);
+		if (customerOrderDto.getCustomerOrderId() == null || customerOrderDto.getCustomerOrderId() <= 0)
+			throw new InternalServerException("Customer order id missing", HttpStatus.OK);
 
-		CustomerDelivery delivery = customerDeliveryRepo
-				.findByIdAndAdminAdminId(deliveryDto.getDeliveryId(), deliveryDto.getAdminId())
-				.orElseThrow(() -> new InternalServerException("Customer delivery not found with this credential",
+		CustomerOrder order = customerOrderRepo
+				.findByIdAndAdminAdminId(customerOrderDto.getCustomerOrderId(), customerOrderDto.getAdminId())
+				.orElseThrow(() -> new InternalServerException("Customer order not found with this credential",
 						HttpStatus.OK));
+
+		CustomerDelivery delivery = order.getDelivery();
 
 		if (!delivery.getOrderPlaced() || delivery.getOrderNo() == null || delivery.getOrderNo() <= 0)
 			throw new InternalServerException("Incomplete order", HttpStatus.OK);
 
-		CustomerBookingDocument bookingDoc = bookingDocumentRepo
-				.findByCustomerDeliveryIdAndAdminAdminId(deliveryDto.getDeliveryId(), deliveryDto.getAdminId())
-				.orElse(null);
+		CustomerBookingDocument bookingDoc = bookingDocumentRepo.findByCustomerOrderIdAndAdminAdminId(
+				customerOrderDto.getCustomerOrderId(), customerOrderDto.getAdminId()).orElse(null);
 
 		if (bookingDoc != null && !bookingDoc.getFileUrl().isEmpty()) {
 			CustomerBookingDocumentAdminResDto bookingDocRes = CustomerBookingDocumentDto
@@ -363,7 +406,7 @@ public class AdminCustomerDeliveryManagementService {
 		}
 
 		bookingDoc = CustomerBookingDocument.builder().orderNo(delivery.getOrderNo()).customer(delivery.getCustomerId())
-				.customerDelivery(delivery).admin(delivery.getAdmin()).build();
+				.customerDelivery(delivery).admin(delivery.getAdmin()).customerOrder(order).build();
 
 		EgonDocumentDto egonBookingResponse = energyService.createBookingPdf(delivery.getOrderNo().toString());
 
@@ -378,7 +421,9 @@ public class AdminCustomerDeliveryManagementService {
 			throw new RuntimeException();
 		}
 
-		bookingDoc = bookingDocumentRepo.save(bookingDoc);
+		order.setCustomerBookingDocument(bookingDoc);
+
+		customerOrderRepo.save(order);
 
 		CustomerBookingDocumentAdminResDto bookingDocRes = CustomerBookingDocumentDto.mapAdminBookingDocRes(bookingDoc);
 
@@ -404,6 +449,42 @@ public class AdminCustomerDeliveryManagementService {
 		newOrder = customerOrderRepo.save(newOrder);
 
 		return Map.of("res", true, "customerOrderId", newOrder.getId());
+	}
+
+	@Transactional
+	public Map<String, Object> uploadSignedPdf(CustomerOrderDto customerOrderDto, MultipartFile file) {
+
+		if (customerOrderDto.getAdminId() == null || customerOrderDto.getAdminId() <= 0)
+			throw new InternalServerException("Admin id missing", HttpStatus.OK);
+		if (customerOrderDto.getCustomerOrderId() == null || customerOrderDto.getCustomerOrderId() <= 0)
+			throw new InternalServerException("Customer order id missing", HttpStatus.OK);
+
+		if (file == null)
+			throw new InternalServerException("File missing", HttpStatus.OK);
+
+		CustomerOrder order = customerOrderRepo
+				.findByIdAndAdminAdminId(customerOrderDto.getCustomerOrderId(), customerOrderDto.getAdminId())
+				.orElseThrow(() -> new InternalServerException("Customer order not found with this credential",
+						HttpStatus.OK));
+		if (order.getCustomerBookingDocument() == null)
+			throw new InternalServerException("Previous record of unsigned document not found", HttpStatus.OK);
+
+		CustomerBookingDocument bookingDocument = order.getCustomerBookingDocument();
+
+		String base64File = helper.convertToBase64(file);
+
+		String filePath = fileServiceCustomer.saveFile(file, "customer-signed-documents");
+
+		if (filePath == null)
+			throw new InternalServerException("Error in saving document", HttpStatus.OK);
+
+		bookingDocument.setSignedDocumentSubmitted(true);
+		bookingDocument.setSignedFileUrl(filePath);
+		bookingDocument.setSignedFileUrl(file.getOriginalFilename());
+
+		customerBookingDocumentRepo.save(bookingDocument);
+
+		return Map.of("res", true, "message", "Customer signed document uploaded successfully");
 	}
 
 }
