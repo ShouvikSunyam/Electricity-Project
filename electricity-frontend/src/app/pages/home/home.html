@@ -3,16 +3,23 @@
     <div class="electricity-container">
       <div class="electricity">
         @if (isLoading) {
-        <p>Lade Services...</p>
+          <p>Lade Services...</p>
         } @else {
-        <button *ngFor="let item of sidebarItems" class="icon-btn-electricity"
-          [routerLink]="[getRouterLink(item.originalFileName)]" routerLinkActive="active">
-          <span class="electricity-comparison">
-            <img [src]="getImageUrl(item.contentUrl)" [class]="getIconClass(item.originalFileName)"
-              [alt]="item.originalFileName">
-          </span>
-          <span class="btn-text">{{ getLabel(item.originalFileName) }}</span>
-        </button>
+          <button
+            *ngFor="let item of sidebarItems"
+            class="icon-btn-electricity"
+            [routerLink]="[getRouterLink(item.originalFileName)]"
+            routerLinkActive="active"
+          >
+            <span class="electricity-comparison">
+              <img
+                [src]="getImageUrl(item.contentUrl)"
+                [class]="getIconClass(item.originalFileName)"
+                [alt]="item.originalFileName"
+              />
+            </span>
+            <span class="btn-text">{{ getLabel(item.originalFileName) }}</span>
+          </button>
         }
       </div>
     </div>
@@ -26,7 +33,7 @@
         <div class="container-items">
           <button *ngFor="let service of freeServices" class="icon-btn-service">
             <span class="our-services">
-              <img src="assets/icons/Haken_Blau.png" class="icon-check" alt="check">
+              <img src="assets/icons/Haken_Blau.png" class="icon-check" alt="check" />
             </span>
             <span class="btn-text">{{ service.heading }}</span>
           </button>
@@ -44,24 +51,6 @@
 <app-discount></app-discount>
 
 <div class="container-services-by-company">
-
-  <!-- about us -->
-  <div class="container-about">
-    <div class="container-header">Das sind wir</div>
-    <ng-container *ngFor="let about of aboutItems">
-      <div class="container-details">
-        <div class="image">
-          <img [src]="getImageUrl(about.contentUrl)" [alt]="about.heading">
-        </div>
-        <div class="about-text">
-          <span class="about-header"><strong>{{ about.heading }}</strong></span><br>
-          <span class="details" *ngIf="about.subHeading">{{ about.subHeading }}</span>
-        </div>
-      </div>
-    </ng-container>
-    <p *ngIf="!isLoading && aboutItems.length === 0">Keine Informationen verfügbar.</p>
-  </div>
-
   <!-- other services — dynamic only -->
   <div class="container-other-services">
     <div class="main-container-service">
@@ -71,7 +60,11 @@
           <ng-container *ngFor="let service of otherServices; let i = index">
             <button class="main-btn" *ngIf="i % 2 === 0">
               <span class="container-services">
-                <img [src]="getImageUrl(service.contentUrl)" class="icon-transport" [alt]="service.heading">
+                <img
+                  [src]="getImageUrl(service.contentUrl)"
+                  class="icon-transport"
+                  [alt]="service.heading"
+                />
               </span>
               <span class="btn-text">{{ service.heading }}</span>
             </button>
@@ -81,7 +74,11 @@
           <ng-container *ngFor="let service of otherServices; let i = index">
             <button class="main-btn" *ngIf="i % 2 !== 0">
               <span class="container-services">
-                <img [src]="getImageUrl(service.contentUrl)" class="icon-transport" [alt]="service.heading">
+                <img
+                  [src]="getImageUrl(service.contentUrl)"
+                  class="icon-transport"
+                  [alt]="service.heading"
+                />
               </span>
               <span class="btn-text">{{ service.heading }}</span>
             </button>
@@ -94,4 +91,22 @@
 
   <app-need-support></app-need-support>
 
+  <!-- about us -->
+  <div class="container-about">
+    <div class="container-header">Das sind wir</div>
+    <ng-container *ngFor="let about of aboutItems">
+      <div class="container-details">
+        <div class="image">
+          <img [src]="getImageUrl(about.contentUrl)" [alt]="about.heading" />
+        </div>
+        <div class="about-text">
+          <span class="about-header"
+            ><strong>{{ about.heading }}</strong></span
+          ><br />
+          <span class="details" *ngIf="about.subHeading">{{ about.subHeading }}</span>
+        </div>
+      </div>
+    </ng-container>
+    <p *ngIf="!isLoading && aboutItems.length === 0">Keine Informationen verfügbar.</p>
+  </div>
 </div>

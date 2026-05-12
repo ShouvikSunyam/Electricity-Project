@@ -1,30 +1,34 @@
 .home-container {
-  display:flex;
-  margin: 30px 0px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  gap: 4.5%;
+  display: flex;
+  margin: 0;
+  padding: 1.5rem 1.5rem 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  gap: 1.5rem;
   background-image: url('/assets/images/Slider_3_Strom_und_Gasvergleich_1920_700.png');
-  background-size: cover;      /* fill container */
-  background-position: center;  /* center the image */
+  background-size: cover;
+  background-position: center;
   background-repeat: no-repeat;
   width: 100%;
-  height:29rem;
+  min-height: auto;
+  align-items: flex-start;
 }
 
-.home-left{
+.home-left {
   display: flex;
   flex-direction: column;
-  gap:1.5rem;
-  margin: 0.6rem 0rem 0.5rem 1.5rem;
+  gap: 1.5rem;
+  margin: 0;
   border-radius: 8px;
-  width: 16.5%;
+  flex: 0 0 320px;
+  width: 320px;
 }
 
-.electricity-container{
-  background-color: rgba(255, 255, 255, 0.75);
+.electricity-container {
+  background-color: rgba(255, 255, 255, 0.9);
   display: flex;
   border-radius: 8px;
   width: 100%;
+  padding: 1rem;
 }
 
 .service-container {
@@ -33,14 +37,13 @@
   width: 100%;
 }
 
-.home-center{
-  min-width: 32rem;
-  margin: 0.6rem 0rem 1.5rem 0rem;
+.home-center {
+  flex: 1 1 auto;
+  min-width: 300px;
+  margin: 0;
   border-radius: 8px;
-  width: 60%;
+  width: auto;
 }
-
-
 
 /*  -----------------------------  electricity ----------------------- div */
 .electricity {
@@ -71,12 +74,10 @@
   padding: 0.2rem 0.5rem 0.2rem 0.5rem;
   border-radius: 6px;
   height: 32px;
-
 }
 
 .icon-btn-electricity:hover {
   background-color: #0085e0;
-
 }
 
 .icon-btn-electricity.active {
@@ -104,9 +105,8 @@
 }
 /* ----------------------*/
 
-
 /* ---------------------------------------------- our services  ------------------------------ */
-.service-container{
+.service-container {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -114,7 +114,7 @@
   height: 100%;
 }
 
-.our-services-header{
+.our-services-header {
   background-color: #ff6b00;
   padding: 0.2rem 0.3rem 0.4rem 0.3rem;
   font-size: 16px;
@@ -151,7 +151,7 @@
   /* background-color: #e0e0e0; */
 }
 
-.icon-check{
+.icon-check {
   height: 25px;
   width: 25px;
 }
@@ -160,36 +160,37 @@
   padding-left: 0.2rem;
 }
 
-/* --------- */
-
 /*  ----------------------  div below the discount bar --------------------- */
 
-.container-services-by-company{
+.container-services-by-company {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
-  gap: 2%;
+  gap: 1rem;
   padding: 0.6rem 1.75rem;
 }
 
 .container-other-services {
   flex: 1.3;
+  min-width: 280px;
 }
 .container-contact-us {
   flex: 0.68;
+  min-width: 280px;
 }
 
 /* -----------------------------------------------------  about us  ----------------------- */
-.container-about{
-  display: flex;
+.container-about {
+  display: block;
   flex: 1.9;
   background-color: #ffffff;
   font-size: 16px;
-  display: block;
+  min-width: 280px;
 }
 
-.container-header{
+.container-header {
   display: inline-block;
-  padding: 0.3rem 0.5rem  ;
+  padding: 0.3rem 0.5rem;
   background-color: #192a5e;
   color: #ffffff;
   font-size: 16px;
@@ -198,8 +199,8 @@
   border-top-left-radius: 8px;
 }
 
-.container-details{
-  display:flex;
+.container-details {
+  display: flex;
   gap: 1rem;
   align-items: stretch;
   padding: 0.6rem;
@@ -236,7 +237,7 @@
 /* ---------------- */
 
 /* ---------------------------------------------------------- other services --------------------------- */
-.main-container-service{
+.main-container-service {
   background-color: #ffffff;
   font-size: 16px;
   display: block;
@@ -260,15 +261,16 @@
 
 .contact-us {
   flex: 1;
-  display:flex;
+  display: flex;
   flex-direction: column;
   gap: 0.35rem;
   align-items: center;
   justify-content: center;
 }
 
-.container-all-services, .container-contact{
-  display:flex;
+.container-all-services,
+.container-contact {
+  display: flex;
   justify-content: space-between;
   border-bottom-right-radius: 8px;
   border-bottom-left-radius: 8px;
@@ -276,17 +278,22 @@
 }
 
 .container-all-services {
-  border-top-right-radius: 8px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1rem;
+  border-top-right-radius: 8px;
   padding: 0.9rem 1rem;
 }
 
-.container-contact{
-  display: inline-block;
+.container-contact {
+  display: flex;
+  flex: 1 1 280px;
   padding: 0.5rem 1rem;
+  width: 100%;
 }
 
-.container-services-left, .container-services-right{
+.container-services-left,
+.container-services-right {
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
@@ -321,7 +328,10 @@
   background-color: #e68830ef;
 }
 
- .icon-telephone, .icon-whatsapp, .icon-wechat, .icon-transport {
+.icon-telephone,
+.icon-whatsapp,
+.icon-wechat,
+.icon-transport {
   height: 20px;
   width: 20px;
 }
@@ -334,17 +344,119 @@
 
 /*  -------------------------- responsive design ---------------- */
 
+@media (min-width: 1024px) {
+  .home-container {
+    display: flex;
+    flex-direction: row;
+    gap: 1.5rem;
+  }
+
+  .home-left {
+    flex: 0 0 320px;
+    width: 320px;
+  }
+
+  .home-center {
+    flex: 1 1 auto;
+    width: auto;
+  }
+}
+
+@media (min-width: 1200px) {
+  .home-left {
+    flex: 0 0 340px;
+    width: 340px;
+  }
+}
+
 @media (min-width: 1600px) {
-
-  home-left{
-    width: 16.5%;
+  .home-left {
+    flex: 0 0 350px;
+    width: 350px;
   }
 }
 
+@media (max-width: 1023px) {
+  .home-container {
+    flex-direction: column;
+    gap: 1rem;
+  }
 
-@media (min-width: 1900px) {
-  .home-left{
-    width: 13.1%;
+  .home-center {
+    width: 100%;
+    max-width: 100%;
+    margin-left: 0;
+  }
+
+  .home-left {
+    width: 100%;
+    max-width: 100%;
+    margin-left: 0;
+    flex: 1 1 auto;
+  }
+
+  .container-services-by-company {
+    padding: 0.6rem 0.8rem;
   }
 }
 
+@media (max-width: 768px) {
+  .home-container {
+    gap: 0.75rem;
+  }
+
+  .container-all-services {
+    grid-template-columns: 1fr;
+  }
+
+  .container-contact {
+    flex-direction: column;
+    padding: 0.75rem;
+  }
+
+  .container-services-left,
+  .container-services-right {
+    width: 100%;
+  }
+
+  .container-services-by-company {
+    padding: 0.6rem 0.6rem;
+  }
+
+  .container-about,
+  .container-other-services {
+    width: 100% !important;
+    flex: 1 1 auto !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .home-left {
+    margin: 0.6rem 0.5rem;
+  }
+
+  .home-container {
+    gap: 0.5rem;
+  }
+
+  .container-services-by-company {
+    padding: 0.6rem 0.5rem;
+  }
+
+  .container-details {
+    flex-direction: column;
+    padding: 0.5rem;
+  }
+
+  .image img {
+    width: 100%;
+    height: auto;
+  }
+
+  .icon-btn-electricity,
+  .icon-btn-service,
+  .main-btn {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
