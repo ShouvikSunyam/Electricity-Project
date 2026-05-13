@@ -138,6 +138,7 @@
                         matInput
                         name="moveInDate"
                         [matDatepicker]="moveInPicker"
+                        [min]="minMoveInDate"
                         placeholder="TT.MM.JJJJ"
                         [(ngModel)]="moveInDate"
                         (click)="moveInPicker.open()"
@@ -221,6 +222,9 @@
                         value=""
                       />
                     </div>
+                    <span *ngIf="validationErrors['marketLocationId']" class="error-hint">
+                      {{ validationErrors['marketLocationId'] }}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -256,6 +260,27 @@
                 <span *ngIf="validationErrors['currentProvider']" class="error-hint">
                   {{ validationErrors['currentProvider'] }}
                 </span>
+              </div>
+              <div>
+                <span class="info-base info-circ">i</span>
+              </div>
+            </div>
+
+            <!-- Kundennummer/Vertragskonto beim bisherigen
+              Anbieter
+              -->
+
+            <div class="toggle-row" style="margin-bottom: 12px; margin-top: 10px">
+              <div class="form-group">
+                <div class="field-wrap">
+                  <span class="field-label"
+                    >Kundennummer/Vertragskonto beim bisherigen Anbieter
+                  </span>
+                  <input name="customerNumber" type="text" [(ngModel)]="customerNumber" value="" />
+                </div>
+                <!-- <span *ngIf="validationErrors['customerNumber']" class="error-hint">
+                  {{ validationErrors['customerNumber'] }}
+                </span> -->
               </div>
               <div>
                 <span class="info-base info-circ">i</span>
@@ -393,6 +418,7 @@
                           matInput
                           name="desiredDeliveryDate"
                           [matDatepicker]="wunschPicker"
+                          [min]="minDesiredDate"
                           placeholder="TT.MM.JJJJ"
                           [(ngModel)]="desiredDeliveryDate"
                           (click)="wunschPicker.open()"

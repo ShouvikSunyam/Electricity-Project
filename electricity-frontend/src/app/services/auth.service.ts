@@ -29,6 +29,7 @@ const AUTH_STORAGE_KEY = 'auth_user';
 const ADDRESS_KEY = 'address_data';
 const PROVIDER_STORAGE_KEY = 'selected_provider';
 const ALL_PROVIDERS_KEY = 'all_providers_list';
+const CONTRACT_STORAGE_KEY = 'selected_contract';
 
 @Injectable({
   providedIn: 'root',
@@ -40,7 +41,7 @@ export class AuthService {
   private addressData: any | null = null;
 
   /* Internal BehaviorSubject to track auth state */
-  private authState$: BehaviorSubject<AuthUser | null> = new BehaviorSubject<AuthUser | null>(null);
+  authState$: BehaviorSubject<AuthUser | null> = new BehaviorSubject<AuthUser | null>(null);
 
   constructor(
     private router: Router,
@@ -93,7 +94,7 @@ export class AuthService {
   }
 
   /* Clear localStorage */
-  private clearStorage(): void {
+  clearStorage(): void {
     if (!this.isBrowser()) return;
 
     try {
@@ -475,7 +476,7 @@ export class AuthService {
     this.clearAllProviders();
   }
 
-  private customerData$ = new BehaviorSubject<any | null>(null);
+  customerData$ = new BehaviorSubject<any | null>(null);
 
   // MUST exist
   getCustomerData(): Observable<any | null> {
@@ -520,5 +521,39 @@ export class AuthService {
           console.error('API Error:', err);
         },
       });
+  }
+
+  // select contract
+
+  setSelectedContract(contract: any): void {
+    if (!this.isBrowser()) return;
+
+    try {
+      localStorage.setItem(CONTRACT_STORAGE_KEY, JSON.stringify(contract));
+    } catch (error) {
+      console.error('Error saving contract:', error);
+    }
+  }
+
+  getSelectedContract(): any {
+    if (!this.isBrowser()) return null;
+
+    try {
+      const data = localStorage.getItem(CONTRACT_STORAGE_KEY);
+      return data ? JSON.parse(data) : null;
+    } catch (error) {
+      console.error('Error getting contract:', error);
+      return null;
+    }
+  }
+
+  clearSelectedContract(): void {
+    if (!this.isBrowser()) return;
+
+    try {
+      localStorage.removeItem(CONTRACT_STORAGE_KEY);
+    } catch (error) {
+      console.error('Error clearing contract:', error);
+    }
   }
 }

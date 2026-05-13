@@ -155,7 +155,12 @@ export class CheckoutPage implements OnInit {
   providerDetails: any = null;
   ngOnInit(): void {
     this.fetchFormData();
-    this.providerDetails = this.authService.getSelectedProvider();
+    this.setDefaultSelectedDay();
+    const storedAddress = this.authService.getAddressData();
+    this.providerDetails = {
+      ...this.authService.getSelectedProvider(),
+      consumption: storedAddress?.consumption || null,
+    };
   }
 
   openPage(): void {
@@ -324,7 +329,11 @@ export class CheckoutPage implements OnInit {
   isDayEnabled(dayValue: string): boolean {
     return this.enabledDays.has(dayValue);
   }
-
+  private setDefaultSelectedDay(): void {
+    if (this.filteredDays.length > 0) {
+      this.selectedDay = this.filteredDays[0].value;
+    }
+  }
   /**
    * A time slot is enabled when:
    *  - No day is selected yet (preview state — all shown as selectable), OR

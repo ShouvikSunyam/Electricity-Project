@@ -559,11 +559,11 @@
             </div>
           </div>
           <div class="provider-price">
-            <div class="provider-price__amount">
+            <div class="provider-price__amount" translate="no">
               {{ getAveragePrice(baseRate) | number: '1.2-2' }}
               {{ priceDisplayMonthly ? '€' : '€' }}
             </div>
-            <div class="provider-price__sub">
+            <div class="provider-price__sub" translate="no">
               {{ priceDisplayMonthly ? 'Ø pro Monat' : 'pro Jahr' }} &nbsp;<span
                 class="info-base info-circ"
                 >i</span
@@ -985,13 +985,13 @@
 
           <!-- Price -->
           <div class="tc-price">
-            <div class="tc-price__amount">{{ getDisplayPrice(rate) | number: '1.2-2' }} €</div>
+            <div class="tc-price__amount" translate="no">{{ getDisplayPrice(rate) | number: '1.2-2' }} €</div>
             <div class="tc-price__sub">
               {{ getDisplayPriceSuffix() }} &nbsp;<span class="info-base info-circ">i</span>
             </div>
             <div class="tc-price__savings" *ngIf="getSavingPerYear(rate)">
               Sie sparen:
-              <span class="amount" style="color: red">
+              <span class="amount" style="color: red" translate="no">
                 {{
                   (priceDisplayMonthly ? getSavingPerYear(rate) / 12 : getSavingPerYear(rate))
                     | number: '1.2-2'
@@ -1118,7 +1118,7 @@
                 <div class="sub">(gerechnet auf 12 Monate, ohne Boni und Rabatte)</div>
               </div>
 
-              <div class="price">
+              <div class="price" translate="no">
                 {{
                   activeTab === 'abschlag'
                     ? (editableMonthlyPrice | number: '1.2-2')
@@ -1226,6 +1226,7 @@
                       step="0.01"
                       [(ngModel)]="editableBasePrice"
                       (ngModelChange)="onBasePriceInputChange()"
+                      translate="no"
                     />
                   </div>
 

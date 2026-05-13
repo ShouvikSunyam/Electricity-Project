@@ -149,7 +149,7 @@
         <div class="meter-section-header">Meine Zähler</div>
 
         <div class="meter-wrapper">
-          <div class="meter-card" *ngFor="let item of meterList" (click)="nextStep(2)">
+          <div class="meter-card" *ngFor="let item of meterList">
             <!-- TOP -->
 
             <!-- PROVIDER BADGE -->
@@ -190,7 +190,7 @@
                 <p>{{ item.address.street }}</p>
                 <p>{{ item.address.city }}</p>
 
-                <button class="meter-blue-btn">Zählerstand melden</button>
+                <button class="meter-blue-btn" (click)="nextStep(2)">Zählerstand melden</button>
 
                 <button class="meter-blue-btn">Zähleraustausch melden</button>
 
@@ -1796,17 +1796,14 @@
       </div>
 
       <div class="tab-row">
-        <div
-          class="success-box"
-          *ngIf="activeTab === 5 && approvalStatus === 'PENDING' && recordIsPresent"
-        >
+        <div class="success-box" *ngIf="activeTab === 5 && isRevoked">
           <div class="success-content">
             <div class="success-row">
               <img src="assets/icons/Kreis_Haken_gruen.png" alt="success" />
 
               <div class="text-block">
-                <div class="tab-header">Beratervollmacht erfolgreich erstellt!</div>
-                <div class="tab-text">Erstellt am {{ attorneyCreatedOn }}</div>
+                <div class="tab-header">Beratervollmacht erfolgreich widerrufen</div>
+                <!-- <div class="tab-text">Erstellt am {{ attorneyCreatedOn }}</div> -->
               </div>
             </div>
           </div>
@@ -2654,7 +2651,9 @@
 
         <!-- Back / Next -->
         <div style="flex-direction: row; justify-content: space-between; margin-top: 10px">
-          <!-- <button class="btn-back">&lt; Zurück</button> -->
+          <button class="btn-back">
+            &lt; Altes Passwort vergessen? Jetzt per E-Mail zurücksetzen!
+          </button>
           <div class="form-actions">
             <button
               type="button"
@@ -2791,3 +2790,4 @@
     <!--══════════ Reset Password End ══════════-->
   </div>
 </div>
+

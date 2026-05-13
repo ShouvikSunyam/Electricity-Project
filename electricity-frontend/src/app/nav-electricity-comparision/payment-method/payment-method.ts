@@ -25,6 +25,8 @@ interface CustomerPayment {
     lastName?: string | null;
   } | null;
   sepaConsent?: boolean | null;
+  firstName?: string | null;
+  lastName?: string | null;
 }
 
 interface CustomerFormData extends CustomerPayment {
@@ -110,7 +112,11 @@ export class PaymentMethod implements OnInit, OnDestroy {
   private initForm(): void {
     this.resetFields();
     this.fetchFormData();
-    this.providerDetails = this.authService.getSelectedProvider();
+    const storedAddress = this.authService.getAddressData();
+    this.providerDetails = {
+      ...this.authService.getSelectedProvider(),
+      consumption: storedAddress?.consumption || null,
+    };
   }
 
   private resetFields(): void {
@@ -151,28 +157,48 @@ export class PaymentMethod implements OnInit, OnDestroy {
    */
   private validate(): boolean {
     this.validationErrors = {};
+    const errors: any = {};
 
     if (this.paymentMethod === 'lastschrift') {
       // IBAN — required and must be non-empty
       if (!this.iban?.trim()) {
-        this.validationErrors['iban'] = 'Bitte geben Sie Ihre IBAN ein.';
-      }
+        errors['iban'] = 'Bitte geben Sie Ihre IBAN ein.';
+        this.cdr.detectChanges();
+      } else {
+        const iban = this.iban.replace(/\s/g, '').toUpperCase();
 
-      // First name — required
+        const germanIbanRegex = /^DE\d{20}$/;
+
+        if (!germanIbanRegex.test(iban)) {
+          errors['iban'] = 'Bitte geben Sie eine gültige deutsche IBAN ein.';
+        }
+        this.cdr.detectChanges();
+      }
+      // First name — required + no numbers
       if (!this.firstName?.trim()) {
-        this.validationErrors['firstName'] = 'Bitte geben Sie Ihren Vornamen ein.';
+        errors['firstName'] = 'Bitte geben Sie Ihren Vornamen ein.';
+        this.cdr.detectChanges();
+      } else if (/\d/.test(this.firstName)) {
+        errors['firstName'] = 'Der Vorname darf keine Zahlen enthalten.';
+        this.cdr.detectChanges();
       }
 
-      // Last name — required
+      // Last name — required + no numbers
       if (!this.lastName?.trim()) {
-        this.validationErrors['lastName'] = 'Bitte geben Sie Ihren Nachnamen ein.';
+        errors['lastName'] = 'Bitte geben Sie Ihren Nachnamen ein.';
+        this.cdr.detectChanges();
+      } else if (/\d/.test(this.lastName)) {
+        errors['lastName'] = 'Der Nachname darf keine Zahlen enthalten.';
+        this.cdr.detectChanges();
       }
-
       // SEPA consent — must be accepted
       if (!this.sepaConsent) {
-        this.validationErrors['sepaConsent'] = 'Bitte stimmen Sie dem SEPA-Lastschriftmandat zu.';
+        errors['sepaConsent'] = 'Bitte stimmen Sie dem SEPA-Lastschriftmandat zu.';
       }
     }
+
+    this.validationErrors = errors;
+    this.cdr.detectChanges();
 
     return Object.keys(this.validationErrors).length === 0;
   }
@@ -286,6 +312,7 @@ export class PaymentMethod implements OnInit, OnDestroy {
   private prefillForm(data: CustomerFormData | null): void {
     const payment = data?.customerPayment || data?.paymentData || data;
 
+    console.log('paymentData:', payment);
     if (!payment) {
       return;
     }
@@ -296,10 +323,24 @@ export class PaymentMethod implements OnInit, OnDestroy {
 
     if (normalizedMethod === 'lastschrift') {
       this.iban = payment.iban || '';
-      this.firstName = payment.accountHolderFirstName || payment.accountHolder?.firstName || '';
-      this.lastName = payment.accountHolderLastName || payment.accountHolder?.lastName || '';
+      this.firstName =
+        payment.accountHolderFirstName ||
+        payment.accountHolder?.firstName ||
+        payment.firstName ||
+        '';
+      this.lastName =
+        payment.accountHolderLastName || payment.accountHolder?.lastName || payment.lastName || '';
       this.sepaConsent = !!payment.sepaConsent;
+    } else {
+      this.firstName =
+        payment.accountHolderFirstName || payment.accountHolder?.firstName || data?.firstName || '';
+      this.lastName =
+        payment.accountHolderLastName || payment.accountHolder?.lastName || data?.lastName || '';
     }
+
+    console.log('firstname payment ', payment.firstName);
+    console.log('firstname ', this.firstName);
+    this.cdr.detectChanges();
   }
 
   private normalizePaymentMethod(paymentMethod?: string | null): string {
@@ -390,8 +431,10 @@ export class PaymentMethod implements OnInit, OnDestroy {
 
     const method = payment.paymentMethod.toLowerCase();
     if (method.includes('lastschrift')) {
-      const first = payment.accountHolderFirstName || payment.accountHolder?.firstName;
-      const last = payment.accountHolderLastName || payment.accountHolder?.lastName;
+      const first =
+        payment.accountHolderFirstName || payment.accountHolder?.firstName || payment?.firstName;
+      const last =
+        payment.accountHolderLastName || payment.accountHolder?.lastName || payment?.lastName;
       return !!(payment.iban && first && last && payment.sepaConsent);
     }
 

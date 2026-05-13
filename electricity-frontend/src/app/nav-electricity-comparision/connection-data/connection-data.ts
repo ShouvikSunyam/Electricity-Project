@@ -37,6 +37,7 @@ interface CustomerConnection {
     desiredDate?: number | string | null;
   } | null;
   marketLocationId?: string | null;
+  customerNumber?: string | null;
 }
 
 interface CustomerFormData extends CustomerConnection {
@@ -76,7 +77,19 @@ export class ConnectionData implements OnInit, OnDestroy {
   submitLaterChecked: boolean = false;
   meterNumber: string = '';
   marketLocationId: string = '';
+  customerNumber: string = '';
+  // Minimum selectable date = today + 14 days
+  minMoveInDate: Date = (() => {
+    const date = new Date();
+    date.setDate(date.getDate() + 14);
+    return date;
+  })();
 
+  minDesiredDate: Date = (() => {
+    const date = new Date();
+    date.setDate(date.getDate() + 14);
+    return date;
+  })();
   // ── Cancellation options (only when selection === 'no') ──────────────────
   currentProvider: string = '';
   autoCancellation: boolean = true;
@@ -126,7 +139,6 @@ export class ConnectionData implements OnInit, OnDestroy {
         }
       });
     this.providersList = this.authService.getAllProviders();
-
   }
 
   ngOnDestroy(): void {
@@ -136,7 +148,11 @@ export class ConnectionData implements OnInit, OnDestroy {
   private initForm(): void {
     this.resetFields();
     this.fetchFormData();
-    this.providerDetails = this.authService.getSelectedProvider();
+    const storedAddress = this.authService.getAddressData();
+    this.providerDetails = {
+      ...this.authService.getSelectedProvider(),
+      consumption: storedAddress?.consumption || null,
+    };
   }
 
   private resetFields(): void {
@@ -192,47 +208,60 @@ export class ConnectionData implements OnInit, OnDestroy {
    */
   private validate(): boolean {
     this.validationErrors = {};
+    const errors: any = {};
 
     // Move-in date — required only when user is moving in
     if (this.selection === 'yes') {
       if (!this.moveInDate) {
-        this.validationErrors['moveInDate'] = 'Bitte wählen Sie ein Einzugsdatum.';
+        errors['moveInDate'] = 'Bitte wählen Sie ein Einzugsdatum.';
       }
     }
     // if (!this.submitLaterChecked) {
-    //   this.validationErrors['submitLaterChecked'] =
+    //   errors['submitLaterChecked'] =
     //     ' Bitte bestätigen Sie, dass Sie die Daten später absenden werden.';
     // }
 
     // Meter number — required unless the user checked "Ich reiche … nach"
-    if (!this.meterNumber?.trim()) {
-      this.validationErrors['meterNumber'] = 'Bitte geben Sie Ihre Zählernummer ein.';
-      console.log('validation errror:', this.validationErrors['meterNumber']);
+    // Meter number validation
+    if (!this.meterNumber || this.meterNumber.trim() === '') {
+      errors['meterNumber'] = 'Bitte geben Sie Ihre Zählernummer ein.';
+      this.cdr.detectChanges();
+    } else if (/\s/.test(this.meterNumber)) {
+      errors['meterNumber'] = 'Die Zählernummer darf keine Leerzeichen enthalten.';
+      this.cdr.detectChanges();
+    }
+
+    // Market Location ID (optional)
+    if (this.marketLocationId?.trim()) {
+      if (!/^\d{11}$/.test(this.marketLocationId)) {
+        errors['marketLocationId'] = 'Die Marktlokations-ID muss aus genau 11 Ziffern bestehen.';
+      }
     }
 
     if (this.selection === 'no') {
       // Current provider
       if (!this.currentProvider) {
-        this.validationErrors['currentProvider'] =
-          'Bitte wählen Sie Ihren derzeitigen Stromanbieter.';
+        errors['currentProvider'] = 'Bitte wählen Sie Ihren derzeitigen Stromanbieter.';
       }
 
       const isAnySelected = this.autoCancellation || this.alreadyCancelled || this.selfCancellation;
 
       if (!isAnySelected) {
-        this.validationErrors['cancellationOption'] =
-          'Bitte wählen Sie mindestens eine Kündigungsoption aus.';
+        errors['cancellationOption'] = 'Bitte wählen Sie mindestens eine Kündigungsoption aus.';
       }
 
       if (!this.deliveryOption) {
-        this.validationErrors['deliveryOption'] = 'Bitte wählen Sie eine Lieferoption aus.';
+        errors['deliveryOption'] = 'Bitte wählen Sie eine Lieferoption aus.';
       }
       // Desired delivery date — required only when "Wunschtermin" is chosen
       if (this.deliveryOption === 'wunschtermin' && !this.desiredDeliveryDate) {
-        this.validationErrors['desiredDeliveryDate'] = 'Bitte wählen Sie Ihren Wunschtermin.';
+        errors['desiredDeliveryDate'] = 'Bitte wählen Sie Ihren Wunschtermin.';
       }
     }
 
+    this.validationErrors = errors;
+
+    this.cdr.detectChanges();
     return Object.keys(this.validationErrors).length === 0;
   }
 
@@ -262,6 +291,7 @@ export class ConnectionData implements OnInit, OnDestroy {
         submitLater: this.submitLaterChecked,
         meterNumber: this.meterNumber,
         marketLocationId: this.marketLocationId,
+        customerNumber: this.customerNumber,
         ...(this.selection === 'no' && {
           currentProvider: this.currentProvider,
           cancellation: {
@@ -361,6 +391,7 @@ export class ConnectionData implements OnInit, OnDestroy {
     this.submitLaterChecked = this.toBoolean(connection.submitLater);
     this.meterNumber = connection.meterNumber || '';
     this.marketLocationId = connection.marketLocationId || '';
+    this.customerNumber = connection.customerNumber || '';
 
     if (this.selection === 'no') {
       this.currentProvider = connection.currentProvider || '';

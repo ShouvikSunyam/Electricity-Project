@@ -190,8 +190,20 @@ AUTH MODE
       this.router.navigate([this.mainStepRoutes[2]]);
     } else if (this.selectedOption === 'different') {
       this.currentStep = 1;
-
+      this.authService.authState$.next(null);
+      this.authService.customerData$.next(null);
+      this.authService.currentUser.set(null);
+      this.authService.clearStorage();
       this.clearField();
+
+      this.cdr.detectChanges();
+      this.isLoggedIn = this.authService.isLoggedIn();
+      if (this.isLoggedIn && this.authMode == 'login') {
+        this.currentStep = 5;
+        this.selectedOption = 'same';
+      } else {
+        this.currentStep = 1;
+      }
     } else {
       console.log('Please select an option');
     }

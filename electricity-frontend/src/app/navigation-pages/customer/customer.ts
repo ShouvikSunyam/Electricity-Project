@@ -775,6 +775,10 @@ export class Customer {
     const order = item.order || {};
 
     return {
+      connection: connection,
+      billingAddress: item.billingAddress,
+      customer: item.customer,
+      customerAddress: address,
       logo: provider.providerSVG || 'assets/icons/default.png',
       title: provider.rateName || 'N/A',
       icon: this.getIconByBranch(provider.branch),
@@ -828,6 +832,7 @@ export class Customer {
     console.log('Saving address:', data);
 
     this.authService.setAddressData(data);
+    this.authService.setSelectedContract(contract);
 
     this.router.navigate(['/electricity-comparision']);
   }
@@ -1511,6 +1516,7 @@ export class Customer {
   recordIsPresent: boolean = false;
   approvalStatus: string = '';
   attorneyCreatedOn: string = '';
+  isRevoked: boolean = false;
 
   @ViewChild('canvas') canvasRef!: ElementRef<HTMLCanvasElement>;
   signaturePad!: SignaturePad;
@@ -1531,7 +1537,7 @@ export class Customer {
   clear() {
     this.signaturePad.clear();
   }
-  
+
   attorneyMailSend() {
     const customerId = this.authService.getUserId() || 0;
     const payload = { id: customerId, adminId: 1 };
@@ -1554,11 +1560,12 @@ export class Customer {
     const payload = { id: customerId };
 
     this.http.post<any>(`${API_BASE}/customer/check-attorny`, payload).subscribe({
-      next: ({ res, recordIsPresent, approvalStatus, createdOn }) => {
+      next: ({ res, recordIsPresent, approvalStatus, createdOn, isRevoked }) => {
         if (res) {
           this.recordIsPresent = recordIsPresent;
           this.approvalStatus = approvalStatus;
           this.attorneyCreatedOn = this.formatAttorneyDate(createdOn);
+          this.isRevoked = isRevoked;
 
           if (this.activeTab === 5 && this.approvalStatus === 'PENDING' && this.recordIsPresent) {
             this.nextStep(3);
@@ -1613,7 +1620,7 @@ export class Customer {
 
         if (res) {
           console.log('Success:', message);
-
+          this.isRevoked = true;
           this.nextStep(1);
           this.cdr.detectChanges();
         }
