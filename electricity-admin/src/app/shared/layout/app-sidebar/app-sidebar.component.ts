@@ -134,7 +134,6 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
       </svg>`,
       subItems: [{ name: "Callback Requests", path: "/customer-callback" }],
     },
-
     {
       name: "Content",
       icon: `
@@ -178,6 +177,10 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
         {
           name: "Content Pdf",
           path: "/content",
+        },
+        {
+          name: "Static Content",
+          path: "/static-content",
         },
       ],
     },
