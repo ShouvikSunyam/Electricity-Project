@@ -121,46 +121,9 @@
           </td>
 
           <!-- Order status badge -->
-          <!-- <td class="px-4 py-4">
-            <span class="px-2.5 py-0.5 rounded-full text-xs font-medium" [class.bg-green-100]="booking.orderPlaced"
-              [class.text-green-700]="booking.orderPlaced" [class.dark:bg-green-900\/30]="booking.orderPlaced"
-              [class.dark:text-green-400]="booking.orderPlaced" [class.bg-yellow-100]="!booking.orderPlaced"
-              [class.text-yellow-700]="!booking.orderPlaced" [class.dark:bg-yellow-900\/30]="!booking.orderPlaced"
-              [class.dark:text-yellow-400]="!booking.orderPlaced">
-              {{ booking.orderPlaced ? 'Bestätigt' : 'Offen' }}
-            </span>
-          </td> -->
           <td class="px-4 py-4">
-            <span class="px-2.5 py-0.5 rounded-full text-xs font-medium"
-              [class.bg-red-100]="booking.order?.doc?.signedFileUrl"
-              [class.text-red-700]="booking.order?.doc?.signedFileUrl"
-              [class.dark:bg-red-900\/30]="booking.order?.doc?.signedFileUrl"
-              [class.dark:text-red-400]="booking.order?.doc?.signedFileUrl"
-              [class.bg-purple-100]="booking.order?.adminPlacedOrder && !booking.order?.doc?.signedFileUrl"
-              [class.text-purple-700]="booking.order?.adminPlacedOrder && !booking.order?.doc?.signedFileUrl"
-              [class.dark:bg-purple-900\/30]="booking.order?.adminPlacedOrder && !booking.order?.doc?.signedFileUrl"
-              [class.dark:text-purple-400]="booking.order?.adminPlacedOrder && !booking.order?.doc?.signedFileUrl"
-              [class.bg-blue-100]="booking.order?.orderStatus === 0 && !booking.order?.adminPlacedOrder"
-              [class.text-blue-700]="booking.order?.orderStatus === 0 && !booking.order?.adminPlacedOrder"
-              [class.dark:bg-blue-900\/30]="booking.order?.orderStatus === 0 && !booking.order?.adminPlacedOrder"
-              [class.dark:text-blue-400]="booking.order?.orderStatus === 0 && !booking.order?.adminPlacedOrder"
-              [class.bg-gray-100]="booking.order === null" [class.text-gray-700]="booking.order === null"
-              [class.dark:bg-gray-900\/30]="booking.order === null" [class.dark:text-gray-400]="booking.order === null"
-              [class.bg-yellow-100]="booking.orderPlaced === false"
-              [class.text-yellow-700]="booking.orderPlaced === false"
-              [class.dark:bg-yellow-900\/30]="booking.orderPlaced === false"
-              [class.dark:text-yellow-400]="booking.orderPlaced === false">
-              {{
-              booking.order?.doc?.signedFileUrl
-              ? 'Expired'
-              : booking.order?.adminPlacedOrder
-              ? 'Document Uploaded'
-              : booking.order?.orderStatus === 0
-              ? 'Order Created'
-              : booking.order === null
-              ? 'Open Order'
-              : 'Pending'
-              }}
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-medium" [ngClass]="getBookingStatusClass(booking)">
+              {{ getBookingStatus(booking) }}
             </span>
           </td>
 
@@ -189,7 +152,7 @@
 
           <!-- Delivery date -->
           <td class="px-4 py-4 text-gray-600 dark:text-gray-400 text-xs whitespace-nowrap">
-            {{ formatDate(booking.order?.doc?.addedOn) }}
+            <!-- {{ formatDate(booking.order?.doc?.addedOn) }} -->
           </td>
 
           <!-- Actions -->

@@ -14,15 +14,21 @@ import { environment } from "../../../../environments/environment";
 type SignatureResponse = {
   res?: boolean;
   data?: {
+    adminSignatureId?: number | null;
+    id?: number | null;
     signature?: string | null;
     signatureUrl?: string | null;
     adminSignature?: string | null;
     adminSignatureUrl?: string | null;
+    filePath?: string | null;
   } | string | null;
+  adminSignatureId?: number | null;
+  id?: number | null;
   signature?: string | null;
   signatureUrl?: string | null;
   adminSignature?: string | null;
   adminSignatureUrl?: string | null;
+  filePath?: string | null;
   message?: string;
 };
 
@@ -49,9 +55,10 @@ export class AdminSignatureComponent implements OnInit, AfterViewInit {
   @ViewChild("signatureCanvas") signatureCanvas?: ElementRef<HTMLCanvasElement>;
 
   signaturePreview = "";
+  adminSignatureId: number | null = null;
   isLoading = false;
   isSaving = false;
-  isEditing = false;
+  isEditing = true;
   hasDrawn = false;
   successMessage = "";
   errorMessage = "";
@@ -97,7 +104,8 @@ export class AdminSignatureComponent implements OnInit, AfterViewInit {
           this.signaturePreview = this.normalizeSignatureSource(
             this.extractSignature(res),
           );
-          this.isEditing = !this.signaturePreview;
+          this.adminSignatureId = this.extractSignatureId(res);
+          this.isEditing = true;
           this.resetDraft();
           setTimeout(() => this.prepareCanvas());
         },
@@ -120,7 +128,7 @@ export class AdminSignatureComponent implements OnInit, AfterViewInit {
   }
 
   cancelEdit(): void {
-    this.isEditing = !this.signaturePreview;
+    this.isEditing = true;
     this.errorMessage = "";
     this.successMessage = "";
     this.resetDraft();
@@ -192,19 +200,29 @@ export class AdminSignatureComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    const payload = new FormData();
-    payload.append("data", JSON.stringify({"adminId": 1}));
+    const adminId = this.authService.getUserId();
+    if (!adminId) {
+      this.isSaving = false;
+      this.errorMessage = "Admin id not found. Please login again.";
+      return;
+    }
 
-    // payload.append("data", String(this.authService.getUserId() ?? ""));
+    const payload = new FormData();
+    const requestData: { adminId: number; adminSignatureId?: number } = {
+      adminId,
+    };
+
+    if (this.adminSignatureId) {
+      requestData.adminSignatureId = this.adminSignatureId;
+    }
+
+    payload.append("data", JSON.stringify(requestData));
     payload.append(
       "file",
       new File([signatureBlob], "admin-signature.png", {
         type: "image/png",
       }),
     );
-
-
-    console.log(payload);
 
     this.api.post(SAVE_SIGNATURE_ENDPOINT, payload).subscribe({
       next: (res: SignatureResponse) => {
@@ -214,12 +232,13 @@ export class AdminSignatureComponent implements OnInit, AfterViewInit {
           return;
         }
 
+        this.adminSignatureId = this.extractSignatureId(res) || this.adminSignatureId;
         this.signaturePreview =
           this.normalizeSignatureSource(this.extractSignature(res)) ||
           adminSignaturePreview;
         this.successMessage = res?.message || "Signatur wurde erfolgreich gespeichert.";
-        this.isEditing = false;
         this.resetDraft();
+        setTimeout(() => this.prepareCanvas());
       },
       error: (err) => {
         this.isSaving = false;
@@ -234,7 +253,7 @@ export class AdminSignatureComponent implements OnInit, AfterViewInit {
 
     const canvas = this.signatureCanvas.nativeElement;
     const parentWidth = canvas.parentElement?.clientWidth || 720;
-    const cssWidth = Math.max(this.minCanvasWidth, parentWidth);
+    const cssWidth = Math.max(this.minCanvasWidth, Math.min(parentWidth, 760));
     const cssHeight = this.canvasHeight;
     const scale = window.devicePixelRatio || 1;
 
@@ -369,13 +388,30 @@ export class AdminSignatureComponent implements OnInit, AfterViewInit {
     return (
       data?.signatureUrl ||
       data?.adminSignatureUrl ||
+      data?.filePath ||
       data?.signature ||
       data?.adminSignature ||
       res?.signatureUrl ||
       res?.adminSignatureUrl ||
+      res?.filePath ||
       res?.signature ||
       res?.adminSignature ||
       ""
+    );
+  }
+
+  private extractSignatureId(res: SignatureResponse): number | null {
+    const data = res?.data;
+    if (typeof data === "string" || !data) {
+      return res?.adminSignatureId || res?.id || null;
+    }
+
+    return (
+      data?.adminSignatureId ||
+      data?.id ||
+      res?.adminSignatureId ||
+      res?.id ||
+      null
     );
   }
 

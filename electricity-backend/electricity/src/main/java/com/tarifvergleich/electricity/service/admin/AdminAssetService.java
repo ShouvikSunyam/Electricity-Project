@@ -2,6 +2,7 @@ package com.tarifvergleich.electricity.service.admin;
 
 import java.math.BigInteger;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -513,5 +514,23 @@ public class AdminAssetService {
 		adminSignature = adminSignatureRepo.save(adminSignature);
 
 		return Map.of("res", true, "adminSignatureId", adminSignature.getId());
+	}
+
+	public Map<String, Object> fetchAdminSignature(AdminSignatureDto signatureDto) {
+		if (signatureDto.getAdminId() == null || signatureDto.getAdminId() <= 0)
+			throw new InternalServerException("Admin id missing", HttpStatus.OK);
+
+		Map<String, Object> response = new HashMap<>();
+		response.put("res", true);
+
+		adminSignatureRepo.findByAdminAdminId(signatureDto.getAdminId()).ifPresent(signature -> {
+			Map<String, Object> data = new HashMap<>();
+			data.put("adminSignatureId", signature.getId());
+			data.put("filePath", signature.getFilePath());
+			data.put("originalFileName", signature.getOriginalFileName());
+			response.put("data", data);
+		});
+
+		return response;
 	}
 }
