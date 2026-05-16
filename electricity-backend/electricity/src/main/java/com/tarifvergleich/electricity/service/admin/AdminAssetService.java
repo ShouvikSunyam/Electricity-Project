@@ -18,6 +18,7 @@ import com.tarifvergleich.electricity.dto.AdminAssetDto;
 import com.tarifvergleich.electricity.dto.AdminAssetDto.AdminAssetSuffleDto;
 import com.tarifvergleich.electricity.dto.AdminServiceMenuDto;
 import com.tarifvergleich.electricity.dto.AdminSignatureDto;
+import com.tarifvergleich.electricity.dto.AdminSignatureDto.AdminSignatureResponseDto;
 import com.tarifvergleich.electricity.dto.ManageAdminDocumentDto;
 import com.tarifvergleich.electricity.exception.InternalServerException;
 import com.tarifvergleich.electricity.model.AdminAsset;
@@ -384,8 +385,8 @@ public class AdminAssetService {
 	public Map<String, Object> addAdminDocument(ManageAdminDocumentDto documentDto, MultipartFile file) {
 
 		if (documentDto == null)
-		if (documentDto == null)
-			throw new InternalServerException("Insufficient data", HttpStatus.OK);
+			if (documentDto == null)
+				throw new InternalServerException("Insufficient data", HttpStatus.OK);
 
 		if (documentDto.getAdminId() == null || documentDto.getAdminId() <= 0)
 			throw new InternalServerException("Admin id missing", HttpStatus.OK);
@@ -413,7 +414,7 @@ public class AdminAssetService {
 				existingDoc = manageAdminDocumentRepo.save(existingDoc);
 
 				if (addNewFile)
-				fileUtil.deleteFile(relativePath);
+					fileUtil.deleteFile(relativePath);
 			} else {
 				existingDoc.setDocumentCategory(documentDto.getDocumentCategory());
 				existingDoc = manageAdminDocumentRepo.save(existingDoc);
@@ -424,9 +425,6 @@ public class AdminAssetService {
 
 		if (file == null)
 			throw new InternalServerException("File missing", HttpStatus.OK);
-
-		if (file == null)
-			throw new InternalServerException("Document missing", HttpStatus.OK);
 
 		AdminUser admin = adminUserRepo.findById(documentDto.getAdminId())
 				.orElseThrow(() -> new InternalServerException("Admin not found with this credential", HttpStatus.OK));
@@ -516,21 +514,15 @@ public class AdminAssetService {
 		return Map.of("res", true, "adminSignatureId", adminSignature.getId());
 	}
 
-	public Map<String, Object> fetchAdminSignature(AdminSignatureDto signatureDto) {
-		if (signatureDto.getAdminId() == null || signatureDto.getAdminId() <= 0)
+	public Map<String, Object> fetchAdminSignature(AdminSignatureDto adminSignDto) {
+		if (adminSignDto.getAdminId() == null || adminSignDto.getAdminId() <= 0)
 			throw new InternalServerException("Admin id missing", HttpStatus.OK);
 
-		Map<String, Object> response = new HashMap<>();
-		response.put("res", true);
+		AdminSignature adminSignature = adminSignatureRepo.findByAdminAdminId(adminSignDto.getAdminId()).orElseThrow(
+				() -> new InternalServerException("Admin signature not found with this credential", HttpStatus.OK));
 
-		adminSignatureRepo.findByAdminAdminId(signatureDto.getAdminId()).ifPresent(signature -> {
-			Map<String, Object> data = new HashMap<>();
-			data.put("adminSignatureId", signature.getId());
-			data.put("filePath", signature.getFilePath());
-			data.put("originalFileName", signature.getOriginalFileName());
-			response.put("data", data);
-		});
+		AdminSignatureResponseDto signatureResponse = AdminSignatureDto.mapSignatureResponse(adminSignature);
 
-		return response;
+		return Map.of("res", true, "data", signatureResponse);
 	}
 }

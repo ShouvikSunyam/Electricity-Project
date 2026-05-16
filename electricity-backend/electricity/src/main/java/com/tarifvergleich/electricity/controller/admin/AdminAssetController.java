@@ -111,7 +111,7 @@ public class AdminAssetController {
 	}
 
 	@PostMapping("/fetch-admin-signature")
-	public ResponseEntity<?> fetchAdminSignature(@RequestBody AdminSignatureDto signatureDto) {
-		return ResponseEntity.ok(adminAssetService.fetchAdminSignature(signatureDto));
+	public ResponseEntity<?> fetchAdminSignature(@RequestBody AdminSignatureDto adminSignatureDto) {
+		return ResponseEntity.ok(adminAssetService.fetchAdminSignature(adminSignatureDto));
 	}
 }
