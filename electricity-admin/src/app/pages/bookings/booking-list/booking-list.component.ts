@@ -45,8 +45,10 @@ type Provider = {
   providerId?: number | null;
   netzProviderId?: number | null;
   providerName?: string | null;
+
   providerSVG?: string | null;
   providerSVGPath?: string | null;
+
   consumption?: number | null;
 
   basePriceYear?: number | null;
@@ -67,12 +69,13 @@ type Provider = {
   cancel?: number | null;
   cancelType?: number | null;
   termBeforeNewType?: string | null;
-  termBeforeNewMaxDate?: string | null;
+  termBeforeNewMaxDate?: number | null;
 
   selfPayment?: boolean | null;
   requiredEmail?: boolean | null;
   optEco?: boolean | null;
   recommended?: boolean | null;
+
   commission?: number | null;
 
   branch?: string | null;
@@ -93,10 +96,12 @@ type Customer = {
   email?: string | null;
   firstName?: string | null;
   lastName?: string | null;
+
   userType?: string | null;
   title?: string | null;
   salutation?: string | null;
   companyName?: string | null;
+
   mobileNumber?: string | null;
 
   isVerified?: boolean | null;
@@ -111,20 +116,33 @@ type Customer = {
   lexofficeNumber?: string | null;
 };
 
+type OrderDocCustomer = {
+  id?: number | null;
+  email?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  userType?: string | null;
+  title?: string | null;
+  salutation?: string | null;
+};
+
 type OrderDoc = {
   bookingDocId?: number | null;
   signedOriginalFileName?: string | null;
   signedFileUrl?: string | null;
   signedDocumentSubmitted?: boolean | null;
+
   addedOn?: number | null;
   deliveryId?: number | null;
-  customer?: Customer | null;
+
+  customer?: OrderDocCustomer | null;
 };
 
 type Order = {
   customerOrderId?: number | null;
   orderId?: number | null;
   orderStatus?: number | null;
+
   adminPlacedOrder?: boolean | null;
   adminOrderPlacedOn?: number | null;
 
@@ -133,9 +151,10 @@ type Order = {
 
   isCancelled?: boolean | null;
   cancelledOn?: number | null;
-  lastDateOfCancellation?: number | null;
 
+  lastDateOfCancellation?: number | null;
   operationPeriod?: number | null;
+
   bookingDocId?: number | null;
 
   doc?: OrderDoc | null;
@@ -149,6 +168,7 @@ export type ApiBooking = {
   title?: string | null;
   firstName?: string | null;
   lastName?: string | null;
+
   mobile?: string | null;
   telephone?: string | null;
 
@@ -172,6 +192,14 @@ export type ApiBooking = {
 
   customer?: Customer | null;
   order?: Order | null;
+};
+
+export type BookingListApiResponse = {
+  data?: ApiBooking[] | null;
+  res?: boolean | null;
+  totalRecord?: number | null;
+  totalPage?: number | null;
+  page?: number | null;
 };
 
 @Component({
@@ -304,6 +332,67 @@ export class BookingListComponent implements OnInit {
 
   timeLabel(key?: string | null): string {
     return key ? (this.timeLabels[key] ?? key) : "—";
+  }
+
+  getBookingStatus(booking: ApiBooking): string {
+    // Expired
+    if (booking.order?.isExpired === true) {
+      return "Expired";
+    }
+
+    // Document Uploaded
+    if (booking.order?.doc && booking.order?.doc?.signedFileUrl) {
+      return "Document Uploaded";
+    }
+
+    // Order Created
+    if (booking.order?.adminPlacedOrder === true) {
+      return "Order Created";
+    }
+
+    // Open Order
+    if (booking.order && booking.order != null && booking.order?.orderId === null) {
+      return "Open Order";
+    }
+
+    // Pending
+    if (booking.order === null) {
+      return "Pending";
+    }
+
+    // Incomplete
+    if (booking.orderPlaced === true || booking.orderPlaced === false) {
+      return "Incomplete";
+    }
+
+    return "Unknown";
+  }
+
+  getBookingStatusClass(booking: ApiBooking): string {
+    const status = this.getBookingStatus(booking);
+
+    switch (status) {
+      case "Expired":
+        return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
+
+      case "Document Uploaded":
+        return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
+
+      case "Order Created":
+        return "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400";
+
+      case "Open Order":
+        return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400";
+
+      case "Pending":
+        return "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400";
+
+      case "Incomplete":
+        return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400";
+
+      default:
+        return "bg-gray-100 text-gray-700";
+    }
   }
 
   formatDate(value?: number | string | null): string {

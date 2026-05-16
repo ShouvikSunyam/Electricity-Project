@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { ActivatedRoute, Router, RouterModule } from "@angular/router";
 import { ApiService } from "../../../shared/services/api.service";
@@ -188,11 +188,6 @@ export type ApiBooking = {
 /** Base URL for document files served from the backend */
 const DOC_BASE_URL = "http://192.168.0.155:8080/assets/customers/";
 
-/** How many times to poll for the doc after place-order before giving up */
-const DOC_POLL_MAX_ATTEMPTS = 6;
-/** Milliseconds between each poll attempt */
-const DOC_POLL_INTERVAL_MS = 4000;
-
 @Component({
   selector: "app-booking-detail",
   standalone: true,
@@ -200,7 +195,7 @@ const DOC_POLL_INTERVAL_MS = 4000;
   templateUrl: "./booking-details.component.html",
   styleUrl: "./booking-details.component.css",
 })
-export class BookingDetailComponent implements OnInit, OnDestroy {
+export class BookingDetailComponent implements OnInit {
   booking: ApiBooking | null = null;
   isLoading = false;
   errorMessage = "";
@@ -216,11 +211,11 @@ export class BookingDetailComponent implements OnInit, OnDestroy {
   orderPlacedNumber: number | null = null;
   orderError = "";
 
-  // ── Doc polling state ─────────────────────────────────────────────────────
-  /** True while we're waiting for the backend to generate the unsigned doc */
-  isWaitingForDoc = false;
-  docPollAttempt = 0;
-  private docPollTimer: ReturnType<typeof setTimeout> | null = null;
+  // ── Generate document (Order Created → upload doc button) ────────────────
+  /** True while the admin/generate-booking-doc API call is in flight */
+  isGeneratingDoc = false;
+  generateDocMessage = "";
+  generateDocError = "";
 
   // ── Upload document modal ─────────────────────────────────────────────────
   showUploadModal = false;
@@ -262,10 +257,6 @@ export class BookingDetailComponent implements OnInit, OnDestroy {
     }
   }
 
-  ngOnDestroy(): void {
-    this.clearDocPollTimer();
-  }
-
   fetchBooking(deliveryId: number): void {
     this.isLoading = true;
     this.errorMessage = "";
@@ -285,47 +276,121 @@ export class BookingDetailComponent implements OnInit, OnDestroy {
   }
 
   // ── Computed state helpers ─────────────────────────────────────────────────
+  //
+  // Button visibility is driven entirely by booking status. The 6 statuses and
+  // their allowed actions are:
+  //
+  //  ┌─────────────────────┬──────────────────────────────────────────────────┐
+  //  │ Status              │ Visible buttons                                  │
+  //  ├─────────────────────┼──────────────────────────────────────────────────┤
+  //  │ Incomplete          │ Change Provider · Change Booking · Continue Booking│
+  //  │ Pending             │ Change Provider · Change Booking · Create Order  │
+  //  │ Open Order          │ Data Verified & Complete Order                   │
+  //  │ Order Created       │ Upload Documents                                 │
+  //  │ Document Uploaded   │ (no action buttons)                              │
+  //  │ Expired             │ Renew Booking                                    │
+  //  └─────────────────────┴──────────────────────────────────────────────────┘
+  //
+  // Status resolution order (checked top-to-bottom, first match wins):
+  //   1. Expired           → order.isExpired === true
+  //   2. Document Uploaded → order.doc.signedFileUrl is present
+  //   3. Order Created     → order.adminPlacedOrder === true
+  //   4. Open Order        → order exists but orderId is null (customerOrderId only)
+  //   5. Pending           → order object is null (customer submitted, no order yet)
+  //   6. Incomplete        → fallback (booking exists, not yet submitted)
+  // ──────────────────────────────────────────────────────────────────────────
+
+  // ── Status: Expired ───────────────────────────────────────────────────────
 
   /**
-   * Booking is incomplete: the customer has not confirmed/placed it yet.
-   * Shown as a CTA to redirect the admin to the edit/completion flow.
-   * Hidden once the order has been placed, created, cancelled, or expired.
+   * TRUE when the booking/order has passed its expiry date.
+   * Only "Renew Booking" is shown in this state.
    */
-  get isIncompleteBooking(): boolean {
-    if (!this.booking) return false;
-    return (
-      !this.booking.orderPlaced &&
-      !this.booking.order?.customerOrderId &&
-      !this.booking.order?.isCancelled &&
-      !this.booking.order?.isExpired
-    );
+  get isExpired(): boolean {
+    return this.booking?.order?.isExpired === true;
   }
 
-  /** No order object at all, or order exists but customerOrderId is null/undefined */
-  get hasNoCustomerOrderId(): boolean {
-    return !this.booking?.order?.customerOrderId;
+  // ── Status: Document Uploaded ─────────────────────────────────────────────
+
+  /**
+   * TRUE when the customer's signed contract PDF has been successfully uploaded.
+   * No action buttons are shown — the workflow is complete.
+   */
+  get hasSignedDoc(): boolean {
+    return !!this.booking?.order?.doc?.signedFileUrl;
   }
 
-  /** customerOrderId exists but orderId is still null/undefined */
-  get hasCustomerOrderIdOnly(): boolean {
+  // ── Status: Order Created ─────────────────────────────────────────────────
+
+  /**
+   * TRUE when the admin has placed the order with the provider (adminPlacedOrder flag).
+   * "Upload Documents" button is shown so the admin can trigger doc generation.
+   * Also used to show the "Order placed" badge in the header.
+   */
+  get isOrderCreated(): boolean {
+    return this.booking?.order?.adminPlacedOrder === true;
+  }
+
+  /**
+   * TRUE once the backend has generated the contract PDF after the admin
+   * clicked "Upload Documents". Used to show the PDF card in the details section.
+   */
+  get hasDoc(): boolean {
+    return !!this.booking?.order?.doc?.fileUrl;
+  }
+
+  // ── Status: Open Order ────────────────────────────────────────────────────
+
+  /**
+   * TRUE when a customerOrderId exists but no orderId yet — meaning the order
+   * has been created internally but not yet placed with the provider.
+   * "Data Verified & Complete Order" button is shown.
+   */
+  get isOpenOrder(): boolean {
     return (
       !!this.booking?.order?.customerOrderId && !this.booking?.order?.orderId
     );
   }
 
-  /** Both customerOrderId and orderId exist */
-  get hasOrderId(): boolean {
-    return !!this.booking?.order?.orderId;
+  // ── Status: Pending ───────────────────────────────────────────────────────
+
+  /**
+   * TRUE when the booking's order object is null — the customer has completed
+   * and submitted the booking form, but no internal order has been created yet.
+   * Shown buttons: Change Provider · Change Booking · Create Order.
+   */
+  get isPending(): boolean {
+    return (
+      !this.isExpired && this.booking !== null && this.booking?.order === null
+    );
   }
 
-  /** Unsigned PDF is available */
-  get hasUnsignedDoc(): boolean {
-    return !!this.booking?.order?.doc?.fileUrl;
+  // ── Status: Incomplete ────────────────────────────────────────────────────
+
+  /**
+   * TRUE when the booking exists but the customer has not fully submitted it yet
+   * (orderPlaced is false/null and no order object is present).
+   * Shown buttons: Change Provider · Change Booking · Continue Booking.
+   */
+  get isIncomplete(): boolean {
+    if (!this.booking) return false;
+    return (
+      !this.isExpired &&
+      !this.booking.orderPlaced &&
+      !this.booking.order?.customerOrderId &&
+      !this.booking.order?.isCancelled
+    );
   }
 
-  /** Signed PDF has been uploaded */
-  get hasSignedDoc(): boolean {
-    return !!this.booking?.order?.doc?.signedFileUrl;
+  // ── Shared helpers ────────────────────────────────────────────────────────
+
+  /**
+   * "Change Provider" and "Change Booking" (Details bearbeiten) are available
+   * on both Incomplete and Pending statuses — i.e. before any order is created.
+   * Convenience getter used in the template to avoid duplicating the condition.
+   */
+  get canEditBeforeOrder(): boolean {
+    return this.isIncomplete || this.isPending;
   }
 
   // ── Action: Create order ───────────────────────────────────────────────────
@@ -361,7 +426,7 @@ export class BookingDetailComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ── Action: Place (complete) order — async with doc polling ───────────────
+  // ── Action: Place (complete) order ────────────────────────────────────────
 
   placeOrder(): void {
     if (!this.booking?.order?.customerOrderId) return;
@@ -383,8 +448,10 @@ export class BookingDetailComponent implements OnInit, OnDestroy {
             res.message ?? "Bestellung erfolgreich aufgegeben.";
           this.orderPlacedNumber = res["Order no"] ?? null;
 
-          // First refresh: picks up orderId immediately
-          this.fetchBookingAndThenPollForDoc(this.booking!.deliveryId ?? 0);
+          // Refresh booking so the status advances to "Order Created".
+          // No document is generated at this point — the admin must click
+          // "Upload Documents" separately to trigger doc generation.
+          this.fetchBooking(this.booking!.deliveryId ?? 0);
         } else {
           this.orderError =
             res?.message ?? "Unbekannter Fehler beim Aufgeben der Bestellung.";
@@ -398,53 +465,44 @@ export class BookingDetailComponent implements OnInit, OnDestroy {
     });
   }
 
+  // ── Action: Generate document ─────────────────────────────────────────────
+
   /**
-   * Fetches the booking, then checks whether the doc has arrived yet.
-   * If not, schedules another attempt (up to DOC_POLL_MAX_ATTEMPTS).
+   * Called when the admin clicks "Upload Documents" in the Order Created state.
+   * Triggers doc generation on the backend (admin/generate-booking-doc).
+   * Once successful the booking is refreshed and the PDF appears in the
+   * documents section below for viewing / downloading.
    */
-  private fetchBookingAndThenPollForDoc(deliveryId: number): void {
-    this.isWaitingForDoc = true;
-    this.docPollAttempt = 0;
-    this.clearDocPollTimer();
-    this.runDocPoll(deliveryId);
-  }
+  generateDocument(): void {
+    if (!this.booking?.order?.orderId) return;
+    this.isGeneratingDoc = true;
+    this.generateDocError = "";
+    this.generateDocMessage = "";
 
-  private runDocPoll(deliveryId: number): void {
-    const payload = { adminId: this.authService.getUserId(), deliveryId };
-    this.api.post("admin/fetch-deliveries", payload).subscribe({
+    const payload = {
+      orderId: this.booking.order.orderId,
+      adminId: this.authService.getUserId(),
+    };
+
+    this.api.post("admin/generate-booking-doc", payload).subscribe({
       next: (res: any) => {
-        const updated = this.extractBooking(res);
-        if (updated) this.booking = updated;
-
-        if (updated?.order?.doc?.fileUrl) {
-          // Doc is ready — stop polling
-          this.isWaitingForDoc = false;
-          this.docPollAttempt = 0;
+        this.isGeneratingDoc = false;
+        if (res?.res) {
+          this.generateDocMessage =
+            res.message ?? "Dokument erfolgreich hochgeladen.";
+          // Refresh so the doc section populates with the new PDF links.
+          this.fetchBooking(this.booking!.deliveryId ?? 0);
         } else {
-          this.docPollAttempt++;
-          if (this.docPollAttempt < DOC_POLL_MAX_ATTEMPTS) {
-            this.docPollTimer = setTimeout(
-              () => this.runDocPoll(deliveryId),
-              DOC_POLL_INTERVAL_MS,
-            );
-          } else {
-            // Give up polling — admin can refresh manually
-            this.isWaitingForDoc = false;
-          }
+          this.generateDocError =
+            res?.message ?? "Unbekannter Fehler beim Hochladen des Dokuments.";
         }
       },
-      error: () => {
-        // On error just stop polling silently; data already shown
-        this.isWaitingForDoc = false;
+      error: (err) => {
+        this.isGeneratingDoc = false;
+        this.generateDocError = "Fehler beim Hochladen des Dokuments.";
+        console.error("Generate document error:", err);
       },
     });
-  }
-
-  private clearDocPollTimer(): void {
-    if (this.docPollTimer !== null) {
-      clearTimeout(this.docPollTimer);
-      this.docPollTimer = null;
-    }
   }
 
   // ── Document helpers ──────────────────────────────────────────────────────
@@ -681,5 +739,60 @@ export class BookingDetailComponent implements OnInit, OnDestroy {
           ? response
           : [];
     return list[0] ?? null;
+  }
+
+  /**
+   * Derives the display status string for this booking.
+   * Resolution order must match the priority table in the computed getters above.
+   */
+  getBookingStatus(): string {
+    if (!this.booking) return "Unknown";
+
+    // 1. Expired — checked first; an expired booking overrides all other states.
+    if (this.isExpired) return "Expired";
+
+    // 2. Document Uploaded — signed PDF has been submitted; workflow is done.
+    if (this.hasSignedDoc) return "Document Uploaded";
+
+    // 3. Order Created — admin has placed the order with the provider.
+    if (this.isOrderCreated) return "Order Created";
+
+    // 4. Open Order — internal order created, but not yet placed with provider.
+    if (this.isOpenOrder) return "Open Order";
+
+    // 5. Pending — booking submitted by customer, but no internal order yet.
+    if (this.isPending) return "Pending";
+
+    // 6. Incomplete — booking exists but customer hasn't finished submitting it.
+    if (this.isIncomplete) return "Incomplete";
+
+    return "Unknown";
+  }
+
+  getBookingStatusClass(): string {
+    const status = this.getBookingStatus();
+
+    switch (status) {
+      case "Expired":
+        return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
+
+      case "Document Uploaded":
+        return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
+
+      case "Order Created":
+        return "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400";
+
+      case "Open Order":
+        return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400";
+
+      case "Pending":
+        return "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400";
+
+      case "Incomplete":
+        return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400";
+
+      default:
+        return "bg-gray-100 text-gray-700";
+    }
   }
 }

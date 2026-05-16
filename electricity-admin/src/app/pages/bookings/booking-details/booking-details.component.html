@@ -29,26 +29,63 @@
             </button>
 
             <div class="flex items-center gap-2 flex-wrap justify-end">
-                @if (isIncompleteBooking) {
-                <button (click)="completeBooking()" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-lg
-                 bg-orange-500 text-white hover:bg-orange-600 border border-orange-600 transition cursor-pointer shadow-sm">
-                    Buchung vervollstaendigen
-                </button>
-                }
 
-                @if (hasNoCustomerOrderId) {
-                <button (click)="editBooking()" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-lg
-                 bg-brand-50 text-brand-600 hover:bg-brand-100 dark:bg-brand-900/20 dark:text-brand-400
-                 dark:hover:bg-brand-900/40 border border-brand-200 dark:border-brand-700/40 transition cursor-pointer">
-                    Details bearbeiten
-                </button>
+                <!--
+                  ═══════════════════════════════════════════════════════════
+                  BUTTON VISIBILITY RULES — summary:
+                  ───────────────────────────────────────────────────────────
+                  Incomplete       → Change Provider | Change Booking | Continue Booking
+                  Pending          → Change Provider | Change Booking | Create Order
+                  Open Order       → Data Verified & Complete Order
+                  Order Created    → Upload Document (signed contract PDF)
+                  Document Uploaded→ (no action buttons)
+                  Expired          → Renew Booking
+                  ═══════════════════════════════════════════════════════════
+                -->
 
-                <button (click)="changeProvider()" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-lg
+                <!-- ── INCOMPLETE & PENDING: Change Provider ──────────────
+                     Visible when the booking is either still being filled in
+                     (Incomplete) or submitted but not yet ordered (Pending).
+                     Allows the admin to swap the tariff/provider before an
+                     order is created. Hidden once any order exists.        -->
+                @if (canEditBeforeOrder) {
+                <button (click)="changeProvider()"
+                    class="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-lg
                  bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-900/20 dark:text-amber-400
                  dark:hover:bg-amber-900/40 border border-amber-200 dark:border-amber-700/40 transition cursor-pointer">
                     Anbieter wechseln
                 </button>
 
+                <!-- ── INCOMPLETE & PENDING: Change Booking ───────────────
+                     Visible on the same statuses as Change Provider above.
+                     Opens the booking edit/detail form so the admin can
+                     correct customer or contract data.                     -->
+                <button (click)="editBooking()"
+                    class="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-lg
+                 bg-brand-50 text-brand-600 hover:bg-brand-100 dark:bg-brand-900/20 dark:text-brand-400
+                 dark:hover:bg-brand-900/40 border border-brand-200 dark:border-brand-700/40 transition cursor-pointer">
+                    Details bearbeiten
+                </button>
+                }
+
+                <!-- ── INCOMPLETE only: Continue Booking ─────────────────
+                     Shown when the customer has not yet fully submitted the
+                     booking. Redirects the admin into the booking wizard so
+                     missing data can be filled in and the booking confirmed. -->
+                @if (isIncomplete) {
+                <button (click)="completeBooking()"
+                    class="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-lg
+                 bg-orange-500 text-white hover:bg-orange-600 border border-orange-600 transition cursor-pointer shadow-sm">
+                    Buchung vervollstaendigen
+                </button>
+                }
+
+                <!-- ── PENDING only: Create Order ─────────────────────────
+                     Shown when the booking has been fully submitted by the
+                     customer but no internal order record exists yet.
+                     Clicking this calls admin/open-order to initialise the
+                     order, advancing the status to "Open Order".           -->
+                @if (isPending) {
                 <button (click)="createOrder()" [disabled]="isCreatingOrder" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-lg
                  bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed
                  border border-blue-700 transition cursor-pointer shadow-sm">
@@ -61,7 +98,12 @@
                 </button>
                 }
 
-                @if (hasCustomerOrderIdOnly) {
+                <!-- ── OPEN ORDER only: Data Verified & Complete Order ────
+                     Shown when a customerOrderId exists but the order has
+                     not been placed with the provider yet (orderId is null).
+                     Admin confirms data is correct and submits via
+                     admin/place-order, advancing status to "Order Created". -->
+                @if (isOpenOrder) {
                 <button (click)="placeOrder()" [disabled]="isPlacingOrder" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-lg
                  bg-green-600 text-white hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed
                  border border-green-700 transition cursor-pointer shadow-sm">
@@ -74,22 +116,30 @@
                 </button>
                 }
 
-                @if (hasOrderId && isWaitingForDoc) {
-                <span class="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium rounded-lg
-                     bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400 border border-gray-200 dark:border-gray-700 animate-pulse">
-                    <div class="h-4 w-4 rounded-full border-2 border-gray-400 border-t-transparent animate-spin"></div>
-                    Dokument wird generiert...
-                </span>
-                }
-
-                @if (hasOrderId && !isWaitingForDoc && hasUnsignedDoc && !hasSignedDoc) {
-                <button (click)="openUploadModal()" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-lg
-                 bg-violet-600 text-white hover:bg-violet-700 border border-violet-700 transition cursor-pointer shadow-sm">
-                    Signiertes Dokument hochladen
+                <!-- ── ORDER CREATED only: Upload Documents ────────────────
+                     Shown once the order has been placed with the provider
+                     (adminPlacedOrder = true) and no document has been
+                     generated yet. Clicking calls admin/generate-booking-doc
+                     which creates the contract PDF. After success the booking
+                     is refreshed and the PDF card appears in the details below.
+                     Hidden once the doc is available (hasDoc = true).      -->
+                @if (isOrderCreated && !hasDoc) {
+                <button (click)="generateDocument()" [disabled]="isGeneratingDoc" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-lg
+                 bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-60 disabled:cursor-not-allowed
+                 border border-violet-700 transition cursor-pointer shadow-sm">
+                    @if (isGeneratingDoc) {
+                    <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Wird hochgeladen...
+                    } @else {
+                    Dokumente hochladen
+                    }
                 </button>
                 }
 
-                @if (hasOrderId && hasSignedDoc) {
+                <!-- ── DOCUMENT UPLOADED: confirmation badge ──────────────
+                     No action buttons — workflow is complete. A read-only
+                     badge is displayed to confirm the signed PDF is on file. -->
+                @if (hasSignedDoc) {
                 <span class="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-lg
                      bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400
                      border border-violet-200 dark:border-violet-700/40">
@@ -97,28 +147,46 @@
                 </span>
                 }
 
-                @if (booking.order?.adminPlacedOrder) {
-                <span class="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-lg
+                <!-- ── ORDER CREATED: Order placed badge ──────────────────
+                     Informational badge shown once adminPlacedOrder is true.
+                     Visible across Order Created and Document Uploaded states
+                     as a persistent confirmation that the order was submitted. -->
+                @if (isOrderCreated) {
+                <!-- <span class="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-lg
                      bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400
                      border border-green-200 dark:border-green-700/40">
                     Bestellung aufgegeben
-                </span>
+                </span> -->
                 }
+
+                <!-- ── EXPIRED only: Renew Booking ────────────────────────
+                     Shown when order.isExpired is true. Allows the admin to
+                     restart the booking process for this customer.         -->
+                @if (isExpired) {
+                <button (click)="completeBooking()" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-lg
+                 bg-red-500 text-white hover:bg-red-600 border border-red-600 transition cursor-pointer shadow-sm">
+                    Buchung erneuern
+                </button>
+                }
+
             </div>
         </div>
 
         @if (createOrderMessage) {
-        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/40 text-blue-800 dark:text-blue-300 rounded-xl px-4 py-3 text-sm">
+        <div
+            class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/40 text-blue-800 dark:text-blue-300 rounded-xl px-4 py-3 text-sm">
             {{ createOrderMessage }}
         </div>
         }
         @if (createOrderError) {
-        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/40 text-red-700 dark:text-red-400 rounded-xl px-4 py-3 text-sm">
+        <div
+            class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/40 text-red-700 dark:text-red-400 rounded-xl px-4 py-3 text-sm">
             {{ createOrderError }}
         </div>
         }
         @if (orderPlacedMessage) {
-        <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700/40 text-green-800 dark:text-green-300 rounded-xl px-4 py-3 text-sm">
+        <div
+            class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700/40 text-green-800 dark:text-green-300 rounded-xl px-4 py-3 text-sm">
             {{ orderPlacedMessage }}
             @if (orderPlacedNumber) {
             <strong> Bestellnr. {{ orderPlacedNumber }}</strong>
@@ -126,8 +194,21 @@
         </div>
         }
         @if (orderError) {
-        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/40 text-red-700 dark:text-red-400 rounded-xl px-4 py-3 text-sm">
+        <div
+            class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/40 text-red-700 dark:text-red-400 rounded-xl px-4 py-3 text-sm">
             {{ orderError }}
+        </div>
+        }
+        @if (generateDocMessage) {
+        <div
+            class="bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-700/40 text-violet-800 dark:text-violet-300 rounded-xl px-4 py-3 text-sm">
+            {{ generateDocMessage }}
+        </div>
+        }
+        @if (generateDocError) {
+        <div
+            class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/40 text-red-700 dark:text-red-400 rounded-xl px-4 py-3 text-sm">
+            {{ generateDocError }}
         </div>
         }
 
@@ -143,16 +224,18 @@
                             {{ fullName() || customerAccountName() || 'Kein Name' }}
                         </h1>
                         <span class="px-2.5 py-0.5 rounded-full text-xs font-medium"
-                            [class.bg-green-100]="booking.orderPlaced" [class.text-green-700]="booking.orderPlaced"
-                            [class.bg-yellow-100]="!booking.orderPlaced" [class.text-yellow-700]="!booking.orderPlaced">
-                            {{ booking.orderPlaced ? 'Bestaetigt' : 'Offen' }}
+                            [ngClass]="getBookingStatusClass()">
+                            {{ getBookingStatus() }}
                         </span>
                     </div>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{{ booking.email || booking.customer?.email || '—' }}</p>
-                    <p class="text-xs font-mono text-gray-400 mt-1">Delivery {{ booking.deliveryId ?? '—' }} / {{ booking.uniqueDeliveryId || '—' }}</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{{ booking.email ||
+                        booking.customer?.email || '—' }}</p>
+                    <p class="text-xs font-mono text-gray-400 mt-1">Delivery {{ booking.deliveryId ?? '—' }} / {{
+                        booking.uniqueDeliveryId || '—' }}</p>
                     @if (booking.customer?.salutation || booking.customer?.title || booking.title) {
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                        Anrede: {{ booking.customer?.salutation || '—' }} · Titel Buchung: {{ booking.title || '—' }} · Titel Kunde:
+                        Anrede: {{ booking.customer?.salutation || '—' }} · Titel Buchung: {{ booking.title || '—' }} ·
+                        Titel Kunde:
                         {{ booking.customer?.title || '—' }}
                     </p>
                     }
@@ -160,7 +243,8 @@
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
                     <div>
                         <p class="text-xs text-gray-400 mb-0.5">Bestellt am</p>
-                        <p class="font-medium text-gray-800 dark:text-gray-200">{{ formatDateTime(booking.orderPlacedOn) }}</p>
+                        <p class="font-medium text-gray-800 dark:text-gray-200">{{ formatDateTime(booking.orderPlacedOn)
+                            }}</p>
                     </div>
                     <div>
                         <p class="text-xs text-gray-400 mb-0.5">Ablauf</p>
@@ -168,7 +252,8 @@
                     </div>
                     <div>
                         <p class="text-xs text-gray-400 mb-0.5">Verbrauch</p>
-                        <p class="font-medium text-gray-800 dark:text-gray-200">{{ formatNumber(booking.consumption, ' kWh') }}</p>
+                        <p class="font-medium text-gray-800 dark:text-gray-200">{{ formatNumber(booking.consumption, '
+                            kWh') }}</p>
                     </div>
                 </div>
             </div>
@@ -176,74 +261,204 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div class="bg-white dark:bg-gray-900 rounded-2xl shadow p-6 space-y-4">
-                <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Buchungsdaten</h2>
+                <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                    Buchungsdaten</h2>
                 <div class="divide-y divide-gray-100 dark:divide-gray-800 rounded-xl bg-gray-50 dark:bg-gray-800">
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Delivery-ID</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.deliveryId) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Eindeutige Delivery-ID</span><span class="text-xs font-mono font-medium text-right text-gray-800 dark:text-gray-200 break-all">{{ formatValue(booking.uniqueDeliveryId) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">E-Mail</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200 break-all">{{ formatValue(booking.email) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Titel</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.title) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Vorname</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.firstName) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Nachname</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.lastName) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Mobil</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.mobile) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Telefon</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.telephone) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Geburtsdatum</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatDate(booking.dob) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Personen</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.persons) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Verbrauch</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatNumber(booking.consumption, ' kWh/Jahr') }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Bestellung platziert</span><span class="text-xs font-medium text-right" [class.text-green-600]="booking.orderPlaced" [class.text-gray-500]="!booking.orderPlaced">{{ formatBoolean(booking.orderPlaced) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Platziert am</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatDateTime(booking.orderPlacedOn) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Ablaufdatum</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatDate(booking.expiryOn) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Benachrichtigungen</span><span class="text-xs font-medium text-right" [class.text-green-600]="booking.notificationEnabled" [class.text-gray-500]="!booking.notificationEnabled">{{ formatBoolean(booking.notificationEnabled) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Legacy-Lieferdatum</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatDate(booking.deliveryDate) }}</span></div>
+                    <!-- <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Delivery-ID</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatValue(booking.deliveryId) }}</span></div> -->
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Delivery-ID</span><span
+                            class="text-xs font-mono font-medium text-right text-gray-800 dark:text-gray-200 break-all">{{
+                            formatValue(booking.uniqueDeliveryId) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">E-Mail</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200 break-all">{{
+                            formatValue(booking.email) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Titel</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatValue(booking.title) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Vorname</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatValue(booking.firstName) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Nachname</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatValue(booking.lastName) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Mobil</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatValue(booking.mobile) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Telefon</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatValue(booking.telephone) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Geburtsdatum</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatDate(booking.dob) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Personen</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatValue(booking.persons) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Verbrauch</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatNumber(booking.consumption, ' kWh/Jahr') }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Bestellung
+                            platziert</span><span class="text-xs font-medium text-right"
+                            [class.text-green-600]="booking.orderPlaced" [class.text-gray-500]="!booking.orderPlaced">{{
+                            formatBoolean(booking.orderPlaced) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Platziert
+                            am</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatDateTime(booking.orderPlacedOn) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Ablaufdatum</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatDate(booking.expiryOn) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Benachrichtigungen</span><span
+                            class="text-xs font-medium text-right" [class.text-green-600]="booking.notificationEnabled"
+                            [class.text-gray-500]="!booking.notificationEnabled">{{
+                            formatBoolean(booking.notificationEnabled) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Legacy-Lieferdatum</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatDate(booking.deliveryDate) }}</span></div>
                 </div>
             </div>
 
             <div class="bg-white dark:bg-gray-900 rounded-2xl shadow p-6 space-y-4">
-                <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Kundenkonto</h2>
+                <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Kundenkonto
+                </h2>
                 @if (booking.customer) {
                 <div class="divide-y divide-gray-100 dark:divide-gray-800 rounded-xl bg-gray-50 dark:bg-gray-800">
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Kunden-ID</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.customer.id) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Anrede</span><span class="text-xs font-semibold text-right text-gray-900 dark:text-white">{{ formatValue(booking.customer.salutation) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Titel</span><span class="text-xs font-semibold text-right text-gray-900 dark:text-white">{{ formatValue(booking.customer.title) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Vorname</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.customer.firstName) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Nachname</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.customer.lastName) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">E-Mail</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200 break-all">{{ formatValue(booking.customer.email) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Kundentyp</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.customer.userType) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Firma</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.customer.companyName) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Mobilnummer</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.customer.mobileNumber) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Verifiziert</span><span class="text-xs font-medium text-right">{{ formatBoolean(booking.customer.isVerified) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Verifiziert am</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatDateTime(booking.customer.verifiedOn) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Beigetreten am</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatDateTime(booking.customer.joinedOn) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Bestaetigt</span><span class="text-xs font-medium text-right">{{ formatBoolean(booking.customer.isAcknowledged) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Status</span><span class="text-xs font-medium text-right">{{ formatBoolean(booking.customer.status) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Konto-Benachrichtigungen</span><span class="text-xs font-medium text-right">{{ formatBoolean(booking.customer.isNotificationEnabled) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Lexoffice-Nummer</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.customer.lexofficeNumber) }}</span></div>
-                    <div class="flex flex-col gap-1 px-4 py-2.5"><span class="text-xs text-gray-500">Konto-Adresse</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatAddress(booking.customer.address) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Kunden-ID</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatValue(booking.customer.id) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Anrede</span><span
+                            class="text-xs font-semibold text-right text-gray-900 dark:text-white">{{
+                            formatValue(booking.customer.salutation) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Titel</span><span
+                            class="text-xs font-semibold text-right text-gray-900 dark:text-white">{{
+                            formatValue(booking.customer.title) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Vorname</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatValue(booking.customer.firstName) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Nachname</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatValue(booking.customer.lastName) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">E-Mail</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200 break-all">{{
+                            formatValue(booking.customer.email) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Kundentyp</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatValue(booking.customer.userType) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Firma</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatValue(booking.customer.companyName) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Mobilnummer</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatValue(booking.customer.mobileNumber) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Verifiziert</span><span
+                            class="text-xs font-medium text-right">{{ formatBoolean(booking.customer.isVerified)
+                            }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Verifiziert
+                            am</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatDateTime(booking.customer.verifiedOn) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Beigetreten
+                            am</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatDateTime(booking.customer.joinedOn) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Bestaetigt</span><span
+                            class="text-xs font-medium text-right">{{ formatBoolean(booking.customer.isAcknowledged)
+                            }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Status</span><span class="text-xs font-medium text-right">{{
+                            formatBoolean(booking.customer.status) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Konto-Benachrichtigungen</span><span
+                            class="text-xs font-medium text-right">{{
+                            formatBoolean(booking.customer.isNotificationEnabled) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Lexoffice-Nummer</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatValue(booking.customer.lexofficeNumber) }}</span></div>
+                    <div class="flex flex-col gap-1 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Konto-Adresse</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatAddress(booking.customer.address) }}</span></div>
                 </div>
                 } @else {
-                <div class="rounded-xl bg-gray-50 dark:bg-gray-800 px-4 py-3 text-xs text-gray-400 italic">Kein Kundenkonto in der Antwort vorhanden.</div>
+                <div class="rounded-xl bg-gray-50 dark:bg-gray-800 px-4 py-3 text-xs text-gray-400 italic">Kein
+                    Kundenkonto in der Antwort vorhanden.</div>
                 }
             </div>
 
             <div class="bg-white dark:bg-gray-900 rounded-2xl shadow p-6 space-y-4">
-                <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Adressen</h2>
+                <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Adressen
+                </h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="rounded-xl bg-gray-50 dark:bg-gray-800 overflow-hidden">
-                        <div class="px-4 py-3 text-xs font-semibold text-gray-700 dark:text-gray-200 border-b border-gray-100 dark:border-gray-700">Lieferadresse</div>
+                        <div
+                            class="px-4 py-3 text-xs font-semibold text-gray-700 dark:text-gray-200 border-b border-gray-100 dark:border-gray-700">
+                            Lieferadresse</div>
                         <div class="divide-y divide-gray-100 dark:divide-gray-700">
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">PLZ</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.customerAddress?.zip) }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Stadt</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.customerAddress?.city) }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Strasse</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.customerAddress?.street) }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Hausnummer</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.customerAddress?.houseNumber) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">PLZ</span><span
+                                    class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                                    formatValue(booking.customerAddress?.zip) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Stadt</span><span
+                                    class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                                    formatValue(booking.customerAddress?.city) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Strasse</span><span
+                                    class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                                    formatValue(booking.customerAddress?.street) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Hausnummer</span><span
+                                    class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                                    formatValue(booking.customerAddress?.houseNumber) }}</span></div>
                         </div>
                     </div>
                     <div class="rounded-xl bg-gray-50 dark:bg-gray-800 overflow-hidden">
-                        <div class="px-4 py-3 text-xs font-semibold text-gray-700 dark:text-gray-200 border-b border-gray-100 dark:border-gray-700">Rechnungsadresse</div>
+                        <div
+                            class="px-4 py-3 text-xs font-semibold text-gray-700 dark:text-gray-200 border-b border-gray-100 dark:border-gray-700">
+                            Rechnungsadresse</div>
                         <div class="divide-y divide-gray-100 dark:divide-gray-700">
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Abweichend</span><span class="text-xs font-medium text-right">{{ formatBoolean(booking.billingAddress?.isDifferent) }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">PLZ</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.billingAddress?.zip) }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Stadt</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.billingAddress?.city) }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Strasse</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.billingAddress?.street) }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Hausnummer</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.billingAddress?.houseNumber) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Abweichend</span><span
+                                    class="text-xs font-medium text-right">{{
+                                    formatBoolean(booking.billingAddress?.isDifferent) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">PLZ</span><span
+                                    class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                                    formatValue(booking.billingAddress?.zip) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Stadt</span><span
+                                    class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                                    formatValue(booking.billingAddress?.city) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Strasse</span><span
+                                    class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                                    formatValue(booking.billingAddress?.street) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Hausnummer</span><span
+                                    class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                                    formatValue(booking.billingAddress?.houseNumber) }}</span></div>
                         </div>
                     </div>
                 </div>
@@ -253,193 +468,422 @@
                 <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Zahlung</h2>
                 @if (booking.payment) {
                 <div class="divide-y divide-gray-100 dark:divide-gray-800 rounded-xl bg-gray-50 dark:bg-gray-800">
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Payment-ID</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.payment.id) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Methode</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.payment.paymentMethod) }}</span></div>
-                    <div class="flex flex-col gap-1 px-4 py-2.5"><span class="text-xs text-gray-500">IBAN</span><span class="text-xs font-mono font-medium text-right text-gray-800 dark:text-gray-200 break-all">{{ formatIban(booking.payment.iban) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Vorname Kontoinhaber</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.payment.firstName) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Nachname Kontoinhaber</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.payment.lastName) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">SEPA-Mandat</span><span class="text-xs font-medium text-right">{{ formatBoolean(booking.payment.sepaConsent) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Payment-ID</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatValue(booking.payment.id) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Methode</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatValue(booking.payment.paymentMethod) }}</span></div>
+                    <div class="flex flex-col gap-1 px-4 py-2.5"><span class="text-xs text-gray-500">IBAN</span><span
+                            class="text-xs font-mono font-medium text-right text-gray-800 dark:text-gray-200 break-all">{{
+                            formatIban(booking.payment.iban) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Vorname
+                            Kontoinhaber</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatValue(booking.payment.firstName) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Nachname
+                            Kontoinhaber</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatValue(booking.payment.lastName) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">SEPA-Mandat</span><span
+                            class="text-xs font-medium text-right">{{ formatBoolean(booking.payment.sepaConsent)
+                            }}</span></div>
                 </div>
                 } @else {
-                <div class="rounded-xl bg-gray-50 dark:bg-gray-800 px-4 py-3 text-xs text-gray-400 italic">Keine Zahlungsdaten vorhanden.</div>
+                <div class="rounded-xl bg-gray-50 dark:bg-gray-800 px-4 py-3 text-xs text-gray-400 italic">Keine
+                    Zahlungsdaten vorhanden.</div>
                 }
             </div>
 
             <div class="bg-white dark:bg-gray-900 rounded-2xl shadow p-6 space-y-4 lg:col-span-2">
-                <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Anbieter und Tarif</h2>
+                <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Anbieter und
+                    Tarif</h2>
                 @if (booking.provider) {
                 <div class="rounded-xl bg-gray-50 dark:bg-gray-800 overflow-hidden">
                     <div class="flex items-center gap-3 px-4 py-3 border-b border-gray-100 dark:border-gray-700">
                         @if (booking.provider.providerSVG || booking.provider.providerSVGPath) {
-                        <img [src]="booking.provider.providerSVG || booking.provider.providerSVGPath" [alt]="booking.provider.providerName || 'Anbieter Logo'"
-                            class="h-8 w-auto object-contain" onerror="this.style.display='none'" />
+                        <img [src]="booking.provider.providerSVG || booking.provider.providerSVGPath"
+                            [alt]="booking.provider.providerName || 'Anbieter Logo'" class="h-8 w-auto object-contain"
+                            onerror="this.style.display='none'" />
                         }
                         <div>
-                            <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ booking.provider.providerName || '—' }}</p>
+                            <p class="text-sm font-semibold text-gray-900 dark:text-white">{{
+                                booking.provider.providerName || '—' }}</p>
                             <p class="text-xs text-gray-500">{{ booking.provider.rateName || '—' }}</p>
                         </div>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-100 dark:divide-gray-700">
+                    <div
+                        class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-100 dark:divide-gray-700">
                         <div class="divide-y divide-gray-100 dark:divide-gray-700">
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Tarif-ID</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.provider.rateId) }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Tarifname</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.provider.rateName) }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Provider-ID</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.provider.providerId) }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Netz-Provider-ID</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.provider.netzProviderId) }}</span></div>
-                            <div class="flex flex-col gap-1 px-4 py-2.5"><span class="text-xs text-gray-500">Provider-SVG</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200 break-all">{{ formatValue(booking.provider.providerSVG) }}</span></div>
-                            <div class="flex flex-col gap-1 px-4 py-2.5"><span class="text-xs text-gray-500">Provider-SVG-Pfad</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200 break-all">{{ formatValue(booking.provider.providerSVGPath) }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Verbrauch Anbieter</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatNumber(booking.provider.consumption, ' kWh') }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Grundpreis / Jahr</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatMoney(booking.provider.basePriceYear) }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Grundpreis / Monat</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatMoney(booking.provider.basePriceMonth) }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Arbeitspreis</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatWorkPrice(booking.provider.workPrice) }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Gesamtpreis / Jahr</span><span class="text-xs font-semibold text-right text-gray-900 dark:text-white">{{ formatMoney(booking.provider.totalPrice) }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Gesamtpreis / Monat</span><span class="text-xs font-semibold text-right text-gray-900 dark:text-white">{{ formatMoney(booking.provider.totalPriceMonth) }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Ersparnis / Jahr</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatMoney(booking.provider.savingPerYear) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Tarif-ID</span><span
+                                    class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                                    formatValue(booking.provider.rateId) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Tarifname</span><span
+                                    class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                                    formatValue(booking.provider.rateName) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Provider-ID</span><span
+                                    class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                                    formatValue(booking.provider.providerId) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Netz-Provider-ID</span><span
+                                    class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                                    formatValue(booking.provider.netzProviderId) }}</span></div>
+                            <div class="flex flex-col gap-1 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Provider-SVG</span><span
+                                    class="text-xs font-medium text-right text-gray-800 dark:text-gray-200 break-all">{{
+                                    formatValue(booking.provider.providerSVG) }}</span></div>
+                            <div class="flex flex-col gap-1 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Provider-SVG-Pfad</span><span
+                                    class="text-xs font-medium text-right text-gray-800 dark:text-gray-200 break-all">{{
+                                    formatValue(booking.provider.providerSVGPath) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Verbrauch Anbieter</span><span
+                                    class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                                    formatNumber(booking.provider.consumption, ' kWh') }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Grundpreis / Jahr</span><span
+                                    class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                                    formatMoney(booking.provider.basePriceYear) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Grundpreis / Monat</span><span
+                                    class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                                    formatMoney(booking.provider.basePriceMonth) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Arbeitspreis</span><span
+                                    class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                                    formatWorkPrice(booking.provider.workPrice) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Gesamtpreis / Jahr</span><span
+                                    class="text-xs font-semibold text-right text-gray-900 dark:text-white">{{
+                                    formatMoney(booking.provider.totalPrice) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Gesamtpreis / Monat</span><span
+                                    class="text-xs font-semibold text-right text-gray-900 dark:text-white">{{
+                                    formatMoney(booking.provider.totalPriceMonth) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Ersparnis / Jahr</span><span
+                                    class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                                    formatMoney(booking.provider.savingPerYear) }}</span></div>
                         </div>
                         <div class="divide-y divide-gray-100 dark:divide-gray-700">
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Arbeitspreis NT</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatWorkPrice(booking.provider.workPriceNt) }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Bonus</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatMoney(booking.provider.optBonus) }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Abschlag</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatMoney(booking.provider.partialPayment) }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Garantie</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.provider.optGuarantee) }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Garantie-Typ</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.provider.optGuaranteeType) }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Laufzeit</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.provider.optTerm) }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Preiswechsel-Typ</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.provider.rateChangeType) }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Kuendigung</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.provider.cancel) }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Kuendigungs-Typ</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.provider.cancelType) }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Vor-Neuvertrag-Typ</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.provider.termBeforeNewType) }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Vor-Neuvertrag max. Datum</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.provider.termBeforeNewMaxDate) }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Selbstzahler</span><span class="text-xs font-medium text-right">{{ formatBoolean(booking.provider.selfPayment) }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">E-Mail erforderlich</span><span class="text-xs font-medium text-right">{{ formatBoolean(booking.provider.requiredEmail) }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Oeko</span><span class="text-xs font-medium text-right">{{ formatBoolean(booking.provider.optEco) }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Empfohlen</span><span class="text-xs font-medium text-right">{{ formatBoolean(booking.provider.recommended) }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Provision</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatMoney(booking.provider.commission) }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Sparte</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.provider.branch) }}</span></div>
-                            <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Typ</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.provider.type) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Arbeitspreis NT</span><span
+                                    class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                                    formatWorkPrice(booking.provider.workPriceNt) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Bonus</span><span
+                                    class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                                    formatMoney(booking.provider.optBonus) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Abschlag</span><span
+                                    class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                                    formatMoney(booking.provider.partialPayment) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Garantie</span><span
+                                    class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                                    formatValue(booking.provider.optGuarantee) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Garantie-Typ</span><span
+                                    class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                                    formatValue(booking.provider.optGuaranteeType) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Laufzeit</span><span
+                                    class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                                    formatValue(booking.provider.optTerm) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Preiswechsel-Typ</span><span
+                                    class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                                    formatValue(booking.provider.rateChangeType) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Kuendigung</span><span
+                                    class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                                    formatValue(booking.provider.cancel) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Kuendigungs-Typ</span><span
+                                    class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                                    formatValue(booking.provider.cancelType) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Vor-Neuvertrag-Typ</span><span
+                                    class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                                    formatValue(booking.provider.termBeforeNewType) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Vor-Neuvertrag max. Datum</span><span
+                                    class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                                    formatValue(booking.provider.termBeforeNewMaxDate) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Selbstzahler</span><span
+                                    class="text-xs font-medium text-right">{{
+                                    formatBoolean(booking.provider.selfPayment) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">E-Mail erforderlich</span><span
+                                    class="text-xs font-medium text-right">{{
+                                    formatBoolean(booking.provider.requiredEmail) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Oeko</span><span
+                                    class="text-xs font-medium text-right">{{ formatBoolean(booking.provider.optEco)
+                                    }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Empfohlen</span><span
+                                    class="text-xs font-medium text-right">{{
+                                    formatBoolean(booking.provider.recommended) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Provision</span><span
+                                    class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                                    formatMoney(booking.provider.commission) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Sparte</span><span
+                                    class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                                    formatValue(booking.provider.branch) }}</span></div>
+                            <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                                    class="text-xs text-gray-500">Typ</span><span
+                                    class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                                    formatValue(booking.provider.type) }}</span></div>
                         </div>
                     </div>
                 </div>
                 } @else {
-                <div class="rounded-xl bg-gray-50 dark:bg-gray-800 px-4 py-3 text-xs text-gray-400 italic">Kein Anbieter ausgewaehlt.</div>
+                <div class="rounded-xl bg-gray-50 dark:bg-gray-800 px-4 py-3 text-xs text-gray-400 italic">Kein Anbieter
+                    ausgewaehlt.</div>
                 }
             </div>
 
             <div class="bg-white dark:bg-gray-900 rounded-2xl shadow p-6 space-y-4">
-                <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Anschluss</h2>
+                <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Anschluss
+                </h2>
                 @if (booking.connection) {
                 <div class="divide-y divide-gray-100 dark:divide-gray-800 rounded-xl bg-gray-50 dark:bg-gray-800">
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Anschluss-ID</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.connection.id) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Einzug</span><span class="text-xs font-medium text-right">{{ formatBoolean(booking.connection.isMovingIn) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Einzugsdatum</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatDate(booking.connection.moveInDate) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Spaeter einreichen</span><span class="text-xs font-medium text-right">{{ formatBoolean(booking.connection.submitLater) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Zaehlernummer</span><span class="text-xs font-mono font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.connection.meterNumber) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Marktlokation-ID</span><span class="text-xs font-mono font-medium text-right text-gray-800 dark:text-gray-200 break-all">{{ formatValue(booking.connection.marketLocationId) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Aktueller Anbieter</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.connection.currentProvider) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Automatische Kuendigung</span><span class="text-xs font-medium text-right">{{ formatBoolean(booking.connection.autoCancellation) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Bereits gekuendigt</span><span class="text-xs font-medium text-right">{{ formatBoolean(booking.connection.alreadyCancelled) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Selbstkuendigung</span><span class="text-xs font-medium text-right">{{ formatBoolean(booking.connection.selfCancellation) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Lieferung</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.connection.delivery) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Gewuenschte Lieferung</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.connection.desiredDelivery) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Kundennummer</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.connection.customerNumber) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Anschluss-ID</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatValue(booking.connection.id) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Einzug</span><span class="text-xs font-medium text-right">{{
+                            formatBoolean(booking.connection.isMovingIn) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Einzugsdatum</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatDate(booking.connection.moveInDate) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Spaeter
+                            einreichen</span><span class="text-xs font-medium text-right">{{
+                            formatBoolean(booking.connection.submitLater) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Zaehlernummer</span><span
+                            class="text-xs font-mono font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatValue(booking.connection.meterNumber) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Marktlokation-ID</span><span
+                            class="text-xs font-mono font-medium text-right text-gray-800 dark:text-gray-200 break-all">{{
+                            formatValue(booking.connection.marketLocationId) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Aktueller
+                            Anbieter</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatValue(booking.connection.currentProvider) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Automatische
+                            Kuendigung</span><span class="text-xs font-medium text-right">{{
+                            formatBoolean(booking.connection.autoCancellation) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Bereits
+                            gekuendigt</span><span class="text-xs font-medium text-right">{{
+                            formatBoolean(booking.connection.alreadyCancelled) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Selbstkuendigung</span><span
+                            class="text-xs font-medium text-right">{{ formatBoolean(booking.connection.selfCancellation)
+                            }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Lieferung</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatValue(booking.connection.delivery) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Gewuenschte
+                            Lieferung</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatValue(booking.connection.desiredDelivery) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Kundennummer</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatValue(booking.connection.customerNumber) }}</span></div>
                 </div>
                 } @else {
-                <div class="rounded-xl bg-gray-50 dark:bg-gray-800 px-4 py-3 text-xs text-gray-400 italic">Keine Anschlussdaten vorhanden.</div>
+                <div class="rounded-xl bg-gray-50 dark:bg-gray-800 px-4 py-3 text-xs text-gray-400 italic">Keine
+                    Anschlussdaten vorhanden.</div>
                 }
             </div>
 
             <div class="bg-white dark:bg-gray-900 rounded-2xl shadow p-6 space-y-4">
-                <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Kontakttermin</h2>
+                <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                    Kontakttermin</h2>
                 @if (booking.contactSchedule) {
                 <div class="divide-y divide-gray-100 dark:divide-gray-800 rounded-xl bg-gray-50 dark:bg-gray-800">
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Termin-ID</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.contactSchedule.id) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Wochentag</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ dayLabel(booking.contactSchedule.dayOfWeek) }}</span></div>
-                    <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Zeitfenster</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.contactSchedule.timeSlot) }}</span></div>
-                    <div class="flex flex-col gap-1 px-4 py-2.5"><span class="text-xs text-gray-500">Beschreibung</span><span class="text-xs font-medium text-gray-800 dark:text-gray-200">{{ formatValue(booking.contactSchedule.description) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Termin-ID</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatValue(booking.contactSchedule.id) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Wochentag</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            dayLabel(booking.contactSchedule.dayOfWeek) }}</span></div>
+                    <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Zeitfenster</span><span
+                            class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                            formatValue(booking.contactSchedule.timeSlot) }}</span></div>
+                    <div class="flex flex-col gap-1 px-4 py-2.5"><span
+                            class="text-xs text-gray-500">Beschreibung</span><span
+                            class="text-xs font-medium text-gray-800 dark:text-gray-200">{{
+                            formatValue(booking.contactSchedule.description) }}</span></div>
                 </div>
                 } @else {
-                <div class="rounded-xl bg-gray-50 dark:bg-gray-800 px-4 py-3 text-xs text-gray-400 italic">Kein Kontakttermin vorhanden.</div>
+                <div class="rounded-xl bg-gray-50 dark:bg-gray-800 px-4 py-3 text-xs text-gray-400 italic">Kein
+                    Kontakttermin vorhanden.</div>
                 }
             </div>
         </div>
 
         <div class="bg-white dark:bg-gray-900 rounded-2xl shadow p-6 space-y-4">
-            <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Bestellung und Dokumente</h2>
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Bestellung und
+                Dokumente</h2>
+
             @if (booking.order) {
+
+            <!-- Order meta — only the fields an admin actually needs to know -->
             <div class="divide-y divide-gray-100 dark:divide-gray-800 rounded-xl bg-gray-50 dark:bg-gray-800">
-                <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Kunden-Bestell-ID</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.order.customerOrderId) }}</span></div>
-                <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Bestell-ID</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.order.orderId) }}</span></div>
-                <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Status</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.order.orderStatus) }}</span></div>
-                <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Admin hat bestellt</span><span class="text-xs font-medium text-right">{{ formatBoolean(booking.order.adminPlacedOrder) }}</span></div>
-                <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Admin-Bestellung am</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatDateTime(booking.order.adminOrderPlacedOn) }}</span></div>
-                <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Ablaufdatum</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatDate(booking.order.expiryOn) }}</span></div>
-                <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Abgelaufen</span><span class="text-xs font-medium text-right">{{ formatBoolean(booking.order.isExpired) }}</span></div>
-                <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Storniert</span><span class="text-xs font-medium text-right">{{ formatBoolean(booking.order.isCancelled) }}</span></div>
-                <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Storniert am</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatDateTime(booking.order.cancelledOn) }}</span></div>
-                <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Letzter Kuendigungstermin</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatDate(booking.order.lastDateOfCancellation) }}</span></div>
-                <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Betriebszeitraum</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.order.operationPeriod) }}</span></div>
-                <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Buchungsdokument-ID</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.order.bookingDocId) }}</span></div>
+                <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                        class="text-xs text-gray-500">Kunden-Bestell-ID</span><span
+                        class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                        formatValue(booking.order.customerOrderId) }}</span></div>
+                <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                        class="text-xs text-gray-500">Bestell-ID</span><span
+                        class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                        formatValue(booking.order.orderId) }}</span></div>
+                <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Admin hat
+                        bestellt</span><span class="text-xs font-medium text-right">{{
+                        formatBoolean(booking.order.adminPlacedOrder) }}</span></div>
+                <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Admin-Bestellung
+                        am</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                        formatDateTime(booking.order.adminOrderPlacedOn) }}</span></div>
+                <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                        class="text-xs text-gray-500">Ablaufdatum</span><span
+                        class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                        formatDate(booking.order.expiryOn) }}</span></div>
+                <div class="flex justify-between gap-4 px-4 py-2.5"><span
+                        class="text-xs text-gray-500">Storniert</span><span class="text-xs font-medium text-right">{{
+                        formatBoolean(booking.order.isCancelled) }}</span></div>
+                @if (booking.order.isCancelled) {
+                <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Storniert
+                        am</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                        formatDateTime(booking.order.cancelledOn) }}</span></div>
+                <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Letzter
+                        Kuendigungstermin</span><span
+                        class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{
+                        formatDate(booking.order.lastDateOfCancellation) }}</span></div>
+                }
             </div>
 
-            @if (booking.order.doc) {
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-2">
-                <div class="rounded-xl bg-gray-50 dark:bg-gray-800 overflow-hidden">
-                    <div class="px-4 py-3 text-xs font-semibold text-gray-700 dark:text-gray-200 border-b border-gray-100 dark:border-gray-700">Dokumentdaten</div>
-                    <div class="divide-y divide-gray-100 dark:divide-gray-700">
-                        <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Dokument-ID</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.order.doc.bookingDocId) }}</span></div>
-                        <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Delivery-ID</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.order.doc.deliveryId) }}</span></div>
-                        <div class="flex flex-col gap-1 px-4 py-2.5"><span class="text-xs text-gray-500">Unsignierte Datei</span><span class="text-xs font-medium text-gray-800 dark:text-gray-200 break-all">{{ formatValue(booking.order.doc.unsignedOriginalFileName) }}</span></div>
-                        <div class="flex flex-col gap-1 px-4 py-2.5"><span class="text-xs text-gray-500">Unsignierte URL</span><span class="text-xs font-medium text-gray-800 dark:text-gray-200 break-all">{{ formatValue(booking.order.doc.fileUrl) }}</span></div>
-                        <div class="flex flex-col gap-1 px-4 py-2.5"><span class="text-xs text-gray-500">Signierte Datei</span><span class="text-xs font-medium text-gray-800 dark:text-gray-200 break-all">{{ formatValue(booking.order.doc.signedOriginalFileName) }}</span></div>
-                        <div class="flex flex-col gap-1 px-4 py-2.5"><span class="text-xs text-gray-500">Signierte URL</span><span class="text-xs font-medium text-gray-800 dark:text-gray-200 break-all">{{ formatValue(booking.order.doc.signedFileUrl) }}</span></div>
-                        <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Signiert eingereicht</span><span class="text-xs font-medium text-right">{{ formatBoolean(booking.order.doc.signedDocumentSubmitted) }}</span></div>
-                        <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Hinzugefuegt am</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatDateTime(booking.order.doc.addedOn) }}</span></div>
-                    </div>
-                </div>
+            <!--
+              Document section — only shown once the admin has clicked
+              "Upload Documents" and the backend has returned the PDF.
+              No raw database fields are displayed here — just the file
+              name, upload date, and View / Download buttons.
+            -->
+            @if (hasDoc) {
+            <div class="space-y-3 pt-1">
+                <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Vertragsdokument</p>
 
-                <div class="rounded-xl bg-gray-50 dark:bg-gray-800 overflow-hidden">
-                    <div class="px-4 py-3 text-xs font-semibold text-gray-700 dark:text-gray-200 border-b border-gray-100 dark:border-gray-700">Dokument-Kundenkonto</div>
-                    <div class="divide-y divide-gray-100 dark:divide-gray-700">
-                        <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Kunden-ID</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.order.doc.customer?.id) }}</span></div>
-                        <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Anrede</span><span class="text-xs font-semibold text-right text-gray-900 dark:text-white">{{ formatValue(booking.order.doc.customer?.salutation) }}</span></div>
-                        <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Titel</span><span class="text-xs font-semibold text-right text-gray-900 dark:text-white">{{ formatValue(booking.order.doc.customer?.title) }}</span></div>
-                        <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Vorname</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.order.doc.customer?.firstName) }}</span></div>
-                        <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Nachname</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.order.doc.customer?.lastName) }}</span></div>
-                        <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">E-Mail</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200 break-all">{{ formatValue(booking.order.doc.customer?.email) }}</span></div>
-                        <div class="flex justify-between gap-4 px-4 py-2.5"><span class="text-xs text-gray-500">Kundentyp</span><span class="text-xs font-medium text-right text-gray-800 dark:text-gray-200">{{ formatValue(booking.order.doc.customer?.userType) }}</span></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="space-y-3 pt-2">
-                @if (hasUnsignedDoc) {
-                <div class="flex items-center justify-between gap-3 rounded-xl bg-gray-50 dark:bg-gray-800 px-4 py-3">
-                    <div class="min-w-0">
-                        <p class="text-xs font-medium text-gray-800 dark:text-gray-200 truncate">{{ booking.order.doc.unsignedOriginalFileName || 'Unsigniertes Dokument' }}</p>
-                        <p class="text-xs text-gray-400">Original · {{ formatDate(booking.order.doc.addedOn) }}</p>
+                <!-- Contract PDF row -->
+                <div class="flex items-center justify-between gap-3 rounded-xl
+                            bg-gray-50 dark:bg-gray-800 px-4 py-3
+                            border border-gray-200 dark:border-gray-700">
+                    <div class="min-w-0 flex items-center gap-3">
+                        <!-- PDF icon -->
+                        <div class="flex-shrink-0 h-9 w-9 rounded-lg bg-red-50 dark:bg-red-900/20
+                                    flex items-center justify-center">
+                            <svg class="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1
+                                         1.5L18.5 9H13V3.5zM9.5 17.5c-.3 0-.5-.1-.7-.3-.4-.4-.4-1
+                                         0-1.4l4-4c.4-.4 1-.4 1.4 0 .4.4.4 1 0 1.4l-4 4c-.2.2-.4.3-.7.3z" />
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <!-- Show the file name if available, otherwise a friendly fallback -->
+                            <p class="text-xs font-medium text-gray-800 dark:text-gray-200 truncate">
+                                {{ booking.order.doc?.unsignedOriginalFileName || 'Vertrag.pdf' }}
+                            </p>
+                            <p class="text-xs text-gray-400">
+                                Hochgeladen am {{ formatDate(booking.order.doc?.addedOn) }}
+                            </p>
+                        </div>
                     </div>
                     <div class="flex items-center gap-1.5 flex-shrink-0">
-                        <button (click)="viewDocument(booking.order.doc.fileUrl)" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 transition cursor-pointer">Ansehen</button>
-                        <button (click)="downloadDocument(booking.order.doc.fileUrl, booking.order.doc.unsignedOriginalFileName)" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 border border-blue-700 transition cursor-pointer">Herunterladen</button>
+                        <button (click)="viewDocument(booking.order.doc?.fileUrl)" class="px-2.5 py-1.5 text-xs font-medium rounded-lg
+                                   bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300
+                                   border border-gray-200 dark:border-gray-600
+                                   hover:bg-gray-50 transition cursor-pointer">
+                            Ansehen
+                        </button>
+                        <button
+                            (click)="downloadDocument(booking.order.doc?.fileUrl, booking.order.doc?.unsignedOriginalFileName)"
+                            class="px-2.5 py-1.5 text-xs font-medium rounded-lg
+                                   bg-blue-600 text-white hover:bg-blue-700
+                                   border border-blue-700 transition cursor-pointer">
+                            Herunterladen
+                        </button>
                     </div>
                 </div>
-                }
 
+                <!-- Signed PDF row — only shown once the signed doc has been uploaded -->
                 @if (hasSignedDoc) {
-                <div class="flex items-center justify-between gap-3 rounded-xl bg-green-50 dark:bg-green-900/10 px-4 py-3 border border-green-200 dark:border-green-800/40">
-                    <div class="min-w-0">
-                        <p class="text-xs font-medium text-gray-800 dark:text-gray-200 truncate">{{ booking.order.doc.signedOriginalFileName || 'Signiertes Dokument' }}</p>
-                        <p class="text-xs text-green-600 dark:text-green-400">Signiert und eingereicht</p>
+                <div class="flex items-center justify-between gap-3 rounded-xl
+                            bg-green-50 dark:bg-green-900/10 px-4 py-3
+                            border border-green-200 dark:border-green-800/40">
+                    <div class="min-w-0 flex items-center gap-3">
+                        <div class="flex-shrink-0 h-9 w-9 rounded-lg bg-green-100 dark:bg-green-900/30
+                                    flex items-center justify-center">
+                            <svg class="h-5 w-5 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-xs font-medium text-gray-800 dark:text-gray-200 truncate">
+                                {{ booking.order.doc?.signedOriginalFileName || 'Unterzeichneter Vertrag.pdf' }}
+                            </p>
+                            <p class="text-xs text-green-600 dark:text-green-400">Signiert und eingereicht</p>
+                        </div>
                     </div>
                     <div class="flex items-center gap-1.5 flex-shrink-0">
-                        <button (click)="viewDocument(booking.order.doc.signedFileUrl)" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 transition cursor-pointer">Ansehen</button>
-                        <button (click)="downloadDocument(booking.order.doc.signedFileUrl, booking.order.doc.signedOriginalFileName)" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-green-600 text-white hover:bg-green-700 border border-green-700 transition cursor-pointer">Herunterladen</button>
+                        <button (click)="viewDocument(booking.order.doc?.signedFileUrl)" class="px-2.5 py-1.5 text-xs font-medium rounded-lg
+                                   bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300
+                                   border border-gray-200 dark:border-gray-600
+                                   hover:bg-gray-50 transition cursor-pointer">
+                            Ansehen
+                        </button>
+                        <button
+                            (click)="downloadDocument(booking.order.doc?.signedFileUrl, booking.order.doc?.signedOriginalFileName)"
+                            class="px-2.5 py-1.5 text-xs font-medium rounded-lg
+                                   bg-green-600 text-white hover:bg-green-700
+                                   border border-green-700 transition cursor-pointer">
+                            Herunterladen
+                        </button>
                     </div>
                 </div>
                 }
+
             </div>
-            } @else {
-            <div class="rounded-xl bg-gray-50 dark:bg-gray-800 px-4 py-3 text-xs text-gray-400 italic">Keine Dokumentdaten vorhanden.</div>
+            } @else if (isOrderCreated) {
+            <!-- Order placed but admin hasn't clicked "Upload Documents" yet -->
+            <div class="rounded-xl bg-gray-50 dark:bg-gray-800 px-4 py-3 text-xs text-gray-400 italic">
+                Noch kein Dokument vorhanden. Klicke auf "Dokumente hochladen" um das Dokument zu generieren.
+            </div>
             }
+
             } @else {
-            <div class="rounded-xl bg-gray-50 dark:bg-gray-800 px-4 py-3 text-xs text-gray-400 italic">Noch keine Bestellinformationen vorhanden.</div>
+            <div class="rounded-xl bg-gray-50 dark:bg-gray-800 px-4 py-3 text-xs text-gray-400 italic">Noch keine
+                Bestellinformationen vorhanden.</div>
             }
         </div>
     </div>
@@ -462,7 +906,8 @@
             </button>
         </div>
 
-        <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg px-3 py-2">
+        <div
+            class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg px-3 py-2">
             Bestell-ID:
             <span class="font-mono font-medium text-gray-700 dark:text-gray-300">{{ booking?.order?.orderId }}</span>
         </div>
@@ -488,13 +933,15 @@
         </label>
 
         @if (uploadError && !uploadMessage) {
-        <div class="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/40 rounded-lg px-3 py-2">
+        <div
+            class="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/40 rounded-lg px-3 py-2">
             {{ uploadError }}
         </div>
         }
 
         @if (uploadMessage) {
-        <div class="text-green-700 dark:text-green-400 text-sm bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700/40 rounded-lg px-3 py-2">
+        <div
+            class="text-green-700 dark:text-green-400 text-sm bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700/40 rounded-lg px-3 py-2">
             {{ uploadMessage }}
         </div>
         }
